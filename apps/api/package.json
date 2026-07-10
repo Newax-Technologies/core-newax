@@ -18,6 +18,8 @@
     "db:studio": "prisma studio",
     "db:validate": "prisma validate",
     "dev": "nest start --watch",
+    "prebuild": "pnpm run db:generate",
+    "pretypecheck": "pnpm run db:generate",
     "start": "node dist/main.js",
     "start:debug": "nest start --debug --watch",
     "test": "vitest run",
