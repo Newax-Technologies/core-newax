@@ -1,0 +1,336 @@
+{
+  "manifest_name": "ABC Institute LMS Foundation Edition Deployment Manifest",
+  "manifest_version": "0.1.0",
+  "status": "example_only",
+  "important_note": "This example is a template only. It does not create production modules, migrations, implementations, or deployments.",
+  "client_name": "ABC Institute",
+  "client_key": "abc-institute",
+  "organization_id": "org_abc_institute",
+  "solution_name": "LMS Foundation Edition",
+  "solution_key": "lms-foundation-edition",
+  "deployment_environment": "production",
+  "deployment_status": "planned",
+  "support_plan": "standard",
+  "installed_modules": [
+    {
+      "module_name": "Authentication",
+      "module_key": "authentication",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "security_sensitive": true,
+      "dependencies": [],
+      "update_eligible": false,
+      "notes": "Handles login access, sessions, account status, and future authentication features."
+    },
+    {
+      "module_name": "People",
+      "module_key": "people",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "security_sensitive": true,
+      "dependencies": [],
+      "update_eligible": false,
+      "notes": "Represents real human beings through the Central Registry."
+    },
+    {
+      "module_name": "Organizations",
+      "module_key": "organizations",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "security_sensitive": true,
+      "dependencies": [],
+      "update_eligible": false,
+      "notes": "Defines organization and tenant-facing boundaries."
+    },
+    {
+      "module_name": "Users",
+      "module_key": "users",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "security_sensitive": true,
+      "dependencies": [
+        "people",
+        "organizations"
+      ],
+      "update_eligible": false,
+      "notes": "Represents login accounts connected to people."
+    },
+    {
+      "module_name": "Roles",
+      "module_key": "roles",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "security_sensitive": true,
+      "dependencies": [
+        "organizations",
+        "permissions"
+      ],
+      "update_eligible": false,
+      "notes": "Groups permissions into responsibility sets."
+    },
+    {
+      "module_name": "Permissions",
+      "module_key": "permissions",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "security_sensitive": true,
+      "dependencies": [
+        "organizations",
+        "people",
+        "users"
+      ],
+      "update_eligible": false,
+      "notes": "Defines actual access rights. Business logic must check permissions, not role names."
+    },
+    {
+      "module_name": "Audit",
+      "module_key": "audit",
+      "module_version": "1.0.0",
+      "module_layer": "platform_service",
+      "security_sensitive": true,
+      "dependencies": [
+        "organizations",
+        "users"
+      ],
+      "update_eligible": false,
+      "notes": "Records important system, security, tenant, and administrative actions."
+    },
+    {
+      "module_name": "Reports",
+      "module_key": "reports",
+      "module_version": "1.0.0",
+      "module_layer": "platform_service",
+      "security_sensitive": true,
+      "dependencies": [
+        "organizations",
+        "permissions",
+        "audit"
+      ],
+      "update_eligible": false,
+      "notes": "Provides reporting and exports while enforcing permissions and tenant boundaries."
+    },
+    {
+      "module_name": "LMS Students",
+      "module_key": "lms-students",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "security_sensitive": true,
+      "dependencies": [
+        "organizations",
+        "people",
+        "permissions",
+        "audit"
+      ],
+      "update_eligible": false,
+      "notes": "Owns LMS student profile records and references central people and organizations."
+    },
+    {
+      "module_name": "LMS Teachers",
+      "module_key": "lms-teachers",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "security_sensitive": true,
+      "dependencies": [
+        "organizations",
+        "people",
+        "permissions",
+        "audit"
+      ],
+      "update_eligible": false,
+      "notes": "Owns LMS teacher profile records and references central people and organizations."
+    },
+    {
+      "module_name": "LMS Courses",
+      "module_key": "lms-courses",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "security_sensitive": false,
+      "dependencies": [
+        "organizations",
+        "permissions",
+        "audit"
+      ],
+      "update_eligible": false,
+      "notes": "Owns course records and course-related tenant boundaries."
+    },
+    {
+      "module_name": "LMS Lectures",
+      "module_key": "lms-lectures",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "security_sensitive": false,
+      "dependencies": [
+        "organizations",
+        "lms-courses",
+        "permissions",
+        "audit"
+      ],
+      "update_eligible": false,
+      "notes": "Owns lecture records connected to LMS courses."
+    },
+    {
+      "module_name": "LMS Tests",
+      "module_key": "lms-tests",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "security_sensitive": true,
+      "dependencies": [
+        "organizations",
+        "people",
+        "permissions",
+        "audit",
+        "lms-courses"
+      ],
+      "update_eligible": false,
+      "notes": "Owns tests and test result responsibilities with stronger access controls."
+    },
+    {
+      "module_name": "LMS Payments",
+      "module_key": "lms-payments",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "security_sensitive": true,
+      "dependencies": [
+        "organizations",
+        "people",
+        "users",
+        "permissions",
+        "audit"
+      ],
+      "update_eligible": false,
+      "notes": "Owns LMS payment records, approval state, and payment-related audit context."
+    }
+  ],
+  "installed_packages": [
+    {
+      "package_name": "LMS Foundation Package",
+      "package_key": "lms-foundation-package",
+      "package_version": "1.0.0",
+      "included_modules": [
+        "authentication",
+        "people",
+        "organizations",
+        "users",
+        "roles",
+        "permissions",
+        "audit",
+        "reports",
+        "lms-students",
+        "lms-teachers",
+        "lms-courses",
+        "lms-lectures",
+        "lms-tests",
+        "lms-payments"
+      ],
+      "notes": "Example package grouping only. Installed modules remain the source of truth for exact module versions."
+    }
+  ],
+  "client_extensions": [
+    {
+      "extension_name": "ABC Institute Payment Receipt Extension",
+      "extension_key": "abc-institute-payment-receipt-extension",
+      "extension_version": "0.1.0",
+      "extension_status": "planned",
+      "extension_owner": "NEWAX Engineering",
+      "depends_on_modules": [
+        "lms-payments",
+        "reports",
+        "audit"
+      ],
+      "customization_type": "client_specific_extension",
+      "allowed_integration_points": [
+        "payment.approved event",
+        "approved payment receipt configuration",
+        "approved reports export interface"
+      ],
+      "notes": "Client-specific behavior must remain outside reusable core modules and must not modify lms-payments directly."
+    }
+  ],
+  "configuration_profile": {
+    "profile_name": "ABC Institute Default LMS Configuration",
+    "profile_key": "abc-institute-lms-default",
+    "configuration_owner": "NEWAX Engineering",
+    "tracked_configuration_groups": [
+      "authentication_policy",
+      "permission_profile",
+      "report_export_policy",
+      "payment_receipt_profile",
+      "notification_preferences"
+    ],
+    "security_sensitive": true,
+    "notes": "The manifest tracks configuration identity and groups. Sensitive values must be stored securely outside this example template."
+  },
+  "database_model": "centralized_shared_database",
+  "tenant_scope": {
+    "scope_type": "organization_scoped",
+    "organization_id": "org_abc_institute",
+    "tenant_boundary_required": true,
+    "notes": "Every tenant-scoped LMS record must enforce ABC Institute organization boundaries where appropriate."
+  },
+  "update_policy": "managed_by_newax",
+  "update_eligibility": {
+    "security_updates_prioritized": true,
+    "automatic_major_updates_allowed": false,
+    "production_major_update_requires_review": true,
+    "client_extension_compatibility_required": true,
+    "rollback_plan_required_for_major_updates": true,
+    "notes": "Update handling must follow ADR 0006 controlled updates and versioning."
+  },
+  "dependency_tracking": [
+    {
+      "module_key": "lms-payments",
+      "depends_on": [
+        "organizations",
+        "people",
+        "users",
+        "permissions",
+        "audit"
+      ],
+      "source": "module-registry"
+    },
+    {
+      "module_key": "reports",
+      "depends_on": [
+        "organizations",
+        "permissions",
+        "audit"
+      ],
+      "source": "module-registry"
+    },
+    {
+      "extension_key": "abc-institute-payment-receipt-extension",
+      "depends_on": [
+        "lms-payments",
+        "reports",
+        "audit"
+      ],
+      "source": "client-extension-record"
+    }
+  ],
+  "security_sensitive_modules": [
+    "authentication",
+    "people",
+    "organizations",
+    "users",
+    "roles",
+    "permissions",
+    "audit",
+    "reports",
+    "lms-students",
+    "lms-teachers",
+    "lms-tests",
+    "lms-payments"
+  ],
+  "audit_and_change_history": [
+    {
+      "changed_at": "2026-07-10",
+      "changed_by": "NEWAX Engineering",
+      "change_type": "initial_manifest_template",
+      "summary": "Created example client deployment manifest for ABC Institute LMS Foundation Edition.",
+      "approved_by": "NEWAX Engineering",
+      "notes": "Template only. Not a production deployment record."
+    }
+  ],
+  "last_updated": "2026-07-10",
+  "approved_by": "NEWAX Engineering"
+}
