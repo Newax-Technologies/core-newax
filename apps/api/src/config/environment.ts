@@ -9,6 +9,7 @@ export interface ApplicationEnvironment {
   readonly NODE_ENV: NodeEnvironment;
   readonly HOST: string;
   readonly PORT: number;
+  readonly DATABASE_URL?: string;
 }
 
 function parseNodeEnvironment(value: unknown): NodeEnvironment {
@@ -61,13 +62,46 @@ function parsePort(value: unknown): number {
   return port;
 }
 
+function parseDatabaseUrl(value: unknown): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== 'string') {
+    throw new Error('DATABASE_URL must be a string.');
+  }
+
+  const databaseUrl = value.trim();
+
+  if (databaseUrl.length === 0) {
+    throw new Error('DATABASE_URL must not be empty.');
+  }
+
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = new URL(databaseUrl);
+  } catch {
+    throw new Error('DATABASE_URL must be a valid PostgreSQL connection URL.');
+  }
+
+  if (parsedUrl.protocol !== 'postgresql:' && parsedUrl.protocol !== 'postgres:') {
+    throw new Error('DATABASE_URL must use the postgresql:// or postgres:// protocol.');
+  }
+
+  return databaseUrl;
+}
+
 export function validateEnvironment(
   configuration: Record<string, unknown>,
 ): Record<string, unknown> & ApplicationEnvironment {
+  const databaseUrl = parseDatabaseUrl(configuration.DATABASE_URL);
+
   return {
     ...configuration,
     NODE_ENV: parseNodeEnvironment(configuration.NODE_ENV),
     HOST: parseHost(configuration.HOST),
     PORT: parsePort(configuration.PORT),
+    ...(databaseUrl === undefined ? {} : { DATABASE_URL: databaseUrl }),
   };
 }
