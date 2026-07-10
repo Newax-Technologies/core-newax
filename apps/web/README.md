@@ -109,7 +109,7 @@ It should not:
 - Reimplement domain rules owned by backend or shared packages.
 - Hardcode tenant-specific behavior into reusable core screens.
 - Depend directly on unrelated modules merely for convenience.
-- expose secrets or private server configuration to browser code.
+- Expose secrets or private server configuration to browser code.
 - Turn NEWAX into a collection of disconnected client websites.
 
 Client-specific presentation should be delivered through governed configuration, themes, extension points, or deployment-level composition. The reusable core must remain reliable, upgradeable, and recognizably NEWAX.
