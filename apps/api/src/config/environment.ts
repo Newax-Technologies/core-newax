@@ -53,7 +53,12 @@ function parsePort(value: unknown): number {
     return DEFAULT_PORT;
   }
 
-  const port = typeof value === 'number' ? value : Number(value);
+  if (typeof value !== 'string' && typeof value !== 'number') {
+    throw new Error('PORT must be a string or number.');
+  }
+
+  const normalizedValue = typeof value === 'string' ? value.trim() : value;
+  const port = typeof normalizedValue === 'number' ? normalizedValue : Number(normalizedValue);
 
   if (!Number.isInteger(port) || port < 1 || port > 65_535) {
     throw new Error('PORT must be an integer between 1 and 65535.');
