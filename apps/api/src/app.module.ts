@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { validateEnvironment } from './config/environment';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -9,6 +10,7 @@ import { HealthController } from './health/health.controller';
       isGlobal: true,
       cache: true,
       envFilePath: ['.env.local', '.env'],
+      validate: validateEnvironment,
     }),
   ],
   controllers: [HealthController],
