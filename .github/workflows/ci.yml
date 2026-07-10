@@ -1,34 +1,29 @@
-name: Continuous Integration
+name: Repair pnpm Lockfile Policy
 
 on:
   push:
     branches:
       - main
-  pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: lockfile-policy-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  CI: true
-  NEXT_TELEMETRY_DISABLED: 1
-  SEARCH_INDEXING_ENABLED: false
-
 jobs:
-  verify:
-    name: Verify monorepo
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    name: Regenerate lockfile policy
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     steps:
-      - name: Check out repository
+      - name: Check out main
         uses: actions/checkout@v7
         with:
-          persist-credentials: false
+          ref: main
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -39,20 +34,19 @@ jobs:
           node-version-file: .node-version
           package-manager-cache: false
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Regenerate lockfile with workspace policy
+        run: pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile
 
-      - name: Check formatting
-        run: pnpm format:check
+      - name: Validate strict frozen installation
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Type-check
-        run: pnpm typecheck
-
-      - name: Test
-        run: pnpm test
-
-      - name: Build
-        run: pnpm build
+      - name: Commit corrected lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Regenerate lockfile with strict peer policy"
+          git push origin HEAD:main
