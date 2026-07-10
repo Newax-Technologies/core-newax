@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Package-manager lockfiles
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build output
+dist/
+build/
+out/
+.next/
+.swc/
+*.tsbuildinfo
+
+# Test and coverage output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Tool caches
+.cache/
+.turbo/
+.nx/
+
+# Generated files and reports
+docs/generated/
+reports/generated/
+generated/
+
+# Local data and uploaded files
+postgres-data/
+minio-data/
+storage-data/
+uploads/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Minified and generated assets
+*.min.js
+*.min.css
+*.map
