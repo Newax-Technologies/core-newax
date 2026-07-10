@@ -19,27 +19,64 @@ Run from the repository root:
 pnpm install
 ```
 
+## Environment setup
+
+Create a local environment file from the committed template:
+
+```bash
+cp apps/web/.env.example apps/web/.env.local
+```
+
+Do not commit `.env.local` or place secrets in variables exposed to browser code.
+
+The template documents these settings:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `HOSTNAME` | `0.0.0.0` | Network interface used by the deployed web server |
+| `PORT` | `3001` | Web server port, separated from the API default of `3000` |
+| `SEARCH_INDEXING_ENABLED` | `false` | Controls whether public search-engine crawling is permitted |
+
+For local development, pass the binding values directly to the Next.js command so they are available when the server starts:
+
+```bash
+pnpm --filter @newax/web dev -- --hostname 0.0.0.0 --port 3001
+```
+
 ## Run locally
 
 Start the web application from the repository root:
 
 ```bash
-pnpm --filter @newax/web dev
+pnpm --filter @newax/web dev -- --hostname 0.0.0.0 --port 3001
 ```
 
-The default Next.js development server is available at:
+The application is then available at:
 
 ```text
-http://localhost:3000
+http://localhost:3001
 ```
 
-The API also defaults to port `3000`, so local full-stack development will require an explicit port assignment for one application until shared development orchestration is added.
+The API defaults to port `3000`, so this separation allows both applications to run locally without competing for the same port.
 
-Example:
+## Search indexing policy
 
-```bash
-pnpm --filter @newax/web dev -- --port 3001
-```
+Search indexing is disabled unless `SEARCH_INDEXING_ENABLED` is exactly `true`.
+
+Keep indexing disabled for:
+
+- Local development.
+- Automated tests.
+- Preview deployments.
+- Staging environments.
+- Private operational deployments.
+- Tenant deployments that have not received explicit publication approval.
+
+Enable indexing only for an approved public production deployment.
+
+Even when indexing is enabled, `robots.ts` continues to disallow administrative, API, application, authentication, dashboard, and internal route families.
+
+Robots rules are crawler instructions, not a security control. Private routes and data must still be protected through authentication, authorization, tenant isolation, and server-side access enforcement.
 
 ## Commands
 
@@ -60,9 +97,15 @@ Run commands from the repository root with `pnpm --filter @newax/web <command>`.
 apps/web/
 ├── src/
 │   └── app/
+│       ├── error.tsx
+│       ├── global-error.tsx
 │       ├── globals.css
 │       ├── layout.tsx
-│       └── page.tsx
+│       ├── loading.tsx
+│       ├── not-found.tsx
+│       ├── page.tsx
+│       └── robots.ts
+├── .env.example
 ├── next-env.d.ts
 ├── next.config.ts
 ├── package.json
@@ -93,6 +136,8 @@ Future reusable design primitives should move into governed shared packages when
 `next.config.ts` enables standalone output so the application can be packaged for Docker-compatible and conventional Node.js deployments without requiring the complete monorepo at runtime.
 
 A production deployment must run `pnpm --filter @newax/web build` before `pnpm --filter @newax/web start`.
+
+Deployment configuration must provide an explicit hostname, port, and indexing decision. Search indexing must remain disabled unless the deployment is intentionally public and has passed publication review.
 
 ## Application boundary
 
