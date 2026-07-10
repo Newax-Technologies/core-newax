@@ -1,0 +1,272 @@
+{
+  "package_name": "LMS Foundation Package",
+  "package_key": "lms-foundation-package",
+  "package_version": "1.0.0",
+  "package_status": "planned",
+  "package_layer": "client_solution_package",
+  "description": "A curated baseline package of reusable NEWAX modules for deploying an LMS Foundation Edition client solution.",
+  "package_type": "foundation",
+  "approval_status": "draft_for_internal_review",
+  "important_note": "This is an example template only. It does not create production modules, package implementations, database migrations, or deployments.",
+  "included_modules": [
+    {
+      "module_name": "Authentication",
+      "module_key": "authentication",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "People",
+      "module_key": "people",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "Organizations",
+      "module_key": "organizations",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "Users",
+      "module_key": "users",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "Roles",
+      "module_key": "roles",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "Permissions",
+      "module_key": "permissions",
+      "module_version": "1.0.0",
+      "module_layer": "foundation",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "Audit",
+      "module_key": "audit",
+      "module_version": "1.0.0",
+      "module_layer": "platform_service",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "Reports",
+      "module_key": "reports",
+      "module_version": "1.0.0",
+      "module_layer": "platform_service",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "LMS Students",
+      "module_key": "lms-students",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "LMS Teachers",
+      "module_key": "lms-teachers",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "LMS Courses",
+      "module_key": "lms-courses",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "required": true,
+      "security_sensitive": false
+    },
+    {
+      "module_name": "LMS Lectures",
+      "module_key": "lms-lectures",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "required": true,
+      "security_sensitive": false
+    },
+    {
+      "module_name": "LMS Tests",
+      "module_key": "lms-tests",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "required": true,
+      "security_sensitive": true
+    },
+    {
+      "module_name": "LMS Payments",
+      "module_key": "lms-payments",
+      "module_version": "1.0.0",
+      "module_layer": "business_domain",
+      "required": true,
+      "security_sensitive": true
+    }
+  ],
+  "required_dependencies": [
+    {
+      "dependency_name": "Central Identity and Organization Registry",
+      "dependency_type": "architecture_foundation",
+      "required": true,
+      "notes": "LMS domain modules should reference central people and organizations where appropriate."
+    },
+    {
+      "dependency_name": "Permission-Based Access Control",
+      "dependency_type": "architecture_decision",
+      "required": true,
+      "related_document": "docs/decisions/0002-use-permission-based-access-control.md"
+    },
+    {
+      "dependency_name": "Controlled Updates and Versioning",
+      "dependency_type": "architecture_decision",
+      "required": true,
+      "related_document": "docs/decisions/0006-use-controlled-updates-and-versioning.md"
+    },
+    {
+      "dependency_name": "Module Registry",
+      "dependency_type": "governance_standard",
+      "required": true,
+      "related_document": "docs/standards/module-registry-standard.md"
+    },
+    {
+      "dependency_name": "Client Deployment Manifest",
+      "dependency_type": "governance_standard",
+      "required": true,
+      "related_document": "docs/standards/client-deployment-manifest-standard.md"
+    }
+  ],
+  "optional_modules": [
+    {
+      "module_key": "notifications",
+      "module_name": "Notifications",
+      "default_included": false,
+      "notes": "May be added for email, in-app, or future messaging workflows."
+    },
+    {
+      "module_key": "documents",
+      "module_name": "Documents",
+      "default_included": false,
+      "notes": "May be added when document workflows are required."
+    },
+    {
+      "module_key": "files",
+      "module_name": "Files",
+      "default_included": false,
+      "notes": "May be added when managed file storage is required."
+    },
+    {
+      "module_key": "dashboard",
+      "module_name": "Dashboard",
+      "default_included": false,
+      "notes": "May be added for operational dashboards and summary views."
+    },
+    {
+      "module_key": "workflow",
+      "module_name": "Workflow",
+      "default_included": false,
+      "notes": "May be added when approval or process automation workflows are required."
+    }
+  ],
+  "excluded_modules": [
+    {
+      "module_key": "ai-analytics",
+      "reason": "Not included in the foundation package. Requires separate product, security, and support approval."
+    },
+    {
+      "module_key": "whatsapp-integration",
+      "reason": "Not included in the foundation package. Requires integration-specific approval."
+    },
+    {
+      "module_key": "payment-gateway",
+      "reason": "Not included in the foundation package. Payment collection integrations require separate review."
+    },
+    {
+      "module_key": "parent-portal",
+      "reason": "Not included in the foundation package. May be sold or deployed as a separate capability."
+    },
+    {
+      "module_key": "mobile-app",
+      "reason": "Not included in the foundation package. Mobile delivery requires separate scope and support planning."
+    },
+    {
+      "module_key": "advanced-attendance",
+      "reason": "Not included in the foundation package. Advanced attendance should be packaged separately."
+    },
+    {
+      "module_key": "certificates",
+      "reason": "Not included in the foundation package. Certificate generation requires separate module definition."
+    }
+  ],
+  "compatible_database_models": [
+    "centralized_shared_database",
+    "dedicated_client_database",
+    "hybrid_database",
+    "private_enterprise_deployment"
+  ],
+  "compatible_client_types": [
+    "single_institute_lms",
+    "multi_branch_education_group",
+    "managed_newax_lms_client",
+    "private_enterprise_lms_deployment"
+  ],
+  "support_level": "standard",
+  "documentation_path": "docs/packages/lms-foundation-package.md",
+  "changelog_path": "docs/packages/lms-foundation-package-changelog.md",
+  "upgrade_rules": {
+    "versioning_convention": "semantic_versioning",
+    "automatic_major_updates_allowed": false,
+    "production_upgrade_requires_manifest_review": true,
+    "client_extension_compatibility_required": true,
+    "rollback_plan_required_for_major_updates": true,
+    "related_document": "docs/decisions/0006-use-controlled-updates-and-versioning.md"
+  },
+  "client_customization_rules": {
+    "client_specific_customizations_allowed_inside_package": false,
+    "configuration_first": true,
+    "events_second": true,
+    "extension_modules_third": true,
+    "notes": "Client-specific changes must be documented as client extensions and must not modify reusable core modules directly."
+  },
+  "deployment_manifest_requirements": {
+    "exact_module_versions_required": true,
+    "installed_packages_must_be_listed": true,
+    "client_extensions_must_be_listed": true,
+    "database_model_must_be_declared": true,
+    "tenant_scope_must_be_declared": true,
+    "related_document": "docs/standards/client-deployment-manifest-standard.md"
+  },
+  "approval_checklist": [
+    "Package purpose is clear.",
+    "Package name and key follow naming rules.",
+    "Included modules are listed.",
+    "Required dependencies are documented.",
+    "Optional modules are documented.",
+    "Excluded modules are documented.",
+    "Compatible database models are documented.",
+    "Compatible client types are documented.",
+    "Support level is defined.",
+    "Documentation and changelog paths are defined.",
+    "Client customization rules are documented.",
+    "Security-sensitive modules are identified.",
+    "Client deployment manifest expectations are understood."
+  ]
+}
