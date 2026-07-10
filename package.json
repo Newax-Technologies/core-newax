@@ -13,13 +13,14 @@
     "build": "pnpm -r --if-present run build",
     "clean": "pnpm -r --if-present run clean",
     "dev": "pnpm -r --parallel --if-present run dev",
-    "format": "pnpm -r --if-present run format",
-    "format:check": "pnpm -r --if-present run format:check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "pnpm -r --if-present run lint",
     "test": "pnpm -r --if-present run test",
     "typecheck": "pnpm -r --if-present run typecheck"
   },
   "devDependencies": {
+    "prettier": "3.9.0",
     "typescript": "6.0.3"
   }
 }
