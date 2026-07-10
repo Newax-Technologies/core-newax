@@ -21,21 +21,34 @@ pnpm install
 
 ## Run locally
 
-The API reads its network settings from the process environment.
+Create a local environment file from the example:
 
 ```bash
-HOST=0.0.0.0 PORT=3000 pnpm --filter @newax/api dev
+cp apps/api/.env.example apps/api/.env
 ```
 
-The default values are:
+Then start the API from the repository root:
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `HOST` | `0.0.0.0` | Network interface used by the HTTP server |
-| `PORT` | `3000` | HTTP port used by the API |
-| `NODE_ENV` | Not assigned by the application | Runtime environment supplied by the deployment |
+```bash
+pnpm --filter @newax/api dev
+```
 
-`apps/api/.env.example` documents the current environment contract. The application does not yet load `.env` files automatically, so copying the example file alone will not configure the process.
+The API loads configuration in this order:
+
+1. Process environment variables.
+2. `apps/api/.env.local`.
+3. `apps/api/.env`.
+4. Application defaults.
+
+Use `.env.local` for developer-specific overrides. Both `.env` and `.env.local` are excluded from version control.
+
+| Variable | Default | Accepted values | Purpose |
+| --- | --- | --- | --- |
+| `NODE_ENV` | `development` | `development`, `test`, `production` | Runtime environment |
+| `HOST` | `0.0.0.0` | Any non-empty string | Network interface used by the HTTP server |
+| `PORT` | `3000` | Integer from `1` to `65535` | HTTP port used by the API |
+
+Configuration is validated during startup. Invalid values stop the application before it begins accepting traffic.
 
 ## Endpoint
 
@@ -80,6 +93,9 @@ Run commands from the repository root with `pnpm --filter @newax/api <command>`.
 ```text
 apps/api/
 ├── src/
+│   ├── config/
+│   │   ├── environment.spec.ts
+│   │   └── environment.ts
 │   ├── health/
 │   │   ├── health.controller.spec.ts
 │   │   └── health.controller.ts
