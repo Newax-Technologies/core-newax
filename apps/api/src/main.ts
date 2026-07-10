@@ -1,28 +1,19 @@
 import 'reflect-metadata';
 
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
+import type { ApplicationEnvironment } from './config/environment';
 
 const API_PREFIX = 'api';
-const DEFAULT_HOST = '0.0.0.0';
-const DEFAULT_PORT = 3000;
-
-function resolvePort(value: string | undefined): number {
-  const port = value === undefined ? DEFAULT_PORT : Number(value);
-
-  if (!Number.isInteger(port) || port < 1 || port > 65_535) {
-    throw new Error('PORT must be an integer between 1 and 65535.');
-  }
-
-  return port;
-}
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
-  const host = process.env.HOST?.trim() || DEFAULT_HOST;
-  const port = resolvePort(process.env.PORT);
+  const configuration = app.get<ConfigService<ApplicationEnvironment, true>>(ConfigService);
+  const host = configuration.get('HOST', { infer: true });
+  const port = configuration.get('PORT', { infer: true });
 
   app.setGlobalPrefix(API_PREFIX);
   app.enableShutdownHooks();
