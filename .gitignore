@@ -11,6 +11,9 @@ out/
 coverage/
 *.tsbuildinfo
 
+# Generated source
+apps/api/src/generated/prisma/
+
 # Framework and tool caches
 .cache/
 .turbo/
