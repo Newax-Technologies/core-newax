@@ -55,4 +55,24 @@ describe('validateEnvironment', () => {
       'PORT must be an integer between 1 and 65535.',
     );
   });
+
+  it.each([
+    [' postgresql://newax:secret@localhost:5432/newax ', 'postgresql://newax:secret@localhost:5432/newax'],
+    [' postgres://newax:secret@localhost:5432/newax ', 'postgres://newax:secret@localhost:5432/newax'],
+  ])('normalizes a valid PostgreSQL database URL', (DATABASE_URL, expectedDatabaseUrl) => {
+    expect(validateEnvironment({ DATABASE_URL })).toMatchObject({
+      DATABASE_URL: expectedDatabaseUrl,
+    });
+  });
+
+  it.each([
+    [42, 'DATABASE_URL must be a string.'],
+    ['', 'DATABASE_URL must not be empty.'],
+    ['   ', 'DATABASE_URL must not be empty.'],
+    ['not-a-url', 'DATABASE_URL must be a valid PostgreSQL connection URL.'],
+    ['https://localhost/newax', 'DATABASE_URL must use the postgresql:// or postgres:// protocol.'],
+    ['mysql://localhost/newax', 'DATABASE_URL must use the postgresql:// or postgres:// protocol.'],
+  ])('rejects an invalid DATABASE_URL value: %s', (DATABASE_URL, expectedMessage) => {
+    expect(() => validateEnvironment({ DATABASE_URL })).toThrow(expectedMessage);
+  });
 });
