@@ -1,13 +1,18 @@
 packages:
-  - "apps/*"
-  - "packages/*"
-  - "tooling/*"
+  - 'apps/*'
+  - 'packages/*'
+  - 'tooling/*'
 
 autoInstallPeers: false
 strictPeerDependencies: true
 engineStrict: true
 nodeVersion: 24.18.0
 pmOnFail: error
-savePrefix: ""
+savePrefix: ''
 verifyStoreIntegrity: true
 updateNotifier: false
+
+allowBuilds:
+  '@prisma/engines': true
+  prisma: true
+  sharp: true
