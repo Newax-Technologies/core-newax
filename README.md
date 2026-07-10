@@ -1,180 +1,508 @@
 # NEWAX Core
 
-NEWAX Core is the private engineering foundation for NEWAX. It is intended to define the durable technical base, module boundaries, architectural direction, and shared engineering standards that will support NEWAX as the product grows.
+## The private foundation for NEWAX business infrastructure
 
-This repository starts as an internal foundation document. It does not contain production implementation code yet.
+NEWAX Core is the internal architecture, governance, module, and engineering foundation used to build the systems modern organizations depend on.
+
+NEWAX is **The Business Infrastructure Company**. This repository supports that position by establishing a reusable foundation for Enterprise Software, Intelligent Automation, and Connected Infrastructure without reducing NEWAX to another collection of disconnected client projects.
+
+The objective is straightforward:
+
+> Build infrastructure once, own it, improve it deliberately, and reuse it safely.
+
+## Repository Status
+
+NEWAX Core is currently in **architecture and governance foundation mode**.
+
+The repository contains:
+
+- Core architecture documentation
+- Central Identity and Organization Registry architecture
+- Accepted Architecture Decision Records
+- Engineering standards
+- Reusable module templates
+- Package and deployment templates
+- A draft operational Module Registry
+- Module approval and review controls
+
+The repository does **not yet contain approved production module implementations**.
+
+All modules in the operational registry remain `planned` unless an approved change records otherwise. A registry entry identifies intended infrastructure. It does not magically transform a directory into production software, despite the historic optimism of project trackers everywhere.
 
 ## What NEWAX Core Is
 
-NEWAX Core is the central engineering foundation for the NEWAX platform. Over time, it will contain the core product modules, shared domain language, application services, platform conventions, and internal contracts that allow the product to evolve without fragmenting across disconnected systems.
+NEWAX Core is the private reusable engineering foundation behind future NEWAX systems.
 
-The goal is not to build everything at once. The goal is to create a clear technical home for the most important product capabilities and to establish boundaries that can survive growth.
+It is intended to provide:
 
-## Why It Exists
+- A central identity and organization foundation
+- Reusable business infrastructure modules
+- Clear data and responsibility ownership
+- Permission-based access control
+- Organization-scoped tenant boundaries
+- Stable APIs, services, events, and contracts
+- Controlled client customization
+- Consistent security, testing, documentation, and versioning
+- Traceable packages and client deployments
+- A dependable path from architecture to implementation
 
-NEWAX Core exists to provide a stable, intentional engineering base before product complexity expands.
+NEWAX Core is not a single client application. Client solutions are assembled from approved modules, packages, configuration, and separately documented extensions.
 
-It is designed to help the team:
+## Core Business Principle
 
-- Keep product logic centralized and understandable.
-- Avoid premature fragmentation across many services or repositories.
-- Establish consistent module boundaries and ownership rules.
-- Make future engineering decisions easier to review, document, and evolve.
-- Support long-term product iteration without accumulating avoidable architectural debt.
-- Create a shared language between Product and Engineering.
+Organizations should own the infrastructure that powers their operations.
 
-## Long-Term Vision
+NEWAX Core supports this by helping NEWAX build systems that provide:
 
-The long-term vision for NEWAX Core is to become the trusted internal system of record for NEWAX product engineering.
+- Simplicity
+- Reliability
+- Visibility
+- Operational efficiency
+- Control
+- Confidence
+- Long-term ownership
 
-As the platform matures, this repository should support:
-
-- Clear domain modules with explicit ownership.
-- Stable internal contracts between modules.
-- A predictable path from product requirements to technical implementation.
-- Consistent standards for quality, testing, observability, and security.
-- A foundation that can later support selective service extraction if operational scale requires it.
-
-NEWAX Core should remain boring in the best possible way: understandable, reliable, maintainable, and difficult to misuse.
-
-## Core Principles
-
-### 1. Product Clarity Before Technical Expansion
-
-Engineering work should be grounded in a clear product need, business purpose, or operational requirement. Technical structure should serve product direction, not race ahead of it.
-
-### 2. Modular Boundaries First
-
-Modules should have clear responsibilities, owned data, and explicit interfaces. Internal boundaries matter even when everything runs inside one deployable system.
-
-### 3. Prefer Simple, Durable Architecture
-
-The first architecture should optimize for correctness, maintainability, and team velocity. Complexity should be introduced only when there is a proven need.
-
-### 4. Domain Logic Belongs In The Core
-
-Important business rules should live in well-defined core modules, not be scattered across UI code, scripts, integrations, or one-off workflows.
-
-### 5. Explicit Contracts Over Implicit Coupling
-
-Modules should communicate through deliberate interfaces, application services, events, or documented contracts. Shared databases or hidden dependencies should be avoided unless intentionally approved.
-
-### 6. Security And Privacy By Default
-
-Access control, data handling, auditability, and privacy requirements should be considered foundational concerns, not late-stage additions.
-
-### 7. Documentation Is Part Of The System
-
-Architectural decisions, module responsibilities, and ownership boundaries should be documented as the system evolves.
-
-## Initial Planned Modules
-
-The following module names are initial planning boundaries. They may evolve as Product and Engineering refine the platform model.
-
-| Module | Purpose |
-| --- | --- |
-| Identity & Access | Authentication, authorization, roles, permissions, and access policies. |
-| Accounts & Organizations | Customer, organization, workspace, team, and membership concepts. |
-| Product Core | Central product entities, workflows, and business rules specific to NEWAX. |
-| Workflow & Operations | Internal operational flows, approvals, state transitions, and lifecycle management. |
-| Data & Reporting | Analytical models, reporting boundaries, metrics, and internal data access patterns. |
-| Notifications | Email, in-app, system, and workflow-triggered communication boundaries. |
-| Integrations | External systems, third-party APIs, import/export flows, and integration contracts. |
-| Administration | Internal admin capabilities, support tooling, audit views, and governance controls. |
-| Platform Foundation | Shared technical primitives, configuration, observability, security utilities, and infrastructure conventions. |
+Technology is not the outcome. Better operations are the outcome.
 
 ## Architecture Direction
 
-NEWAX Core should begin as a modular monolith.
+NEWAX Core uses a **modular monolith first** approach.
 
-This means the system should start as a single deployable application with strong internal module boundaries. The team should avoid starting with distributed microservices unless there is a clear operational, scaling, security, or ownership reason.
+The system should begin with one deployable application boundary while preserving strong internal module boundaries.
 
-The modular monolith direction gives NEWAX several advantages early on:
+This provides:
 
-- Faster development and simpler deployment.
-- Easier local reasoning across product flows.
-- Lower operational overhead.
-- Stronger consistency for shared domain rules.
-- A cleaner path to extract services later if specific modules require independent scaling or ownership.
+- Simpler deployment
+- Lower operational overhead
+- Faster product development
+- Clearer cross-module reasoning
+- Consistent security and tenant enforcement
+- A controlled path to future service extraction
 
-Service extraction should be treated as a future architectural option, not a starting assumption.
+Independent services may be extracted later when real evidence justifies them, such as independent scaling, stronger security isolation, separate operational ownership, or independent deployment requirements.
+
+Architecture details:
+
+- [Core Architecture](docs/architecture/core-architecture.md)
+- [Architecture Index](docs/architecture/README.md)
+
+## Architecture Layers
+
+NEWAX Core is organized into four layers:
+
+```text
+Layer 4: Client Solutions
+Layer 3: Business Domain Modules
+Layer 2: Platform Service Modules
+Layer 1: Foundation Modules
+```
+
+Dependencies move downward toward more stable layers.
+
+### Layer 1: Foundation Modules
+
+Shared identity, organization, user, access, and control capabilities.
+
+Examples:
+
+- People
+- Organizations
+- Memberships
+- Users
+- Authentication
+- Roles
+- Permissions
+- Contacts
+
+Foundation Modules must remain independent from LMS, CRM, Legal, Healthcare, Finance, and other business domains.
+
+### Layer 2: Platform Service Modules
+
+Shared operational services used across multiple domains.
+
+Examples:
+
+- Audit
+- Files
+- Notifications
+- Dashboard
+- Reports
+- Workflow
+- Search
+- Integrations
+
+### Layer 3: Business Domain Modules
+
+Reusable capabilities for specific operational domains.
+
+Initial LMS examples:
+
+- LMS Students
+- LMS Teachers
+- LMS Courses
+- LMS Lectures
+- LMS Enrollments
+- LMS Tests
+- LMS Test Results
+- LMS Payments
+
+Future domains may include CRM, Legal, Healthcare, Finance, HR, Real Estate, Retail, Hospitality, and Connected Infrastructure.
+
+### Layer 4: Client Solutions
+
+Approved compositions of Foundation, Platform Service, and Business Domain Modules.
+
+Client-specific configuration and extensions remain visible and separate from reusable core modules.
+
+## Central Identity and Organization Registry
+
+The Central Registry is the shared identity and organization foundation for future NEWAX systems.
+
+It separates:
+
+- A **person**, who is a real human being
+- A **user**, which is a login account linked to a person
+- An **organization**, which provides client and tenant context
+- A **membership**, which connects a person to an organization
+- A **role**, which groups permissions
+- A **permission**, which authorizes an explicit action
+- A **contact**, which records approved communication channels
+- An **audit record**, which records important system activity
+
+Business domains reference these shared records through identifiers such as:
+
+```text
+person_id
+organization_id
+user_id
+membership_id
+```
+
+The LMS is one connected domain. It is not the center of the platform.
+
+Future domains must not depend on LMS tables to identify people, users, organizations, roles, or permissions.
+
+Read:
+
+- [Central Registry Architecture](docs/architecture/central-registry-architecture.md)
+- [ADR 0008: Central Identity and Organization Registry](docs/decisions/0008-use-central-identity-and-organization-registry.md)
+- [ADR 0010: Authentication and User Identity Strategy](docs/decisions/0010-define-authentication-and-user-identity-strategy.md)
+
+## Permission-Based Access
+
+NEWAX Core uses explicit permission-based authorization.
+
+Examples:
+
+```text
+students.view
+students.create
+payments.approve
+reports.export
+```
+
+Roles group permissions for administrative convenience. Business logic must not authorize actions using hardcoded role names.
+
+Authentication, person identity, user accounts, memberships, roles, and permissions remain separate concepts.
+
+## Multi-Tenancy
+
+NEWAX Core is designed for organization-scoped multi-tenancy.
+
+Tenant-aware modules must enforce organization boundaries across:
+
+- APIs
+- Services
+- Database queries
+- Reports
+- Exports
+- Files
+- Dashboards
+- Events
+- Administrative access
+
+Cross-organization and NEWAX super-admin access must be explicit, permission-controlled, and auditable.
+
+## Repository Structure
+
+```text
+docs/
+  architecture/       System-level architecture documentation
+  decisions/          Architecture Decision Records
+  standards/          Engineering and governance standards
+
+registry/
+  module-registry.json
+  README.md
+
+packages/
+  core/
+  auth/
+  organizations/
+  users/
+  roles/
+  permissions/
+  dashboard/
+  notifications/
+  files/
+  reports/
+  audit/
+
+scripts/               Future repository and validation automation
+
+templates/
+  module-template/
+  module-registry/
+  client-deployment-manifest/
+  package/
+  environment/
+  security/
+  data-model/
+  api/
+  testing/
+  documentation/
+  approval/
+
+examples/
+  lms/                  Future example solution composition
+```
+
+Some registry paths point to planned module locations that do not yet exist. Those paths define the required future structure and must not be mistaken for completed module documentation.
+
+## Documentation
+
+Start with the main documentation index:
+
+- [NEWAX Core Documentation](docs/README.md)
+
+Important sections:
+
+- [Architecture](docs/architecture/README.md)
+- [Architecture Decision Records](docs/decisions/README.md)
+- [Engineering Standards](docs/standards/README.md)
+- [Module Registry Operating Guide](registry/README.md)
+
+## Accepted Architecture Decisions
+
+The current ADR set covers:
+
+1. Modular monolith first
+2. Permission-based access control
+3. Multi-tenancy direction
+4. Separation of client customization from core
+5. Event-driven module communication where appropriate
+6. Controlled updates and semantic versioning
+7. LMS centralized database ownership
+8. Central Identity and Organization Registry
+9. Module Registry and dependency rules
+10. Authentication and user identity strategy
+
+Review the complete index:
+
+- [Architecture Decision Records](docs/decisions/README.md)
+
+## Engineering Standards
+
+Current standards include:
+
+- Module Standard
+- Module Registry Standard
+- Client Deployment Manifest Standard
+- Package Standard
+- Environment Standard
+- Security Baseline Standard
+- Data Model Naming Standard
+- API Design Standard
+- Testing Standard
+- Documentation Standard
+- Module Approval Checklist
+
+Review:
+
+- [Engineering Standards Index](docs/standards/README.md)
+
+## Module Registry
+
+The draft operational registry is located at:
+
+- [Module Registry](registry/module-registry.json)
+- [Module Registry Operating Guide](registry/README.md)
+
+The registry tracks:
+
+- Module name and stable key
+- Architecture layer
+- Version and lifecycle status
+- Ownership
+- Dependencies
+- Permissions
+- Exposed and consumed events
+- Configuration
+- Database ownership
+- Tenant scope
+- Documentation paths
+- Compatibility notes
+
+A registry entry does not prove implementation, testing, security, or approval.
+
+## Module Lifecycle
+
+Modules follow this lifecycle:
+
+```text
+planned -> draft -> active -> deprecated -> replaced or archived
+```
+
+Only `active` modules may be treated as approved for controlled reuse.
+
+Activation requires:
+
+- Complete module structure
+- Complete documentation
+- `VERSION`
+- `CHANGELOG.md`
+- Declared dependencies
+- Permission review
+- Tenant-isolation review where applicable
+- Database ownership review
+- API and event review
+- Required tests
+- Security review
+- Product and Engineering approval
+- Updated Module Registry metadata
+
+Review:
+
+- [Module Approval Checklist](docs/standards/module-approval-checklist.md)
+- [Module Approval Example](templates/approval/module-approval-checklist.example.md)
 
 ## Standard Module Structure
 
-Each module should follow a consistent internal structure once implementation begins. The structure below is a planning convention, not production code.
+A reusable module follows this structure:
 
 ```text
-modules/
-  <module-name>/
-    README.md
-    domain/
-    application/
-    infrastructure/
-    interface/
-    contracts/
-    tests/
+module-name/
+|-- api/
+|-- components/
+|-- config/
+|-- database/
+|-- docs/
+|-- events/
+|-- pages/
+|-- permissions/
+|-- services/
+|-- stores/
+|-- tests/
+|-- types/
+|-- CHANGELOG.md
+|-- README.md
+`-- VERSION
 ```
 
-Recommended responsibilities:
+Folders may be intentionally unused, but the module must document why before approval.
 
-| Area | Responsibility |
-| --- | --- |
-| `README.md` | Module purpose, ownership, boundaries, and key decisions. |
-| `domain/` | Core business concepts, rules, invariants, and domain behavior. |
-| `application/` | Use cases, orchestration, commands, queries, and application-level workflows. |
-| `infrastructure/` | Persistence, external clients, adapters, queues, and framework-specific details. |
-| `interface/` | API handlers, controllers, jobs, event consumers, or module entry points. |
-| `contracts/` | Internal events, DTOs, schemas, and documented module-facing contracts. |
-| `tests/` | Unit, integration, contract, and module-level behavioral tests. |
+The reusable starting point is located at:
 
-A module should be understandable from its README before someone reads its implementation.
+- [Module Template](templates/module-template/README.md)
 
-## Product And Engineering Ownership Boundaries
+## Client Customization
 
-NEWAX Core should make ownership explicit so Product and Engineering can collaborate without blurring responsibilities.
+Client-specific behavior should use this order of preference:
 
-### Product Owns
+1. Configuration
+2. Approved events and listeners
+3. Public module APIs or services
+4. Adapters
+5. Explicit client extensions
 
-- Product vision, customer problems, and outcome priorities.
-- Feature scope, sequencing, and acceptance criteria.
-- User workflows, product policies, and experience requirements.
-- Business rules that come from market, customer, compliance, or operational needs.
-- Release priorities and tradeoff decisions when product value is the deciding factor.
+Client customization must not be hidden inside reusable core modules.
 
-### Engineering Owns
+Every client deployment should record:
 
-- System architecture and technical design.
-- Module boundaries, data ownership, and internal contracts.
-- Implementation approach, code quality, test strategy, and maintainability standards.
-- Security, reliability, observability, and operational readiness.
-- Technical debt management and architectural decision records.
+- Installed packages
+- Installed modules and exact versions
+- Environment
+- Database model
+- Configuration
+- Client extensions
+- Support plan
+- Update policy
 
-### Shared Ownership
+## Contribution Rules
 
-- Translating product requirements into durable domain concepts.
-- Identifying tradeoffs between delivery speed, correctness, and maintainability.
-- Defining success metrics and release readiness signals.
-- Reviewing cross-module changes that affect product behavior or system architecture.
-- Maintaining a shared language for core NEWAX concepts.
+All repository changes should follow these working rules:
 
-## Working Agreements
+- Use feature-based commits, not file-based commits.
+- Keep unrelated changes out of the same commit.
+- Review applicable ADRs and standards before implementation.
+- Update documentation with behavior changes.
+- Update tests with behavior changes.
+- Update `VERSION` and `CHANGELOG.md` when required.
+- Declare all module dependencies.
+- Preserve tenant and permission boundaries.
+- Keep client-specific behavior separate.
+- Update registry or deployment records when applicable.
+- Do not commit secrets or real client data.
 
-- Major module additions should include a short module README before implementation begins.
-- Cross-module dependencies should be intentional and documented.
-- New business rules should be attached to a clear product rationale.
-- Architectural decisions with long-term impact should be captured in an ADR or equivalent decision note.
-- Internal contracts should be versioned or migrated deliberately when they affect more than one module.
-- Production code should not be added until the initial architecture and module boundaries are agreed.
+## Product and Engineering Ownership
 
-## Current Status
+### Product owns
 
-This repository is in foundation planning mode.
+- Customer and operational problems
+- Business outcomes
+- Feature scope and priorities
+- User workflows
+- Business and compliance policies
+- Acceptance criteria
 
-Current focus:
+### Engineering owns
 
-- Establish repository purpose.
-- Define initial architecture direction.
-- Align Product and Engineering ownership boundaries.
-- Prepare for future implementation without introducing production code prematurely.
+- Architecture and technical design
+- Module and data ownership
+- APIs, services, contracts, and events
+- Security, testing, reliability, and maintainability
+- Implementation approach
+- Technical compatibility and migration planning
 
-Next expected step: define the first module-level README files and architecture decision records before implementation begins.
+### Shared ownership
+
+- Translating business requirements into durable system capabilities
+- Assessing delivery and operational risk
+- Approving module boundaries
+- Reviewing cross-module impact
+- Determining release readiness
+
+## Current Gaps
+
+Before production implementation can begin responsibly, the repository still requires:
+
+- Technology stack decision
+- Build and dependency tooling decision
+- Database and migration tooling decision
+- Authentication implementation decision
+- API framework decision
+- Event implementation decision
+- File-storage strategy
+- Observability strategy
+- Backup and recovery implementation plan
+- Deployment and CI/CD design
+- Automated Module Registry validation
+- Complete documentation for the first modules selected for implementation
+
+The next major architecture step should be the technology stack decision, not another broad governance document. At some point infrastructure must become executable rather than achieving ever more impressive Markdown density.
+
+## Long-Term Objective
+
+NEWAX Core should become the dependable internal foundation from which NEWAX designs, builds, connects, deploys, and supports business-critical systems.
+
+It should help NEWAX:
+
+- Simplify operational complexity
+- Connect systems
+- Eliminate manual work
+- Improve visibility
+- Strengthen operations
+- Increase long-term control
+- Build with confidence
+
+The repository succeeds when NEWAX can build different client systems without rebuilding the same foundations, compromising ownership, or creating infrastructure that only its original author understands.
