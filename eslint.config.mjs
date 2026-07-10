@@ -1,4 +1,5 @@
 import eslint from '@eslint/js';
+import nextVitals from 'eslint-config-next/core-web-vitals';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -17,6 +18,7 @@ export default [
       '**/playwright-report/**',
       '**/test-results/**',
       '**/*.min.js',
+      '**/next-env.d.ts',
     ],
     linterOptions: {
       reportUnusedDisableDirectives: 'error',
@@ -24,6 +26,7 @@ export default [
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
+  ...nextVitals,
   {
     files: sourceFiles,
     languageOptions: {
@@ -77,6 +80,11 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
+      },
+    },
+    settings: {
+      next: {
+        rootDir: 'apps/web/',
       },
     },
   },
