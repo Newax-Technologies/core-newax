@@ -4,10 +4,10 @@ interface ErrorPageProperties {
   readonly error: Error & {
     readonly digest?: string;
   };
-  readonly reset: () => void;
+  readonly unstable_retry: () => void;
 }
 
-export default function ErrorPage({ error, reset }: ErrorPageProperties) {
+export default function ErrorPage({ error, unstable_retry }: ErrorPageProperties) {
   return (
     <main className="site-shell">
       <header className="site-header">
@@ -28,7 +28,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProperties) {
         {error.digest ? <p>Reference: {error.digest}</p> : null}
 
         <p>
-          <button type="button" onClick={reset}>
+          <button type="button" onClick={unstable_retry}>
             Try again
           </button>
         </p>
