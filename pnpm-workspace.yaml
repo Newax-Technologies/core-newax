@@ -2,3 +2,12 @@ packages:
   - "apps/*"
   - "packages/*"
   - "tooling/*"
+
+autoInstallPeers: false
+strictPeerDependencies: true
+engineStrict: true
+nodeVersion: 24.18.0
+pmOnFail: error
+savePrefix: ""
+verifyStoreIntegrity: true
+updateNotifier: false
