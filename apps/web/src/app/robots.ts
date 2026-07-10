@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 
+import { readWebEnvironment } from '../config/environment';
+
 const NON_PUBLIC_PATHS = [
   '/admin/',
   '/api/',
@@ -10,9 +12,9 @@ const NON_PUBLIC_PATHS = [
 ] as const;
 
 export default function robots(): MetadataRoute.Robots {
-  const indexingEnabled = process.env.SEARCH_INDEXING_ENABLED === 'true';
+  const { SEARCH_INDEXING_ENABLED } = readWebEnvironment();
 
-  if (!indexingEnabled) {
+  if (!SEARCH_INDEXING_ENABLED) {
     return {
       rules: {
         userAgent: '*',
