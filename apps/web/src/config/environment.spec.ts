@@ -1,11 +1,10 @@
-import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { describe, expect, it } from 'vitest';
 
 import { readWebEnvironment } from './environment';
 
 describe('readWebEnvironment', () => {
   it('applies safe defaults when configuration is absent', () => {
-    assert.deepEqual(readWebEnvironment({}), {
+    expect(readWebEnvironment({})).toEqual({
       HOSTNAME: '0.0.0.0',
       PORT: 3001,
       SEARCH_INDEXING_ENABLED: false,
@@ -13,51 +12,47 @@ describe('readWebEnvironment', () => {
   });
 
   it('normalizes valid configuration values', () => {
-    assert.deepEqual(
+    expect(
       readWebEnvironment({
         HOSTNAME: ' 127.0.0.1 ',
         PORT: ' 4100 ',
         SEARCH_INDEXING_ENABLED: ' true ',
       }),
-      {
-        HOSTNAME: '127.0.0.1',
-        PORT: 4100,
-        SEARCH_INDEXING_ENABLED: true,
-      },
-    );
+    ).toEqual({
+      HOSTNAME: '127.0.0.1',
+      PORT: 4100,
+      SEARCH_INDEXING_ENABLED: true,
+    });
   });
 
   it('rejects an empty hostname', () => {
-    assert.throws(
-      () => readWebEnvironment({ HOSTNAME: '   ' }),
-      /HOSTNAME must not be empty\./,
+    expect(() => readWebEnvironment({ HOSTNAME: '   ' })).toThrow(
+      'HOSTNAME must not be empty.',
     );
   });
 
-  for (const invalidPort of ['', '0', '65536', '1.5', 'not-a-port']) {
-    it(`rejects invalid port value ${JSON.stringify(invalidPort)}`, () => {
-      assert.throws(
-        () => readWebEnvironment({ PORT: invalidPort }),
-        invalidPort.trim().length === 0
-          ? /PORT must not be empty\./
-          : /PORT must be an integer between 1 and 65535\./,
-      );
-    });
-  }
+  it.each([
+    ['', 'PORT must not be empty.'],
+    ['0', 'PORT must be an integer between 1 and 65535.'],
+    ['65536', 'PORT must be an integer between 1 and 65535.'],
+    ['1.5', 'PORT must be an integer between 1 and 65535.'],
+    ['not-a-port', 'PORT must be an integer between 1 and 65535.'],
+  ])('rejects invalid port value %j', (invalidPort, expectedMessage) => {
+    expect(() => readWebEnvironment({ PORT: invalidPort })).toThrow(expectedMessage);
+  });
 
   it('accepts an explicit false indexing value', () => {
-    assert.equal(
+    expect(
       readWebEnvironment({ SEARCH_INDEXING_ENABLED: 'false' }).SEARCH_INDEXING_ENABLED,
-      false,
-    );
+    ).toBe(false);
   });
 
-  for (const invalidBoolean of ['', 'TRUE', '1', 'yes']) {
-    it(`rejects invalid indexing value ${JSON.stringify(invalidBoolean)}`, () => {
-      assert.throws(
-        () => readWebEnvironment({ SEARCH_INDEXING_ENABLED: invalidBoolean }),
-        /SEARCH_INDEXING_ENABLED must be either true or false\./,
-      );
-    });
-  }
+  it.each(['', 'TRUE', '1', 'yes'])(
+    'rejects invalid indexing value %j',
+    (invalidBoolean) => {
+      expect(() =>
+        readWebEnvironment({ SEARCH_INDEXING_ENABLED: invalidBoolean }),
+      ).toThrow('SEARCH_INDEXING_ENABLED must be either true or false.');
+    },
+  );
 });
