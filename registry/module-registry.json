@@ -1,0 +1,1030 @@
+{
+  "registry_name": "NEWAX Module Registry",
+  "registry_key": "newax-module-registry",
+  "registry_version": "0.1.0",
+  "registry_status": "draft",
+  "last_updated": "2026-07-10",
+  "owner": "NEWAX Engineering",
+  "purpose": "Internal source of truth for planned, draft, active, deprecated, replaced, and archived NEWAX modules.",
+  "governance": {
+    "architecture_model": "modular_monolith_first",
+    "versioning": "semantic_versioning",
+    "approval_standard": "docs/standards/module-approval-checklist.md",
+    "module_standard": "docs/standards/module-standard.md",
+    "registry_standard": "docs/standards/module-registry-standard.md",
+    "important_note": "A registry entry tracks a module. It does not approve the module for production use. Only modules with active status and completed approval may be reused in client systems."
+  },
+  "modules": [
+    {
+      "module_name": "People",
+      "module_key": "people",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Maintains one central record for each real person across NEWAX project domains.",
+      "dependencies": [],
+      "required_permissions": [
+        "people.view",
+        "people.create",
+        "people.update",
+        "people.archive"
+      ],
+      "exposed_events": [
+        "person.created",
+        "person.updated",
+        "person.archived"
+      ],
+      "consumed_events": [],
+      "configuration_options": [
+        "person_status_values",
+        "identity_deduplication_policy"
+      ],
+      "database_ownership": [
+        "core_people"
+      ],
+      "tenant_scope": "mixed_global_and_organization_context",
+      "documentation_path": "packages/people/README.md",
+      "changelog_path": "packages/people/CHANGELOG.md",
+      "compatibility_notes": "Shared identity foundation. Domain modules must reference people through person_id instead of duplicating identity data."
+    },
+    {
+      "module_name": "Organizations",
+      "module_key": "organizations",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Maintains client organizations, institutes, companies, branches, departments, and business units.",
+      "dependencies": [],
+      "required_permissions": [
+        "organizations.view",
+        "organizations.create",
+        "organizations.update",
+        "organizations.archive"
+      ],
+      "exposed_events": [
+        "organization.created",
+        "organization.updated",
+        "organization.archived"
+      ],
+      "consumed_events": [],
+      "configuration_options": [
+        "organization_status_values",
+        "organization_type_values"
+      ],
+      "database_ownership": [
+        "core_organizations",
+        "core_organization_settings"
+      ],
+      "tenant_scope": "foundation_tenant_context",
+      "documentation_path": "packages/organizations/README.md",
+      "changelog_path": "packages/organizations/CHANGELOG.md",
+      "compatibility_notes": "Provides the organization boundary used by tenant-scoped modules."
+    },
+    {
+      "module_name": "Memberships",
+      "module_key": "memberships",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Connects people to organizations and records membership status and organization context.",
+      "dependencies": [
+        {
+          "module_key": "people",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "memberships.view",
+        "memberships.create",
+        "memberships.update",
+        "memberships.remove"
+      ],
+      "exposed_events": [
+        "membership.created",
+        "membership.updated",
+        "membership.removed"
+      ],
+      "consumed_events": [
+        "person.archived",
+        "organization.archived"
+      ],
+      "configuration_options": [
+        "membership_status_values"
+      ],
+      "database_ownership": [
+        "core_memberships",
+        "core_membership_roles"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/memberships/README.md",
+      "changelog_path": "packages/memberships/CHANGELOG.md",
+      "compatibility_notes": "A person may have multiple memberships and different responsibilities across organizations."
+    },
+    {
+      "module_name": "Users",
+      "module_key": "users",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Maintains login accounts linked to central person records without treating every person as a user.",
+      "dependencies": [
+        {
+          "module_key": "people",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "users.view",
+        "users.create",
+        "users.update",
+        "users.suspend",
+        "users.disable"
+      ],
+      "exposed_events": [
+        "user.created",
+        "user.updated",
+        "user.suspended",
+        "user.disabled"
+      ],
+      "consumed_events": [
+        "person.archived"
+      ],
+      "configuration_options": [
+        "account_status_values",
+        "invitation_expiration_policy"
+      ],
+      "database_ownership": [
+        "core_users"
+      ],
+      "tenant_scope": "multi_organization_access",
+      "documentation_path": "packages/users/README.md",
+      "changelog_path": "packages/users/CHANGELOG.md",
+      "compatibility_notes": "A person may exist without a login account. Every user must reference one person record."
+    },
+    {
+      "module_name": "Authentication",
+      "module_key": "authentication",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Handles login, secure sessions, password reset, account access checks, and future authentication methods.",
+      "dependencies": [
+        {
+          "module_key": "users",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "authentication.sessions.view",
+        "authentication.sessions.revoke",
+        "authentication.policies.manage"
+      ],
+      "exposed_events": [
+        "user.login",
+        "user.logout",
+        "user.login_failed",
+        "user.password_reset_requested",
+        "user.password_reset_completed"
+      ],
+      "consumed_events": [
+        "user.suspended",
+        "user.disabled"
+      ],
+      "configuration_options": [
+        "session_expiration_minutes",
+        "password_policy",
+        "login_attempt_policy",
+        "two_factor_authentication_policy"
+      ],
+      "database_ownership": [
+        "core_authentication_sessions",
+        "core_password_reset_tokens",
+        "core_login_attempts"
+      ],
+      "tenant_scope": "multi_organization_access",
+      "documentation_path": "packages/auth/README.md",
+      "changelog_path": "packages/auth/CHANGELOG.md",
+      "compatibility_notes": "Authentication proves login identity. Authorization remains permission-based and organization-aware."
+    },
+    {
+      "module_name": "Roles",
+      "module_key": "roles",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Defines organization-scoped responsibility groups used to bundle permissions.",
+      "dependencies": [
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "roles.view",
+        "roles.create",
+        "roles.update",
+        "roles.archive"
+      ],
+      "exposed_events": [
+        "role.created",
+        "role.updated",
+        "role.archived"
+      ],
+      "consumed_events": [
+        "organization.archived"
+      ],
+      "configuration_options": [
+        "role_scope_policy"
+      ],
+      "database_ownership": [
+        "core_roles"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/roles/README.md",
+      "changelog_path": "packages/roles/CHANGELOG.md",
+      "compatibility_notes": "Roles group permissions. Business logic must never authorize actions by hardcoded role name."
+    },
+    {
+      "module_name": "Permissions",
+      "module_key": "permissions",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Defines permission-based authorization and assigns permissions through roles and memberships.",
+      "dependencies": [
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "memberships",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "users",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "roles",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "permissions.view",
+        "permissions.manage",
+        "roles.assign",
+        "roles.remove"
+      ],
+      "exposed_events": [
+        "permission.changed",
+        "role.assigned",
+        "role.removed"
+      ],
+      "consumed_events": [
+        "membership.removed",
+        "user.suspended",
+        "organization.archived"
+      ],
+      "configuration_options": [
+        "permission_naming_convention",
+        "organization_scoped_permissions",
+        "role_assignment_policy"
+      ],
+      "database_ownership": [
+        "core_permissions",
+        "core_role_permissions"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/permissions/README.md",
+      "changelog_path": "packages/permissions/CHANGELOG.md",
+      "compatibility_notes": "Protected actions must check explicit permissions using the module.action convention."
+    },
+    {
+      "module_name": "Contacts",
+      "module_key": "contacts",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Maintains reusable contact channels for people and organizations without duplicating identity records.",
+      "dependencies": [
+        {
+          "module_key": "people",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "contacts.view",
+        "contacts.create",
+        "contacts.update",
+        "contacts.remove"
+      ],
+      "exposed_events": [
+        "contact.created",
+        "contact.updated",
+        "contact.removed"
+      ],
+      "consumed_events": [
+        "person.archived",
+        "organization.archived"
+      ],
+      "configuration_options": [
+        "contact_type_values",
+        "verification_policy"
+      ],
+      "database_ownership": [
+        "core_contacts"
+      ],
+      "tenant_scope": "mixed_global_and_organization_scoped",
+      "documentation_path": "packages/contacts/README.md",
+      "changelog_path": "packages/contacts/CHANGELOG.md",
+      "compatibility_notes": "Sensitive contact information must be permission-controlled and auditable where required."
+    },
+    {
+      "module_name": "Audit",
+      "module_key": "audit",
+      "module_layer": "platform_service",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Records important system, identity, permission, tenant, security, and administrative actions.",
+      "dependencies": [
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "users",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "audit.view",
+        "audit.export"
+      ],
+      "exposed_events": [
+        "audit.entry_recorded"
+      ],
+      "consumed_events": [
+        "user.login",
+        "permission.changed",
+        "payment.approved",
+        "report.exported",
+        "admin.accessed_sensitive_data"
+      ],
+      "configuration_options": [
+        "audit_retention_policy",
+        "sensitive_event_categories",
+        "export_controls"
+      ],
+      "database_ownership": [
+        "core_audit_logs"
+      ],
+      "tenant_scope": "mixed_global_and_organization_scoped",
+      "documentation_path": "packages/audit/README.md",
+      "changelog_path": "packages/audit/CHANGELOG.md",
+      "compatibility_notes": "Security-sensitive modules should publish auditable events without creating reverse dependencies on Audit."
+    },
+    {
+      "module_name": "Files",
+      "module_key": "files",
+      "module_layer": "platform_service",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Provides permission-controlled file metadata, storage contracts, validation, and access rules.",
+      "dependencies": [
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "users",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "files.view",
+        "files.upload",
+        "files.download",
+        "files.delete"
+      ],
+      "exposed_events": [
+        "file.uploaded",
+        "file.downloaded",
+        "file.deleted"
+      ],
+      "consumed_events": [],
+      "configuration_options": [
+        "allowed_file_types",
+        "maximum_file_size",
+        "storage_provider",
+        "file_retention_policy"
+      ],
+      "database_ownership": [
+        "core_files"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/files/README.md",
+      "changelog_path": "packages/files/CHANGELOG.md",
+      "compatibility_notes": "Sensitive files must not be publicly accessible by default."
+    },
+    {
+      "module_name": "Notifications",
+      "module_key": "notifications",
+      "module_layer": "platform_service",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Delivers in-app and future external notifications in response to approved events.",
+      "dependencies": [
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "users",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "notifications.view",
+        "notifications.send",
+        "notifications.templates.manage"
+      ],
+      "exposed_events": [
+        "notification.queued",
+        "notification.sent",
+        "notification.failed"
+      ],
+      "consumed_events": [
+        "student.created",
+        "payment.approved",
+        "course.published"
+      ],
+      "configuration_options": [
+        "notification_channels",
+        "template_policy",
+        "delivery_retry_policy"
+      ],
+      "database_ownership": [
+        "core_notifications",
+        "core_notification_templates"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/notifications/README.md",
+      "changelog_path": "packages/notifications/CHANGELOG.md",
+      "compatibility_notes": "Business modules should publish events rather than embed notification delivery logic."
+    },
+    {
+      "module_name": "Dashboard",
+      "module_key": "dashboard",
+      "module_layer": "platform_service",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Provides configurable dashboard composition while respecting permissions and organization boundaries.",
+      "dependencies": [
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "dashboard.view",
+        "dashboard.configure"
+      ],
+      "exposed_events": [
+        "dashboard.viewed",
+        "dashboard.configuration_updated"
+      ],
+      "consumed_events": [],
+      "configuration_options": [
+        "available_widgets",
+        "default_layouts",
+        "organization_dashboard_policy"
+      ],
+      "database_ownership": [
+        "core_dashboard_configurations"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/dashboard/README.md",
+      "changelog_path": "packages/dashboard/CHANGELOG.md",
+      "compatibility_notes": "Dashboard widgets must use approved module interfaces and must not bypass tenant or permission boundaries."
+    },
+    {
+      "module_name": "Reports",
+      "module_key": "reports",
+      "module_layer": "platform_service",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Provides reporting and export capabilities through approved read models and permission-controlled interfaces.",
+      "dependencies": [
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "audit",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "reports.view",
+        "reports.export"
+      ],
+      "exposed_events": [
+        "report.viewed",
+        "report.exported"
+      ],
+      "consumed_events": [],
+      "configuration_options": [
+        "export_formats",
+        "report_retention_policy",
+        "sensitive_report_controls"
+      ],
+      "database_ownership": [
+        "core_report_definitions",
+        "core_report_exports"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/reports/README.md",
+      "changelog_path": "packages/reports/CHANGELOG.md",
+      "compatibility_notes": "Reports must read domain data only through approved reporting contracts and must enforce organization boundaries."
+    },
+    {
+      "module_name": "LMS Students",
+      "module_key": "lms-students",
+      "module_layer": "business_domain",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Owns LMS student profiles while referencing central people and organizations.",
+      "dependencies": [
+        {
+          "module_key": "people",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "memberships",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "audit",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "students.view",
+        "students.create",
+        "students.update",
+        "students.suspend"
+      ],
+      "exposed_events": [
+        "student.created",
+        "student.updated",
+        "student.suspended"
+      ],
+      "consumed_events": [
+        "organization.archived",
+        "person.archived"
+      ],
+      "configuration_options": [
+        "student_status_values",
+        "student_profile_required_fields"
+      ],
+      "database_ownership": [
+        "lms_student_profiles"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/lms-students/README.md",
+      "changelog_path": "packages/lms-students/CHANGELOG.md",
+      "compatibility_notes": "Must use person_id and organization_id. Student identity data must not be duplicated from the Central Registry."
+    },
+    {
+      "module_name": "LMS Teachers",
+      "module_key": "lms-teachers",
+      "module_layer": "business_domain",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Owns LMS teacher profiles and teaching assignments while referencing central people and organizations.",
+      "dependencies": [
+        {
+          "module_key": "people",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "memberships",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "audit",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "teachers.view",
+        "teachers.create",
+        "teachers.update",
+        "teachers.assign"
+      ],
+      "exposed_events": [
+        "teacher.created",
+        "teacher.updated",
+        "teacher.assigned"
+      ],
+      "consumed_events": [
+        "organization.archived",
+        "person.archived"
+      ],
+      "configuration_options": [
+        "teacher_status_values",
+        "teacher_profile_required_fields"
+      ],
+      "database_ownership": [
+        "lms_teacher_profiles",
+        "lms_teacher_assignments"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/lms-teachers/README.md",
+      "changelog_path": "packages/lms-teachers/CHANGELOG.md",
+      "compatibility_notes": "Must use person_id and organization_id. Teacher identity data must remain in the Central Registry."
+    },
+    {
+      "module_name": "LMS Courses",
+      "module_key": "lms-courses",
+      "module_layer": "business_domain",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Owns LMS courses, subjects, publication status, and course-level business rules.",
+      "dependencies": [
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "audit",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "courses.view",
+        "courses.create",
+        "courses.update",
+        "courses.publish",
+        "courses.archive"
+      ],
+      "exposed_events": [
+        "course.created",
+        "course.updated",
+        "course.published",
+        "course.archived"
+      ],
+      "consumed_events": [
+        "organization.archived"
+      ],
+      "configuration_options": [
+        "course_status_values",
+        "course_publication_policy"
+      ],
+      "database_ownership": [
+        "lms_courses",
+        "lms_subjects"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/lms-courses/README.md",
+      "changelog_path": "packages/lms-courses/CHANGELOG.md",
+      "compatibility_notes": "Course records must remain organization-scoped and must not own teacher or student identity data."
+    },
+    {
+      "module_name": "LMS Lectures",
+      "module_key": "lms-lectures",
+      "module_layer": "business_domain",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Owns LMS lecture records, notes, media references, and course content ordering.",
+      "dependencies": [
+        {
+          "module_key": "lms-courses",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "files",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "audit",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "lectures.view",
+        "lectures.create",
+        "lectures.update",
+        "lectures.publish",
+        "lectures.archive"
+      ],
+      "exposed_events": [
+        "lecture.created",
+        "lecture.published",
+        "lecture.archived"
+      ],
+      "consumed_events": [
+        "course.archived"
+      ],
+      "configuration_options": [
+        "lecture_content_types",
+        "external_video_policy"
+      ],
+      "database_ownership": [
+        "lms_lectures",
+        "lms_lecture_resources"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/lms-lectures/README.md",
+      "changelog_path": "packages/lms-lectures/CHANGELOG.md",
+      "compatibility_notes": "File storage and access must use the Files module rather than embedding storage rules inside Lectures."
+    },
+    {
+      "module_name": "LMS Enrollments",
+      "module_key": "lms-enrollments",
+      "module_layer": "business_domain",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Owns the relationship between LMS student profiles and courses, including enrollment lifecycle.",
+      "dependencies": [
+        {
+          "module_key": "lms-students",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "lms-courses",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "audit",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "enrollments.view",
+        "enrollments.create",
+        "enrollments.approve",
+        "enrollments.cancel"
+      ],
+      "exposed_events": [
+        "enrollment.requested",
+        "enrollment.approved",
+        "enrollment.cancelled"
+      ],
+      "consumed_events": [
+        "student.suspended",
+        "course.archived"
+      ],
+      "configuration_options": [
+        "enrollment_approval_policy",
+        "enrollment_status_values"
+      ],
+      "database_ownership": [
+        "lms_enrollments"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/lms-enrollments/README.md",
+      "changelog_path": "packages/lms-enrollments/CHANGELOG.md",
+      "compatibility_notes": "Enrollment records connect student and course identifiers without owning either module's internal records."
+    },
+    {
+      "module_name": "LMS Tests",
+      "module_key": "lms-tests",
+      "module_layer": "business_domain",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Owns tests, questions, attempt rules, scoring configuration, and publication lifecycle.",
+      "dependencies": [
+        {
+          "module_key": "lms-courses",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "audit",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "tests.view",
+        "tests.create",
+        "tests.update",
+        "tests.publish",
+        "tests.attempt"
+      ],
+      "exposed_events": [
+        "test.created",
+        "test.published",
+        "test.attempt_submitted"
+      ],
+      "consumed_events": [
+        "course.archived"
+      ],
+      "configuration_options": [
+        "test_timer_policy",
+        "attempt_limit_policy",
+        "scoring_policy"
+      ],
+      "database_ownership": [
+        "lms_tests",
+        "lms_test_questions",
+        "lms_test_attempts",
+        "lms_test_answers"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/lms-tests/README.md",
+      "changelog_path": "packages/lms-tests/CHANGELOG.md",
+      "compatibility_notes": "Test attempts must remain tenant-safe and must reference approved student and course interfaces."
+    },
+    {
+      "module_name": "LMS Test Results",
+      "module_key": "lms-test-results",
+      "module_layer": "business_domain",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Owns calculated and reviewed LMS test results without duplicating test or student identity records.",
+      "dependencies": [
+        {
+          "module_key": "lms-tests",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "lms-students",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "audit",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "results.view",
+        "results.calculate",
+        "results.update",
+        "results.publish"
+      ],
+      "exposed_events": [
+        "result.calculated",
+        "result.updated",
+        "result.published"
+      ],
+      "consumed_events": [
+        "test.attempt_submitted",
+        "student.suspended"
+      ],
+      "configuration_options": [
+        "result_visibility_policy",
+        "manual_review_policy"
+      ],
+      "database_ownership": [
+        "lms_test_results"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/lms-test-results/README.md",
+      "changelog_path": "packages/lms-test-results/CHANGELOG.md",
+      "compatibility_notes": "Results are sensitive records and require strict permissions, tenant isolation, and audit logging."
+    },
+    {
+      "module_name": "LMS Payments",
+      "module_key": "lms-payments",
+      "module_layer": "business_domain",
+      "module_version": "0.1.0",
+      "module_status": "planned",
+      "module_owner": "NEWAX Engineering",
+      "description": "Owns LMS payment submissions, approvals, rejections, receipts, and payment workflow state.",
+      "dependencies": [
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "lms-students",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "users",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "permissions",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "files",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "audit",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "payments.view",
+        "payments.submit",
+        "payments.approve",
+        "payments.reject",
+        "payments.receipts.view"
+      ],
+      "exposed_events": [
+        "payment.submitted",
+        "payment.approved",
+        "payment.rejected",
+        "payment.receipt_created"
+      ],
+      "consumed_events": [
+        "student.created",
+        "student.suspended"
+      ],
+      "configuration_options": [
+        "payment_status_values",
+        "approval_policy",
+        "receipt_format_defaults",
+        "payment_evidence_policy"
+      ],
+      "database_ownership": [
+        "lms_payments",
+        "lms_payment_approvals",
+        "lms_payment_receipts"
+      ],
+      "tenant_scope": "organization_scoped",
+      "documentation_path": "packages/lms-payments/README.md",
+      "changelog_path": "packages/lms-payments/CHANGELOG.md",
+      "compatibility_notes": "Payment records are sensitive. The module must not directly modify student-owned data and must use approved interfaces or events."
+    }
+  ]
+}
