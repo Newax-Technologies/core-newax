@@ -4,7 +4,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { AppModule } from './app.module';
 import type { ApplicationEnvironment } from './config/environment';
+import { PrismaService } from './database/prisma.service';
 import { HealthController } from './health/health.controller';
+
+const prismaServiceStub = {
+  $connect: async (): Promise<void> => undefined,
+  $disconnect: async (): Promise<void> => undefined,
+};
 
 describe('AppModule', () => {
   let moduleRef: TestingModule;
@@ -12,7 +18,10 @@ describe('AppModule', () => {
   beforeEach(async () => {
     moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue(prismaServiceStub)
+      .compile();
   });
 
   afterEach(async () => {
@@ -25,6 +34,10 @@ describe('AppModule', () => {
 
   it('registers the health controller', () => {
     expect(moduleRef.get(HealthController)).toBeInstanceOf(HealthController);
+  });
+
+  it('registers the database provider without opening a PostgreSQL connection', () => {
+    expect(moduleRef.get(PrismaService)).toBe(prismaServiceStub);
   });
 
   it('registers validated configuration globally', () => {
