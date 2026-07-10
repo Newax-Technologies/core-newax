@@ -1,4 +1,4 @@
-import { ConfigService } from '@nestjs/config';
+import type { ConfigService } from '@nestjs/config';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { ApplicationEnvironment } from '../config/environment';
@@ -29,23 +29,19 @@ describe('PrismaService', () => {
   });
 
   it('connects when the NestJS module initializes', async () => {
-    const service = new PrismaService(
-      createConfigService('postgresql://newax:secret@localhost:5432/newax'),
-    );
-    const connect = vi.spyOn(service, '$connect').mockResolvedValue(undefined);
+    const connect = vi.fn().mockResolvedValue(undefined);
+    const service = { $connect: connect } as unknown as PrismaService;
 
-    await service.onModuleInit();
+    await PrismaService.prototype.onModuleInit.call(service);
 
     expect(connect).toHaveBeenCalledOnce();
   });
 
   it('disconnects when the NestJS module is destroyed', async () => {
-    const service = new PrismaService(
-      createConfigService('postgresql://newax:secret@localhost:5432/newax'),
-    );
-    const disconnect = vi.spyOn(service, '$disconnect').mockResolvedValue(undefined);
+    const disconnect = vi.fn().mockResolvedValue(undefined);
+    const service = { $disconnect: disconnect } as unknown as PrismaService;
 
-    await service.onModuleDestroy();
+    await PrismaService.prototype.onModuleDestroy.call(service);
 
     expect(disconnect).toHaveBeenCalledOnce();
   });
