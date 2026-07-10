@@ -8,6 +8,12 @@ export interface WebEnvironment {
   readonly SEARCH_INDEXING_ENABLED: boolean;
 }
 
+export interface WebEnvironmentSource {
+  readonly HOSTNAME?: string;
+  readonly PORT?: string;
+  readonly SEARCH_INDEXING_ENABLED?: string;
+}
+
 function parseHostname(value: string | undefined): string {
   if (value === undefined) {
     return DEFAULT_HOSTNAME;
@@ -61,7 +67,7 @@ function parseSearchIndexingEnabled(value: string | undefined): boolean {
 }
 
 export function readWebEnvironment(
-  source: NodeJS.ProcessEnv = process.env,
+  source: WebEnvironmentSource = process.env,
 ): WebEnvironment {
   return {
     HOSTNAME: parseHostname(source.HOSTNAME),
