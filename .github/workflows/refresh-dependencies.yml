@@ -1,6 +1,7 @@
 name: Refresh Dependency Lockfile
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
