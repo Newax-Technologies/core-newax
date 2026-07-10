@@ -1,83 +1,201 @@
-# Architecture Decision Records
+# NEWAX Architecture Decision Records
 
-This folder contains Architecture Decision Records for NEWAX Core.
+## Purpose
 
-Architecture Decision Records, or ADRs, document important technical and architectural decisions that affect NEWAX Core as a reusable business infrastructure foundation.
+This directory contains Architecture Decision Records for NEWAX Core.
 
-ADRs are intended for decisions that have long-term impact on architecture, module ownership, data boundaries, permissions, security, scalability, maintainability, client customization, or platform evolution.
+ADRs preserve important technical and architectural decisions that affect NEWAX as a reusable business infrastructure foundation. They explain not only what was decided, but why the decision exists, which alternatives were considered, and what consequences future teams must understand.
 
-## What Architecture Decision Records Are
+ADRs are used for decisions with long-term impact on:
 
-An ADR is a concise record of an important architecture decision.
+- Core architecture
+- Module boundaries and dependencies
+- Shared identity and organization ownership
+- Database and tenant boundaries
+- Authentication and authorization
+- Security and auditability
+- Client customization
+- Versioning and upgrades
+- Technology platforms
+- Scalability and service extraction
+- Operational maintainability
 
-It should explain:
+## Accepted Decision Index
 
-- The context behind the decision.
-- The problem being solved.
-- The decision that was made.
-- The reasoning and alternatives considered.
-- The expected consequences.
-- The impact on NEWAX Core and client systems.
-- The approving stakeholders.
+| ADR | Status | Decision |
+| --- | --- | --- |
+| [ADR 0001](0001-use-modular-monolith-first.md) | Accepted | Begin with a modular monolith and extract services only when evidence justifies the additional operational complexity. |
+| [ADR 0002](0002-use-permission-based-access-control.md) | Accepted | Authorize business actions through explicit permissions rather than hardcoded role names. |
+| [ADR 0003](0003-design-for-multi-tenancy.md) | Accepted | Design NEWAX Core for organization-scoped multi-tenancy and strict tenant isolation. |
+| [ADR 0004](0004-separate-client-customizations-from-core.md) | Accepted | Keep client-specific configuration and extensions separate from reusable core modules. |
+| [ADR 0005](0005-use-event-driven-module-communication.md) | Accepted | Use documented events for suitable cross-module communication while retaining direct service calls when clearer. |
+| [ADR 0006](0006-use-controlled-updates-and-versioning.md) | Accepted | Use semantic versioning, changelogs, compatibility review, and controlled client updates. |
+| [ADR 0007](0007-define-lms-centralized-database-and-data-ownership.md) | Accepted | Use a centralized LMS operational database with explicit module ownership and organization isolation. |
+| [ADR 0008](0008-use-central-identity-and-organization-registry.md) | Accepted | Use one Central Identity and Organization Registry across LMS and future NEWAX domains. |
+| [ADR 0009](0009-define-module-registry-and-dependency-rules.md) | Accepted | Maintain a Module Registry and enforce architecture-layer dependency rules. |
+| [ADR 0010](0010-define-authentication-and-user-identity-strategy.md) | Accepted | Separate people, users, authentication, memberships, roles, permissions, and organization context. |
+| [ADR 0011](0011-define-technology-stack-and-implementation-baseline.md) | Accepted | Use the TypeScript, Node.js, pnpm, NestJS, Next.js, PostgreSQL, Prisma, Vitest, Playwright, Docker, and GitHub Actions implementation baseline. |
 
-ADRs help future engineers understand why the system was shaped a certain way, not only what was changed.
+## Decision Sequence
 
-## When To Create An ADR
+The ADRs form a deliberate sequence rather than eleven independent opinions wandering around the repository unsupervised.
 
-Create an ADR when a decision affects one or more of the following:
+### Architecture Foundation
 
-- Core architecture direction.
-- Module boundaries or dependency rules.
-- Database ownership or data isolation.
-- Permission architecture.
-- Security or audit requirements.
-- Multi-tenancy direction.
-- Reusable module standards.
-- Client customization strategy.
-- Versioning or upgrade strategy.
-- Scalability or future service extraction.
-- Cross-module communication patterns.
+- ADR 0001 establishes the modular-monolith-first direction.
+- ADR 0004 protects reusable core modules from client-specific coupling.
+- ADR 0005 defines appropriate cross-module communication.
+- ADR 0006 defines controlled evolution and upgrade discipline.
 
-Do not create an ADR for every small code change, minor documentation update, simple refactor, or local implementation detail.
+### Access, Tenancy, and Identity
 
-## Who Should Approve ADRs
+- ADR 0002 establishes permission-based authorization.
+- ADR 0003 establishes organization-scoped multi-tenancy.
+- ADR 0008 establishes the Central Identity and Organization Registry.
+- ADR 0010 separates authentication, identity, users, memberships, roles, and permissions.
 
-ADR approval depends on the scope of the decision.
+### Data and Module Governance
 
-Typical approvers may include:
+- ADR 0007 defines LMS database and data-ownership boundaries.
+- ADR 0009 defines module registration, lifecycle, and dependency rules.
 
-- Engineering leadership for architecture and module boundary decisions.
-- Product leadership when product behavior, client impact, or platform direction changes.
-- Security reviewers when permissions, access control, auditability, data handling, or privacy are affected.
-- Relevant module owners when the decision changes module responsibilities or contracts.
+### Implementation Baseline
 
-An ADR should not be marked `Accepted` until the appropriate stakeholders have reviewed and approved it.
+- ADR 0011 selects the initial technology stack and implementation approach required to turn the architecture into executable infrastructure.
 
-## Why ADRs Matter For NEWAX Core
+## Current Decision Baseline
 
-NEWAX Core is intended to become a private, reusable business infrastructure foundation.
+The accepted architecture currently means:
 
-ADRs protect that foundation by creating a durable record of important decisions. They help preserve:
+- NEWAX Core begins as a modular monolith.
+- Foundation Modules remain independent from business domains.
+- The Central Registry owns shared people and organization identity.
+- Business domains own only their domain-specific records.
+- Organizations provide tenant context.
+- Business authorization uses explicit permissions.
+- Client customization remains separate from reusable core modules.
+- Module communication uses clear services, contracts, APIs, or events.
+- Modules use controlled versions and lifecycle states.
+- The implementation baseline uses TypeScript across the primary web and backend stack.
+- PostgreSQL remains the primary operational database.
+- The initial platform avoids mandatory microservices, Kubernetes, Redis, and message brokers.
 
-- Long-term maintainability.
-- Engineering clarity.
-- Accountability.
-- Consistent decision-making.
-- Reliable module ownership.
-- Safer client customization.
-- Upgrade discipline.
-- Security and scalability awareness.
+## When to Create an ADR
 
-Without ADRs, major decisions can become hidden in conversations, commits, or short-term delivery pressure.
+Create an ADR when a decision materially affects one or more of the following:
 
-## ADR Scope Discipline
+- Architecture direction
+- Technology stack
+- Module boundaries
+- Dependency direction
+- Data ownership
+- Tenant isolation
+- Authentication or authorization
+- Security controls
+- Shared contracts or events
+- Client extension mechanisms
+- Database strategy
+- Deployment architecture
+- Versioning or migration policy
+- Service extraction
+- Long-term operational ownership
 
-ADRs should be practical and selective.
+Do not create an ADR for routine implementation choices, small refactors, formatting decisions, ordinary bug fixes, or changes already governed by an accepted standard.
 
-Use ADRs for important architecture decisions only. Do not use ADRs as a replacement for normal code review, implementation notes, pull request descriptions, or routine documentation.
+## ADR Statuses
 
-A good ADR should be clear enough that a future NEWAX engineer can understand the decision without needing the original discussion.
+Use one of these statuses:
+
+| Status | Meaning |
+| --- | --- |
+| `Proposed` | The decision is under review and must not be treated as accepted architecture. |
+| `Accepted` | The decision is approved and governs relevant implementation. |
+| `Deprecated` | The decision should no longer guide new implementation, but remains part of the historical record. |
+| `Replaced` | A newer ADR supersedes the decision. The replacement must be identified. |
+
+An accepted ADR must not be edited to hide a later change in direction. Create a new ADR and mark the previous decision as replaced or deprecated. Architecture history is allowed to be inconvenient. That is still better than pretending nobody made the earlier decision.
+
+## Approval
+
+Approvers depend on scope.
+
+Typical reviewers include:
+
+- NEWAX Leadership for strategic platform direction
+- Product for business and client impact
+- Engineering for implementation and maintainability
+- Architecture for boundaries and dependency direction
+- Security for identity, access, tenancy, privacy, and audit impact
+- Operations for deployment and support impact
+- Relevant module owners for contract and ownership changes
+
+An ADR should not be marked `Accepted` until the appropriate reviewers have approved it.
+
+## Relationship to Other Documents
+
+### Architecture Documents
+
+Architecture documents explain the broader system structure.
+
+- [Architecture Index](../architecture/README.md)
+- [Core Architecture](../architecture/core-architecture.md)
+- [Central Registry Architecture](../architecture/central-registry-architecture.md)
+
+### Engineering Standards
+
+Standards convert accepted decisions into recurring engineering rules.
+
+- [Engineering Standards Index](../standards/README.md)
+
+### Module Registry
+
+The Module Registry records the modules governed by these decisions.
+
+- [Module Registry](../../registry/module-registry.json)
+- [Module Registry Operating Guide](../../registry/README.md)
+
+### Module Documentation
+
+Each module must explain how it implements applicable ADRs and standards.
+
+An ADR does not replace a module README, API documentation, testing evidence, security review, `VERSION`, or `CHANGELOG.md`.
+
+## Creating a New ADR
+
+1. Copy [ADR-TEMPLATE.md](ADR-TEMPLATE.md).
+2. Use the next sequential four-digit number.
+3. Use a concise lowercase kebab-case filename.
+4. Explain the context and specific problem.
+5. State the decision clearly.
+6. Record realistic alternatives.
+7. Document positive and negative consequences.
+8. Explain impact on NEWAX Core and client systems.
+9. Include security, scalability, and maintenance considerations.
+10. Link related ADRs, standards, architecture documents, and registry records.
+11. Obtain appropriate approval before marking it `Accepted`.
+12. Update this index in the same logical change.
+
+Filename example:
+
+```text
+0012-define-repository-bootstrap-and-boundary-enforcement.md
+```
+
+## Review Triggers
+
+Review an existing ADR when:
+
+- A core assumption has changed.
+- A selected technology reaches end of support.
+- A module boundary repeatedly causes coupling.
+- Tenant or security requirements materially change.
+- A major version introduces architectural consequences.
+- A client need exposes a platform-wide limitation.
+- Operational evidence justifies service extraction.
+- A new domain challenges Central Registry ownership.
+
+Review does not automatically mean replacement. The existing decision may remain correct, which is a pleasantly rare outcome in technology.
 
 ## Template
 
-Use [ADR-TEMPLATE.md](./ADR-TEMPLATE.md) when creating a new Architecture Decision Record.
+Use [ADR-TEMPLATE.md](ADR-TEMPLATE.md) for new decisions.
