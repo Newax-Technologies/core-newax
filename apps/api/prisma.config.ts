@@ -4,10 +4,14 @@ import { loadEnvFile } from 'node:process';
 
 import { defineConfig } from 'prisma/config';
 
-const localEnvironmentPath = resolve(import.meta.dirname, '.env');
+const environmentPaths = ['.env.local', '.env'].map((filename) =>
+  resolve(import.meta.dirname, filename),
+);
 
-if (existsSync(localEnvironmentPath)) {
-  loadEnvFile(localEnvironmentPath);
+for (const environmentPath of environmentPaths) {
+  if (existsSync(environmentPath)) {
+    loadEnvFile(environmentPath);
+  }
 }
 
 function readDatabaseUrl(): string {
