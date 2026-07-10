@@ -56,6 +56,13 @@ describe('validateEnvironment', () => {
     );
   });
 
+  it.each([[true], [false], [null], [{}], [[]]])(
+    'rejects an unsupported PORT type: %s',
+    (PORT) => {
+      expect(() => validateEnvironment({ PORT })).toThrow('PORT must be a string or number.');
+    },
+  );
+
   it.each([
     [' postgresql://newax:secret@localhost:5432/newax ', 'postgresql://newax:secret@localhost:5432/newax'],
     [' postgres://newax:secret@localhost:5432/newax ', 'postgres://newax:secret@localhost:5432/newax'],
