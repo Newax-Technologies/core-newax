@@ -1,0 +1,83 @@
+name: Prepare Organizations Module
+
+on:
+  push:
+    branches:
+      - agent/organization-registry-services
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prepare-organizations-module
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: ${{ !contains(github.event.head_commit.message, '[skip prepare]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v7
+        with:
+          ref: agent/organization-registry-services
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Update workspace lockfile
+        run: pnpm install --lockfile-only
+
+      - name: Update module registry
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+          const path = 'registry/module-registry.json';
+          const registry = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const organizations = registry.modules.find((module) => module.module_key === 'organizations');
+
+          if (!organizations) {
+            throw new Error('Organizations module registry entry was not found.');
+          }
+
+          registry.registry_version = '0.1.1';
+          registry.last_updated = '2026-07-11';
+          organizations.module_status = 'draft';
+          organizations.database_ownership = [
+            'core_organizations',
+            'core_organization_relationships',
+          ];
+
+          fs.writeFileSync(path, `${JSON.stringify(registry, null, 2)}\n`);
+          EOF
+
+      - name: Format changed module files
+        run: |
+          pnpm exec prettier --write \
+            apps/api/package.json \
+            apps/api/src/app.module.ts \
+            apps/api/src/organizations \
+            packages/organizations \
+            registry/module-registry.json
+
+      - name: Commit prepared files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml registry/module-registry.json apps/api packages/organizations
+
+          if git diff --cached --quiet; then
+            echo "Organizations module files are already prepared."
+            exit 0
+          fi
+
+          git commit -m "Prepare organizations module workspace [skip prepare]"
+          git push origin HEAD:agent/organization-registry-services
