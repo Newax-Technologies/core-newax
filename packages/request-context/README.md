@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft reusable foundation module.
+Draft reusable platform service.
 
 Version: `0.1.0`
 

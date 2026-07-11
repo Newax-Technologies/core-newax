@@ -32,7 +32,7 @@ Authentication
 
 ## 5. Decision
 
-NEWAX Core will provide a reusable `@newax/request-context` foundation package with:
+NEWAX Core will provide a reusable `@newax/request-context` platform service package with:
 
 - Authenticated account-context resolution.
 - Organization-context resolution through an explicitly selected membership.
@@ -172,6 +172,7 @@ Public HTTP integration remains deferred until the following are defined and tes
 - Never store request context in process-global mutable variables.
 - Never continue when trusted request context is missing.
 - Always authorize business operations through permission codes rather than role names.
+- Foundation modules must not depend on Request Context; application and API layers adapt trusted context into foundation service contracts.
 
 ## 8. Deferred Decisions
 

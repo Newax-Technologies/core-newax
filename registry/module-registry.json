@@ -266,7 +266,7 @@
     {
       "module_name": "Trusted Request Context",
       "module_key": "request-context",
-      "module_layer": "foundation",
+      "module_layer": "platform_service",
       "module_version": "0.1.0",
       "module_status": "draft",
       "module_owner": "NEWAX Engineering",
