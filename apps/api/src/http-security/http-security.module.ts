@@ -1,5 +1,4 @@
 import {
-  Inject,
   MiddlewareConsumer,
   Module,
   type NestModule,
@@ -140,12 +139,7 @@ import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
   ],
 })
 export class HttpSecurityModule implements NestModule {
-  constructor(
-    @Inject(HttpBoundaryMiddleware)
-    private readonly boundary: HttpBoundaryMiddleware,
-  ) {}
-
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(this.boundary.use.bind(this.boundary)).forRoutes('*');
+    consumer.apply(HttpBoundaryMiddleware).forRoutes('*');
   }
 }
