@@ -15,7 +15,7 @@ export class SecurityHeadersPolicy {
       'Cross-Origin-Resource-Policy': 'same-site',
       'Origin-Agent-Cluster': '?1',
       'Permissions-Policy':
-        'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',$
+        'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',
       Pragma: 'no-cache',
       'Referrer-Policy': 'no-referrer',
       'X-Content-Type-Options': 'nosniff',
