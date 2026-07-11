@@ -1,0 +1,40 @@
+name: Capture People Typecheck
+
+on:
+  push:
+    branches:
+      - agent/people-registry-services
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    if: ${{ !contains(github.event.head_commit.message, '[skip people typecheck]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/people-registry-services
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Capture typecheck diagnostics
+        run: pnpm typecheck > people-typecheck-report.txt 2>&1 || true
+
+      - name: Commit typecheck report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add people-typecheck-report.txt
+          git commit -m "Capture people typecheck diagnostics [skip people typecheck]"
+          git push origin HEAD:agent/people-registry-services
