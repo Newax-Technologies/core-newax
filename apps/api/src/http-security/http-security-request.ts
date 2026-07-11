@@ -1,3 +1,7 @@
+import type {
+  HttpSecurityMethod,
+  HttpSecurityRequest,
+} from '@newax/http-security';
 import type { TrustedRequestContext } from '@newax/request-context';
 
 export interface HttpSecurityRequestAdapter {
@@ -7,13 +11,21 @@ export interface HttpSecurityRequestAdapter {
   readonly ip?: string;
   readonly secure?: boolean;
   readonly protocol?: string;
-  readonly headers: Readonly<Record<string, string | readonly string[] | undefined>>;
+  readonly headers: Readonly<
+    Record<string, string | readonly string[] | undefined>
+  >;
   newaxRequestId?: string;
   newaxRouteKey?: string;
+  newaxHasBody?: boolean;
+  newaxSecurityMethod?: HttpSecurityMethod;
+  newaxSecurityRequest?: HttpSecurityRequest;
+  newaxRequiredPermissions?: readonly string[];
+  newaxStateChanging?: boolean;
   trustedContext?: TrustedRequestContext;
 }
 
 export interface HttpSecurityResponseAdapter {
+  readonly statusCode?: number;
   setHeader(name: string, value: string | readonly string[]): void;
   status(code: number): HttpSecurityResponseAdapter;
   json(body: unknown): void;
