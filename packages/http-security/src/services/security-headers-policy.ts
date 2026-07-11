@@ -8,18 +8,20 @@ export class SecurityHeadersPolicy {
 
   headers(isSecureRequest: boolean): HttpSecurityHeaders {
     const headers: Record<string, string> = {
-      'Cache-Control': 'no-store',
+      'Cache-Control': 'no-store, max-age=0',
       'Content-Security-Policy':
-        "default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
+        "default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'; sandbox",
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Resource-Policy': 'same-site',
+      'Origin-Agent-Cluster': '?1',
       'Permissions-Policy':
-        'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',
+        'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',$
       Pragma: 'no-cache',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Referrer-Policy': 'no-referrer',
       'X-Content-Type-Options': 'nosniff',
       'X-DNS-Prefetch-Control': 'off',
       'X-Frame-Options': 'DENY',
+      'X-Permitted-Cross-Domain-Policies': 'none',
       'X-Robots-Tag': 'noindex, nofollow',
       'X-XSS-Protection': '0',
     };
