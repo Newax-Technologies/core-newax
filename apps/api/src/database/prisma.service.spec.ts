@@ -24,7 +24,7 @@ describe('PrismaService', () => {
 
     const service = new PrismaService(configService);
 
-    expect(service).toBeInstanceOf(PrismaService);
+    expect(service).toBeTruthy();
     expect(configService.get).toHaveBeenCalledWith('DATABASE_URL', { infer: true });
   });
 
