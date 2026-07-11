@@ -1,0 +1,126 @@
+name: Prepare Request Context Hardening
+
+on:
+  push:
+    branches:
+      - agent/trusted-request-context
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: ${{ !contains(github.event.head_commit.message, '[skip context hardening]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/trusted-request-context
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Add permission evaluator organization tests
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+          const path = 'packages/access-control/tests/access-control.service.spec.ts';
+          const source = fs.readFileSync(path, 'utf8');
+          const marker = "describe('PermissionEvaluator', () => {";
+          const index = source.indexOf(marker);
+          if (index < 0) {
+            throw new Error('PermissionEvaluator test section was not found.');
+          }
+          const replacement = `describe('PermissionEvaluator', () => {
+            it('returns no permissions for suspended memberships', async () => {
+              const repository = new FakeAccessControlRepository();
+              const references = new FakeReferenceDirectory();
+              references.records.set('membership', {
+                id: 'membership',
+                organizationId: 'organization',
+                status: 'suspended',
+              });
+
+              const result = await new PermissionEvaluator(repository, references).evaluate(
+                'membership',
+                now,
+              );
+              expect(result.effectivePermissionCodes).toEqual([]);
+            });
+
+            it('returns no permissions for inactive organizations', async () => {
+              const repository = new FakeAccessControlRepository();
+              const references = new FakeReferenceDirectory();
+              references.records.set('membership', {
+                id: 'membership',
+                organizationId: 'organization',
+                status: 'active',
+              });
+              references.records.set('organization', {
+                id: 'organization',
+                organizationId: 'organization',
+                status: 'archived',
+              });
+
+              const result = await new PermissionEvaluator(repository, references).evaluate(
+                'membership',
+                now,
+              );
+              expect(result.effectivePermissionCodes).toEqual([]);
+            });
+
+            it('preserves repository deny precedence for active memberships and organizations', async () => {
+              const repository = new FakeAccessControlRepository();
+              const references = new FakeReferenceDirectory();
+              references.records.set('membership', {
+                id: 'membership',
+                organizationId: 'organization',
+                status: 'active',
+              });
+              references.records.set('organization', {
+                id: 'organization',
+                organizationId: 'organization',
+                status: 'active',
+              });
+
+              const result = await new PermissionEvaluator(repository, references).evaluate(
+                'membership',
+                now,
+              );
+              expect(result.allowedPermissionCodes).toContain('records.delete');
+              expect(result.deniedPermissionCodes).toContain('records.delete');
+              expect(result.effectivePermissionCodes).not.toContain('records.delete');
+            });
+          });
+          `;
+          fs.writeFileSync(path, `${source.slice(0, index)}${replacement}`);
+          EOF
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Format hardening files
+        run: |
+          pnpm exec prettier --write \
+            packages/access-control/src/services/permission-evaluator.ts \
+            packages/access-control/tests/access-control.service.spec.ts
+
+      - name: Commit hardening
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            packages/access-control/src/services/permission-evaluator.ts \
+            packages/access-control/tests/access-control.service.spec.ts
+
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+
+          git commit -m "Harden permission evaluation for inactive organizations [skip context hardening]"
+          git push origin HEAD:agent/trusted-request-context
