@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type {
   CreateOrganizationRecordInput,
   OrganizationListQuery,
@@ -28,7 +28,7 @@ interface OrganizationDatabaseRecord {
 
 @Injectable()
 export class PrismaOrganizationRepository implements OrganizationRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async archive(id: string, archivedAt: Date): Promise<OrganizationRecord> {
     const record = await this.prisma.coreOrganization.update({
@@ -112,7 +112,10 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     };
   }
 
-  async update(id: string, input: UpdateOrganizationRecordInput): Promise<OrganizationRecord> {
+  async update(
+    id: string,
+    input: UpdateOrganizationRecordInput,
+  ): Promise<OrganizationRecord> {
     const data: Prisma.CoreOrganizationUncheckedUpdateInput = {};
 
     if ('parentOrganizationId' in input) {
@@ -143,7 +146,10 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     return this.mapRecord(record);
   }
 
-  async wouldCreateCycle(organizationId: string, candidateParentId: string): Promise<boolean> {
+  async wouldCreateCycle(
+    organizationId: string,
+    candidateParentId: string,
+  ): Promise<boolean> {
     let currentId: string | null = candidateParentId;
 
     for (let depth = 0; depth < 100 && currentId !== null; depth += 1) {
