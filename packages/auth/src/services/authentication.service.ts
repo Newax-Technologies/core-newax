@@ -6,6 +6,13 @@ import {
   type AuthenticationPermission,
 } from '../permissions/authentication-permissions';
 import type {
+  AuthenticationClock,
+  LoginFingerprintService,
+  PasswordHasher,
+  SessionTokenService,
+} from '../security/authentication-security';
+import type { PasswordBlocklist } from '../security/password-blocklist';
+import type {
   AuthenticationAdminContext,
   AuthenticationAttemptOutcome,
   AuthenticationPolicy,
@@ -14,17 +21,12 @@ import type {
   AuthenticationSessionPage,
   AuthenticationSessionRecord,
   PasswordChangeInput,
+  PasswordCredentialRecord,
   PasswordEnrollmentInput,
   PasswordLoginInput,
   PasswordLoginResult,
   ValidatedSession,
 } from '../types/authentication';
-import type {
-  AuthenticationClock,
-  LoginFingerprintService,
-  PasswordHasher,
-  SessionTokenService,
-} from '../security/authentication-security';
 import type { AuthenticationUserDirectory } from './authentication-user-directory';
 import { PasswordPolicyValidator } from './password-policy-validator';
 
@@ -40,6 +42,7 @@ export class AuthenticationService {
     private readonly repository: AuthenticationRepository,
     private readonly userDirectory: AuthenticationUserDirectory,
     private readonly passwordHasher: PasswordHasher,
+    private readonly passwordBlocklist: PasswordBlocklist,
     private readonly sessionTokenService: SessionTokenService,
     private readonly loginFingerprintService: LoginFingerprintService,
     private readonly clock: AuthenticationClock,
@@ -50,14 +53,14 @@ export class AuthenticationService {
   }
 
   async enrollPassword(input: PasswordEnrollmentInput): Promise<void> {
-    this.passwordPolicyValidator.validate(input.password);
+    const password = await this.validateNewPassword(input.password);
     const identity = await this.userDirectory.resolveIdentity(
       input.identityType,
       this.requireText(input.identityValue, 'identityValue', 320),
     );
 
     if (identity === null) {
-      await this.passwordHasher.verifyOrBurn(input.password, null);
+      await this.passwordHasher.verifyOrBurn(password, null);
       throw this.authenticationFailed();
     }
     if (!identity.isVerified) {
@@ -74,36 +77,46 @@ export class AuthenticationService {
       );
     }
 
+    const occurredAt = this.clock.now();
     const existingCredential = await this.repository.findPasswordCredential(
       identity.account.userId,
     );
     if (existingCredential !== null) {
-      throw new AuthenticationError(
-        'AUTHENTICATION_PASSWORD_ALREADY_CONFIGURED',
-        'A password credential is already configured.',
+      await this.recoverEnrollment(
+        identity.account.userId,
+        password,
+        existingCredential,
+        occurredAt,
       );
+      return;
     }
 
-    const occurredAt = this.clock.now();
-    const secretHash = await this.passwordHasher.hash(input.password);
+    const secretHash = await this.passwordHasher.hash(password);
     const created = await this.repository.createPasswordCredential({
       userId: identity.account.userId,
       secretHash,
       occurredAt,
     });
     if (created === null) {
-      throw new AuthenticationError(
-        'AUTHENTICATION_PASSWORD_ALREADY_CONFIGURED',
-        'A password credential is already configured.',
+      const racedCredential = await this.repository.findPasswordCredential(
+        identity.account.userId,
       );
+      if (racedCredential === null) {
+        throw new AuthenticationError(
+          'AUTHENTICATION_PASSWORD_ALREADY_CONFIGURED',
+          'A password credential is already configured.',
+        );
+      }
+      await this.recoverEnrollment(
+        identity.account.userId,
+        password,
+        racedCredential,
+        occurredAt,
+      );
+      return;
     }
 
-    await this.userDirectory.activateInvitedUser(identity.account.userId);
-    await this.eventPublisher.publish({
-      name: 'authentication.password_enrolled',
-      occurredAt,
-      userId: identity.account.userId,
-    });
+    await this.activateEnrolledAccount(identity.account.userId, occurredAt);
   }
 
   async login(input: PasswordLoginInput): Promise<PasswordLoginResult> {
@@ -112,7 +125,8 @@ export class AuthenticationService {
       'identityValue',
       320,
     );
-    this.requirePasswordShape(input.password);
+    const password = this.passwordPolicyValidator.normalize(input.password);
+    this.requirePasswordShape(password);
     const metadata = this.normalizeMetadata(input);
     const occurredAt = this.clock.now();
     const identityFingerprint = this.loginFingerprintService.fingerprint(
@@ -129,14 +143,9 @@ export class AuthenticationService {
         : await this.repository.findPasswordCredential(
             identity.account.userId,
           );
-    const usableCredential =
-      credential !== null &&
-      credential.status === 'active' &&
-      (credential.expiresAt === null || credential.expiresAt > occurredAt)
-        ? credential
-        : null;
+    const usableCredential = this.usableCredential(credential, occurredAt);
     const passwordVerification = await this.passwordHasher.verifyOrBurn(
-      input.password,
+      password,
       usableCredential?.secretHash ?? null,
     );
 
@@ -205,7 +214,7 @@ export class AuthenticationService {
     }
 
     if (passwordVerification.needsRehash) {
-      const replacementHash = await this.passwordHasher.hash(input.password);
+      const replacementHash = await this.passwordHasher.hash(password);
       await this.repository.replacePasswordCredential(
         account.userId,
         replacementHash,
@@ -270,33 +279,34 @@ export class AuthenticationService {
 
   async changePassword(input: PasswordChangeInput): Promise<void> {
     const userId = this.requireText(input.userId, 'userId', 128);
-    this.requirePasswordShape(input.currentPassword);
-    this.passwordPolicyValidator.validate(input.newPassword);
+    const currentPassword = this.passwordPolicyValidator.normalize(
+      input.currentPassword,
+    );
+    this.requirePasswordShape(currentPassword);
+    const newPassword = await this.validateNewPassword(input.newPassword);
     const account = await this.userDirectory.findAccountById(userId);
     if (account === null || account.status !== 'active') {
       throw this.authenticationFailed();
     }
 
+    const occurredAt = this.clock.now();
     const credential = await this.repository.findPasswordCredential(userId);
-    if (
-      credential === null ||
-      credential.status !== 'active' ||
-      (credential.expiresAt !== null && credential.expiresAt <= this.clock.now())
-    ) {
-      await this.passwordHasher.verifyOrBurn(input.currentPassword, null);
+    const usableCredential = this.usableCredential(credential, occurredAt);
+    if (usableCredential === null) {
+      await this.passwordHasher.verifyOrBurn(currentPassword, null);
       throw this.authenticationFailed();
     }
 
     const currentVerification = await this.passwordHasher.verifyOrBurn(
-      input.currentPassword,
-      credential.secretHash,
+      currentPassword,
+      usableCredential.secretHash,
     );
     if (!currentVerification.verified) {
       throw this.authenticationFailed();
     }
     const repeatedPassword = await this.passwordHasher.verifyOrBurn(
-      input.newPassword,
-      credential.secretHash,
+      newPassword,
+      usableCredential.secretHash,
     );
     if (repeatedPassword.verified) {
       throw new AuthenticationError(
@@ -305,8 +315,7 @@ export class AuthenticationService {
       );
     }
 
-    const occurredAt = this.clock.now();
-    const replacementHash = await this.passwordHasher.hash(input.newPassword);
+    const replacementHash = await this.passwordHasher.hash(newPassword);
     await this.repository.replacePasswordCredential(
       userId,
       replacementHash,
@@ -321,7 +330,11 @@ export class AuthenticationService {
   }
 
   async validateSession(token: string): Promise<ValidatedSession | null> {
-    const normalizedToken = this.requireText(token, 'sessionToken', 512);
+    const normalizedToken = this.normalizeSessionToken(token);
+    if (normalizedToken === null) {
+      return null;
+    }
+
     const sessionTokenHash = this.sessionTokenService.hash(normalizedToken);
     const session = await this.repository.findSessionByTokenHash(
       sessionTokenHash,
@@ -371,7 +384,11 @@ export class AuthenticationService {
   }
 
   async logout(token: string): Promise<void> {
-    const normalizedToken = this.requireText(token, 'sessionToken', 512);
+    const normalizedToken = this.normalizeSessionToken(token);
+    if (normalizedToken === null) {
+      return;
+    }
+
     const occurredAt = this.clock.now();
     const session = await this.repository.revokeSessionByTokenHash(
       this.sessionTokenService.hash(normalizedToken),
@@ -448,11 +465,68 @@ export class AuthenticationService {
     );
   }
 
+  private async recoverEnrollment(
+    userId: string,
+    password: string,
+    credential: PasswordCredentialRecord,
+    occurredAt: Date,
+  ): Promise<void> {
+    const usableCredential = this.usableCredential(credential, occurredAt);
+    const verification = await this.passwordHasher.verifyOrBurn(
+      password,
+      usableCredential?.secretHash ?? null,
+    );
+    if (!verification.verified) {
+      throw new AuthenticationError(
+        'AUTHENTICATION_PASSWORD_ALREADY_CONFIGURED',
+        'A password credential is already configured.',
+      );
+    }
+    await this.activateEnrolledAccount(userId, occurredAt);
+  }
+
+  private async activateEnrolledAccount(
+    userId: string,
+    occurredAt: Date,
+  ): Promise<void> {
+    await this.userDirectory.activateInvitedUser(userId);
+    await this.eventPublisher.publish({
+      name: 'authentication.password_enrolled',
+      occurredAt,
+      userId,
+    });
+  }
+
+  private async validateNewPassword(password: string): Promise<string> {
+    const normalized = this.passwordPolicyValidator.validate(password);
+    if (await this.passwordBlocklist.contains(normalized)) {
+      throw new AuthenticationError(
+        'AUTHENTICATION_PASSWORD_POLICY_FAILED',
+        'Choose a password that is not commonly used, expected, or known to be compromised.',
+      );
+    }
+    return normalized;
+  }
+
+  private usableCredential(
+    credential: PasswordCredentialRecord | null,
+    occurredAt: Date,
+  ): PasswordCredentialRecord | null {
+    return credential !== null &&
+      credential.status === 'active' &&
+      (credential.expiresAt === null || credential.expiresAt > occurredAt)
+      ? credential
+      : null;
+  }
+
   private async recordFailure(
     userId: string | null,
     identityFingerprint: string,
     outcome: Exclude<AuthenticationAttemptOutcome, 'succeeded'>,
-    metadata: { readonly ipAddress: string | null; readonly userAgent: string | null },
+    metadata: {
+      readonly ipAddress: string | null;
+      readonly userAgent: string | null;
+    },
     occurredAt: Date,
     evaluateLock = false,
   ): Promise<void> {
@@ -560,12 +634,20 @@ export class AuthenticationService {
   }
 
   private requirePasswordShape(password: string): void {
+    const characterCount = [...password].length;
     if (
-      password.length === 0 ||
-      password.length > this.policy.passwordMaximumLength
+      characterCount === 0 ||
+      characterCount > this.policy.passwordMaximumLength
     ) {
       throw this.authenticationFailed();
     }
+  }
+
+  private normalizeSessionToken(token: string): string | null {
+    if (token.length === 0 || token.length > 512 || token.trim() !== token) {
+      return null;
+    }
+    return token;
   }
 
   private normalizeLimit(value: number | undefined): number {
