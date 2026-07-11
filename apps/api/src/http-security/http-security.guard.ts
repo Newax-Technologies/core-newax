@@ -158,11 +158,15 @@ export class HttpSecurityGuard implements CanActivate {
     }
 
     if (requiredPermissions.length > 0) {
+      if (trustedContext.scope !== 'organization') {
+        throw new HttpSecurityError(
+          'HTTP_SECURITY_INVALID_INPUT',
+          'Trusted organization context was not established.',
+          500,
+        );
+      }
       this.authorizer.requireAllPermissions(
-        trustedContext as Extract<
-          TrustedRequestContext,
-          { readonly scope: 'organization' }
-        >,
+        trustedContext,
         requiredPermissions,
       );
     }
