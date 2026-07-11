@@ -1,9 +1,7 @@
 import type { OrganizationRecord } from '../types/organization';
 
 export type OrganizationEventName =
-  | 'organization.archived'
-  | 'organization.created'
-  | 'organization.updated';
+  'organization.archived' | 'organization.created' | 'organization.updated';
 
 export interface OrganizationEvent {
   readonly name: OrganizationEventName;

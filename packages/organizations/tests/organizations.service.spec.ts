@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import type { OrganizationRepository } from '../src/database/organization-repository';
-import type { OrganizationEvent, OrganizationEventPublisher } from '../src/events/organization-event';
+import type {
+  OrganizationEvent,
+  OrganizationEventPublisher,
+} from '../src/events/organization-event';
 import { OrganizationModuleError } from '../src/errors/organization-module-error';
 import { ORGANIZATION_PERMISSIONS } from '../src/permissions/organization-permissions';
 import { OrganizationsService } from '../src/services/organizations.service';
@@ -103,10 +106,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
     return updated;
   }
 
-  async wouldCreateCycle(
-    _organizationId: string,
-    _candidateParentId: string,
-  ): Promise<boolean> {
+  async wouldCreateCycle(_organizationId: string, _candidateParentId: string): Promise<boolean> {
     return this.cycle;
   }
 }
