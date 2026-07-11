@@ -8,6 +8,7 @@ import { HealthController } from './health/health.controller';
 import { MembershipsModule } from './memberships/memberships.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { PeopleModule } from './people/people.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { PeopleModule } from './people/people.module';
     PeopleModule,
     MembershipsModule,
     AccessControlModule,
+    UsersModule,
   ],
   controllers: [HealthController],
   providers: [],
