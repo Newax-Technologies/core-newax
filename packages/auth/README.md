@@ -88,7 +88,7 @@ A successful password check does not grant organization access. It produces an a
 
 The Node adapter uses:
 
-- Scrypt password derivation using an OWASP-aligned minimum work-factor profile.
+- Scrypt password derivation using `N=2^17`, `r=8`, and `p=1`.
 - A unique random salt for every password credential.
 - Constant-time comparison.
 - A dummy derivation path when an identity or credential does not exist.
