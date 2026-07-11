@@ -1,0 +1,62 @@
+name: Finalize People Module
+
+on:
+  push:
+    branches:
+      - agent/people-registry-services
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: ${{ !contains(github.event.head_commit.message, '[skip finalize]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/people-registry-services
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Correct identifier conflict wording
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+          const path = 'packages/people/src/services/people.service.ts';
+          const source = fs.readFileSync(path, 'utf8');
+          const updated = source.replace(
+            'The identifier is already assigned to another person.',
+            'The identifier is already assigned and cannot be duplicated.',
+          );
+
+          if (updated === source) {
+            throw new Error('Expected identifier conflict message was not found.');
+          }
+
+          fs.writeFileSync(path, updated);
+          EOF
+
+      - name: Format final files
+        run: |
+          pnpm exec prettier --write \
+            docs/decisions/README.md \
+            docs/decisions/0013-build-people-registry-service-foundation.md \
+            packages/people/src/services/people.service.ts
+
+      - name: Commit finalized files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/decisions packages/people/src/services/people.service.ts
+          git commit -m "Finalize people registry documentation [skip finalize]"
+          git push origin HEAD:agent/people-registry-services
