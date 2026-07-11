@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 interface ErrorPageProperties {
   readonly error: Error & {
     readonly digest?: string;
@@ -11,9 +13,9 @@ export default function ErrorPage({ error, unstable_retry }: ErrorPageProperties
   return (
     <main className="site-shell">
       <header className="site-header">
-        <a className="brand" href="/" aria-label="Return to NEWAX home">
+        <Link className="brand" href="/" aria-label="Return to NEWAX home">
           NEWAX
-        </a>
+        </Link>
         <p>The Business Infrastructure Company.</p>
       </header>
 
