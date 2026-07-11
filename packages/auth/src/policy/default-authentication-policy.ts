@@ -1,7 +1,7 @@
 import type { AuthenticationPolicy } from '../types/authentication';
 
 export const DEFAULT_AUTHENTICATION_POLICY: AuthenticationPolicy = {
-  passwordMinimumLength: 12,
+  passwordMinimumLength: 15,
   passwordMaximumLength: 128,
   sessionTtlMinutes: 480,
   failedAttemptWindowMinutes: 15,
