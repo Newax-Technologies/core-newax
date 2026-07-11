@@ -1,3 +1,5 @@
+import { isIP } from 'node:net';
+
 export type HttpSecurityNodeEnvironment =
   | 'development'
   | 'test'
@@ -7,7 +9,7 @@ export interface HttpSecurityEnvironment {
   readonly HTTP_ALLOWED_ORIGINS: readonly string[];
   readonly HTTP_CSRF_SECRET: string;
   readonly HTTP_REQUIRE_HTTPS: boolean;
-  readonly HTTP_TRUST_PROXY_HOPS: number;
+  readonly HTTP_TRUSTED_PROXY_CIDRS: readonly string[];
   readonly HTTP_BODY_LIMIT_BYTES: number;
   readonly HTTP_RATE_LIMIT_WINDOW_MILLISECONDS: number;
   readonly HTTP_RATE_LIMIT_MAXIMUM_REQUESTS: number;
@@ -29,6 +31,24 @@ export function validateHttpSecurityEnvironment(
     'HTTP_REQUIRE_HTTPS',
     nodeEnvironment === 'production',
   );
+  if (nodeEnvironment === 'production' && !requireHttps) {
+    throw new Error('HTTP_REQUIRE_HTTPS must be true in production.');
+  }
+
+  const trustedProxyCidrs = parseTrustedProxyCidrs(
+    configuration.HTTP_TRUSTED_PROXY_CIDRS,
+    nodeEnvironment,
+  );
+  if (
+    nodeEnvironment === 'production' &&
+    requireHttps &&
+    trustedProxyCidrs.length === 0
+  ) {
+    throw new Error(
+      'HTTP_TRUSTED_PROXY_CIDRS must identify the production TLS proxy network.',
+    );
+  }
+
   const hstsIncludeSubDomains = parseBoolean(
     configuration.HTTP_HSTS_INCLUDE_SUBDOMAINS,
     'HTTP_HSTS_INCLUDE_SUBDOMAINS',
@@ -39,9 +59,21 @@ export function validateHttpSecurityEnvironment(
     'HTTP_HSTS_PRELOAD',
     false,
   );
+  const hstsMaxAgeSeconds = parseInteger(
+    configuration.HTTP_HSTS_MAX_AGE_SECONDS,
+    'HTTP_HSTS_MAX_AGE_SECONDS',
+    63_072_000,
+    300,
+    126_144_000,
+  );
   if (hstsPreload && !hstsIncludeSubDomains) {
     throw new Error(
       'HTTP_HSTS_PRELOAD requires HTTP_HSTS_INCLUDE_SUBDOMAINS=true.',
+    );
+  }
+  if (hstsPreload && hstsMaxAgeSeconds < 31_536_000) {
+    throw new Error(
+      'HTTP_HSTS_PRELOAD requires HTTP_HSTS_MAX_AGE_SECONDS of at least 31536000.',
     );
   }
 
@@ -55,13 +87,7 @@ export function validateHttpSecurityEnvironment(
       nodeEnvironment,
     ),
     HTTP_REQUIRE_HTTPS: requireHttps,
-    HTTP_TRUST_PROXY_HOPS: parseInteger(
-      configuration.HTTP_TRUST_PROXY_HOPS,
-      'HTTP_TRUST_PROXY_HOPS',
-      0,
-      0,
-      10,
-    ),
+    HTTP_TRUSTED_PROXY_CIDRS: trustedProxyCidrs,
     HTTP_BODY_LIMIT_BYTES: parseInteger(
       configuration.HTTP_BODY_LIMIT_BYTES,
       'HTTP_BODY_LIMIT_BYTES',
@@ -90,13 +116,7 @@ export function validateHttpSecurityEnvironment(
       1,
       10_000,
     ),
-    HTTP_HSTS_MAX_AGE_SECONDS: parseInteger(
-      configuration.HTTP_HSTS_MAX_AGE_SECONDS,
-      'HTTP_HSTS_MAX_AGE_SECONDS',
-      63_072_000,
-      300,
-      126_144_000,
-    ),
+    HTTP_HSTS_MAX_AGE_SECONDS: hstsMaxAgeSeconds,
     HTTP_HSTS_INCLUDE_SUBDOMAINS: hstsIncludeSubDomains,
     HTTP_HSTS_PRELOAD: hstsPreload,
   };
@@ -106,6 +126,9 @@ function parseOrigins(
   value: unknown,
   nodeEnvironment: HttpSecurityNodeEnvironment,
 ): readonly string[] {
+  if (value === undefined && nodeEnvironment === 'production') {
+    throw new Error('HTTP_ALLOWED_ORIGINS is required in production.');
+  }
   const source =
     value === undefined
       ? 'http://localhost:3000,http://localhost:3001'
@@ -149,6 +172,64 @@ function normalizeOrigin(value: string): string {
     throw new Error(`Invalid HTTP origin: ${source}`);
   }
   return parsed.origin;
+}
+
+function parseTrustedProxyCidrs(
+  value: unknown,
+  nodeEnvironment: HttpSecurityNodeEnvironment,
+): readonly string[] {
+  if (value === undefined) {
+    return [];
+  }
+  const entries = requireString(value, 'HTTP_TRUSTED_PROXY_CIDRS')
+    .split(',')
+    .map((entry) => normalizeProxyNetwork(entry, nodeEnvironment))
+    .filter((entry, index, all) => all.indexOf(entry) === index);
+  if (entries.length === 0 || entries.length > 20) {
+    throw new Error(
+      'HTTP_TRUSTED_PROXY_CIDRS must contain between 1 and 20 networks.',
+    );
+  }
+  return entries;
+}
+
+function normalizeProxyNetwork(
+  value: string,
+  nodeEnvironment: HttpSecurityNodeEnvironment,
+): string {
+  const source = value.trim();
+  const parts = source.split('/');
+  if (parts.length > 2) {
+    throw new Error(`Invalid trusted proxy network: ${source}`);
+  }
+  const address = parts[0] ?? '';
+  const version = isIP(address);
+  if (version === 0) {
+    throw new Error(`Invalid trusted proxy network: ${source}`);
+  }
+
+  const prefixValue = parts[1];
+  if (prefixValue === undefined) {
+    return address;
+  }
+  if (!/^\d+$/u.test(prefixValue)) {
+    throw new Error(`Invalid trusted proxy network: ${source}`);
+  }
+  const prefix = Number(prefixValue);
+  const maximumPrefix = version === 4 ? 32 : 128;
+  if (prefix < 0 || prefix > maximumPrefix) {
+    throw new Error(`Invalid trusted proxy network: ${source}`);
+  }
+  if (
+    nodeEnvironment === 'production' &&
+    prefix === 0 &&
+    (address === '0.0.0.0' || address === '::')
+  ) {
+    throw new Error(
+      'HTTP_TRUSTED_PROXY_CIDRS must not trust the entire internet in production.',
+    );
+  }
+  return `${address}/${String(prefix)}`;
 }
 
 function parseSecret(
