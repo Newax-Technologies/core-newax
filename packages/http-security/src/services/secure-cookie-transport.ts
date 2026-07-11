@@ -1,6 +1,8 @@
 import { HttpSecurityError } from '../errors/http-security-error';
 
-const COOKIE_VALUE_PATTERN = /^[\x21-\x3A\x3C-\x7E]+$/u;
+const COOKIE_VALUE_PATTERN =
+  /^[\x21\x23-\x2B\x2D-\x3A\x3C-\x5B\x5D-\x7E]+$/u;
+const EXPIRED_COOKIE_DATE = 'Thu, 01 Jan 1970 00:00:00 GMT';
 
 export class SecureCookieTransport {
   readonly sessionCookieName = '__Host-newax_session';
@@ -29,11 +31,11 @@ export class SecureCookieTransport {
   }
 
   clearSessionCookie(): string {
-    return this.serialize(this.sessionCookieName, '', 0, true, 'Lax');
+    return this.serialize(this.sessionCookieName, '', 0, true, 'Lax', true);
   }
 
   clearCsrfCookie(): string {
-    return this.serialize(this.csrfCookieName, '', 0, false, 'Strict');
+    return this.serialize(this.csrfCookieName, '', 0, false, 'Strict', true);
   }
 
   private serialize(
@@ -42,6 +44,7 @@ export class SecureCookieTransport {
     maxAgeSeconds: number,
     httpOnly: boolean,
     sameSite: 'Lax' | 'Strict',
+    expired = false,
   ): string {
     if (!Number.isInteger(maxAgeSeconds) || maxAgeSeconds < 0) {
       throw new HttpSecurityError(
@@ -59,6 +62,9 @@ export class SecureCookieTransport {
       `SameSite=${sameSite}`,
       'Priority=High',
     ];
+    if (expired) {
+      directives.push(`Expires=${EXPIRED_COOKIE_DATE}`);
+    }
     if (httpOnly) {
       directives.push('HttpOnly');
     }
@@ -66,7 +72,11 @@ export class SecureCookieTransport {
   }
 
   private requireCookieValue(value: string): string {
-    if (value.length === 0 || value.length > 1_024 || !COOKIE_VALUE_PATTERN.test(value)) {
+    if (
+      value.length === 0 ||
+      value.length > 1_024 ||
+      !COOKIE_VALUE_PATTERN.test(value)
+    ) {
       throw new HttpSecurityError(
         'HTTP_SECURITY_INVALID_INPUT',
         'Cookie value is invalid.',
