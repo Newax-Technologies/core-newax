@@ -18,6 +18,10 @@ import type {
 const DEFAULT_PAGE_SIZE = 50;
 const MAX_PAGE_SIZE = 100;
 
+type Mutable<T> = {
+  -readonly [Key in keyof T]: T[Key];
+};
+
 export class OrganizationsService {
   constructor(
     private readonly repository: OrganizationRepository,
@@ -76,7 +80,7 @@ export class OrganizationsService {
       );
     }
 
-    const normalizedQuery: OrganizationListQuery = { limit };
+    const normalizedQuery: Mutable<OrganizationListQuery> = { limit };
 
     if ('parentOrganizationId' in query) {
       normalizedQuery.parentOrganizationId = query.parentOrganizationId ?? null;
@@ -116,7 +120,7 @@ export class OrganizationsService {
       );
     }
 
-    const update: UpdateOrganizationRecordInput = {};
+    const update: Mutable<UpdateOrganizationRecordInput> = {};
 
     if ('parentOrganizationId' in input) {
       const parentOrganizationId = input.parentOrganizationId ?? null;
