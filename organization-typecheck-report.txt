@@ -10,7 +10,7 @@ apps/api pretypecheck: $ tsc --project tsconfig.json
 apps/api pretypecheck: $ prisma generate
 apps/api pretypecheck: Loaded Prisma config from prisma.config.ts.
 apps/api pretypecheck: Prisma schema loaded from prisma/schema.prisma.
-apps/api pretypecheck: ✔ Generated Prisma Client (7.8.0) to ./src/generated/prisma in 367ms
+apps/api pretypecheck: ✔ Generated Prisma Client (7.8.0) to ./src/generated/prisma in 362ms
 apps/api pretypecheck: Done
 apps/api typecheck$ pnpm run typecheck:src && pnpm run typecheck:test
 apps/api typecheck: $ tsc --project tsconfig.json --noEmit
