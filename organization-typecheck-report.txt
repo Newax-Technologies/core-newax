@@ -1,0 +1,18 @@
+$ pnpm -r --if-present run typecheck
+Scope: 3 of 4 workspace projects
+apps/web typecheck$ tsc --noEmit
+packages/organizations typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
+packages/organizations typecheck: Done
+apps/web typecheck: Done
+apps/api pretypecheck$ pnpm run build:organizations && pnpm run db:generate
+apps/api pretypecheck: $ pnpm --filter @newax/organizations build
+apps/api pretypecheck: $ tsc --project tsconfig.json
+apps/api pretypecheck: $ prisma generate
+apps/api pretypecheck: Loaded Prisma config from prisma.config.ts.
+apps/api pretypecheck: Prisma schema loaded from prisma/schema.prisma.
+apps/api pretypecheck: ✔ Generated Prisma Client (7.8.0) to ./src/generated/prisma in 343ms
+apps/api pretypecheck: Done
+apps/api typecheck$ pnpm run typecheck:src && pnpm run typecheck:test
+apps/api typecheck: $ tsc --project tsconfig.json --noEmit
+apps/api typecheck: $ tsc --project tsconfig.spec.json --noEmit
+apps/api typecheck: Done
