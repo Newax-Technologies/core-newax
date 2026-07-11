@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - agent/http-security-boundary
+  workflow_dispatch:
 
 permissions:
   contents: write
