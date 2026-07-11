@@ -1,4 +1,9 @@
-import { Inject, Injectable, Logger, type NestMiddleware } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  type NestMiddleware,
+} from '@nestjs/common';
 import type {
   HttpSecurityAuditSink,
   HttpSecurityMethod,
@@ -6,13 +11,16 @@ import type {
 } from '@newax/http-security';
 import { SecurityHeadersPolicy } from '@newax/http-security';
 
-import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
 import type {
   HttpSecurityRequestAdapter,
   HttpSecurityResponseAdapter,
 } from './http-security-request';
 import { HTTP_SECURITY_POLICY } from './http-security.tokens';
-import { HttpRequestIdFactory, SystemHttpSecurityClock } from './node-http-security.infrastructure';
+import {
+  HttpRequestIdFactory,
+  SystemHttpSecurityClock,
+} from './node-http-security.infrastructure';
+import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
 
 const REQUEST_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
@@ -70,8 +78,35 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
         response,
         requestId,
         'http.method.rejected',
+        'METHOD_NOT_ALLOWED',
         405,
         'HTTP method is not allowed.',
+      );
+      return;
+    }
+
+    const contentLength = this.contentLength(request.headers['content-length']);
+    if (contentLength === null) {
+      await this.reject(
+        request,
+        response,
+        requestId,
+        'http.content_length.rejected',
+        'INVALID_REQUEST',
+        400,
+        'The request content length is invalid.',
+      );
+      return;
+    }
+    if (contentLength > this.policy.bodyLimitBytes) {
+      await this.reject(
+        request,
+        response,
+        requestId,
+        'http.body.rejected',
+        'PAYLOAD_TOO_LARGE',
+        413,
+        'The request body is too large.',
       );
       return;
     }
@@ -83,6 +118,7 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
         response,
         requestId,
         'http.https.required',
+        'HTTPS_REQUIRED',
         400,
         'HTTPS is required.',
       );
@@ -101,19 +137,32 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
     return this.requestIds.issue();
   }
 
+  private contentLength(
+    header: string | readonly string[] | undefined,
+  ): number | null {
+    if (header === undefined) {
+      return 0;
+    }
+    if (typeof header !== 'string' || !/^\d+$/u.test(header)) {
+      return null;
+    }
+    const value = Number(header);
+    return Number.isSafeInteger(value) && value >= 0 ? value : null;
+  }
+
   private async reject(
     request: HttpSecurityRequestAdapter,
     response: HttpSecurityResponseAdapter,
     requestId: string,
     action: string,
+    publicCode: string,
     statusCode: number,
     message: string,
   ): Promise<void> {
     const method = this.normalizeMethod(request.method);
-    const routeKey = `${method} ${request.path ?? request.originalUrl ?? '/'}`.slice(
-      0,
-      128,
-    );
+    const routeKey = `${method} ${
+      request.path ?? request.originalUrl ?? '/'
+    }`.slice(0, 128);
     try {
       await this.auditSink.record({
         requestId,
@@ -138,7 +187,7 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
 
     response.status(statusCode).json({
       error: {
-        code: action === 'http.https.required' ? 'HTTPS_REQUIRED' : 'METHOD_NOT_ALLOWED',
+        code: publicCode,
         message,
         requestId,
       },
