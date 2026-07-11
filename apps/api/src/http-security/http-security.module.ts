@@ -1,8 +1,4 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  type NestModule,
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import {
@@ -25,10 +21,10 @@ import { HttpSecurityInterceptor } from './http-security.interceptor';
 import { HTTP_SECURITY_POLICY } from './http-security.tokens';
 import {
   HttpRequestIdFactory,
-  MemoryHttpRateLimitStore,
   NodeHttpSecurityCrypto,
   SystemHttpSecurityClock,
 } from './node-http-security.infrastructure';
+import { PrismaHttpRateLimitStore } from './prisma-http-rate-limit.store';
 import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
 
 @Module({
@@ -44,7 +40,7 @@ import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
           infer: true,
         }),
         requireHttps: configuration.get('HTTP_REQUIRE_HTTPS', { infer: true }),
-        trustProxyHops: configuration.get('HTTP_TRUST_PROXY_HOPS', {
+        trustedProxyCidrs: configuration.get('HTTP_TRUSTED_PROXY_CIDRS', {
           infer: true,
         }),
         bodyLimitBytes: configuration.get('HTTP_BODY_LIMIT_BYTES', {
@@ -75,10 +71,10 @@ import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
     CookieHeaderParser,
     SecureCookieTransport,
     SensitiveResponseRedactor,
-    MemoryHttpRateLimitStore,
     SystemHttpSecurityClock,
     HttpRequestIdFactory,
     PrismaHttpSecurityAuditSink,
+    PrismaHttpRateLimitStore,
     {
       provide: NodeHttpSecurityCrypto,
       inject: [ConfigService],
@@ -105,12 +101,12 @@ import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
     {
       provide: HttpRateLimiter,
       inject: [
-        MemoryHttpRateLimitStore,
+        PrismaHttpRateLimitStore,
         SystemHttpSecurityClock,
         HTTP_SECURITY_POLICY,
       ],
       useFactory: (
-        store: MemoryHttpRateLimitStore,
+        store: PrismaHttpRateLimitStore,
         clock: SystemHttpSecurityClock,
         policy: HttpSecurityPolicy,
       ): HttpRateLimiter => new HttpRateLimiter(store, clock, policy),
@@ -136,10 +132,7 @@ import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
     SecureCookieTransport,
     SignedCsrfTokenService,
     HTTP_SECURITY_POLICY,
+    HttpBoundaryMiddleware,
   ],
 })
-export class HttpSecurityModule implements NestModule {
-  configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(HttpBoundaryMiddleware).forRoutes('*');
-  }
-}
+export class HttpSecurityModule {}
