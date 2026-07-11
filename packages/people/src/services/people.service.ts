@@ -218,7 +218,7 @@ export class PeopleService {
     if (result.status === 'conflict') {
       throw new PeopleModuleError(
         'PERSON_IDENTIFIER_CONFLICT',
-        'The identifier is already assigned to another person.',
+        'The identifier is already assigned and cannot be duplicated.',
         {
           personId,
           existingPersonId: result.existingPersonId,
