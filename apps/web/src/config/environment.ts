@@ -9,6 +9,7 @@ export interface WebEnvironment {
 }
 
 export interface WebEnvironmentSource {
+  readonly [key: string]: string | undefined;
   readonly HOSTNAME?: string;
   readonly PORT?: string;
   readonly SEARCH_INDEXING_ENABLED?: string;
