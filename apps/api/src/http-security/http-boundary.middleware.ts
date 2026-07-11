@@ -4,12 +4,12 @@ import {
   Logger,
   type NestMiddleware,
 } from '@nestjs/common';
-import type {
-  HttpSecurityAuditSink,
-  HttpSecurityMethod,
-  HttpSecurityPolicy,
+import {
+  SecurityHeadersPolicy,
+  type HttpSecurityAuditSink,
+  type HttpSecurityMethod,
+  type HttpSecurityPolicy,
 } from '@newax/http-security';
-import { SecurityHeadersPolicy } from '@newax/http-security';
 
 import type {
   HttpSecurityRequestAdapter,
@@ -22,8 +22,6 @@ import {
 } from './node-http-security.infrastructure';
 import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
 
-const REQUEST_ID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 const SUPPORTED_METHODS: ReadonlySet<string> = new Set([
   'GET',
   'HEAD',
@@ -57,7 +55,7 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
     response: HttpSecurityResponseAdapter,
     next: () => void,
   ): Promise<void> {
-    const requestId = this.resolveRequestId(request.headers['x-request-id']);
+    const requestId = this.requestIds.issue();
     request.newaxRequestId = requestId;
     response.setHeader('X-Request-Id', requestId);
 
@@ -85,19 +83,41 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
       return;
     }
 
-    const contentLength = this.contentLength(request.headers['content-length']);
-    if (contentLength === null) {
+    if (request.headers.expect !== undefined) {
       await this.reject(
         request,
         response,
         requestId,
-        'http.content_length.rejected',
+        'http.expectation.rejected',
         'INVALID_REQUEST',
         400,
-        'The request content length is invalid.',
+        'HTTP expectation headers are not supported.',
       );
       return;
     }
+
+    const contentLengthHeader = request.headers['content-length'];
+    const transferEncodingHeader = request.headers['transfer-encoding'];
+    const contentLength = this.contentLength(contentLengthHeader);
+    const transferEncoding = this.transferEncoding(transferEncodingHeader);
+    if (
+      contentLength === null ||
+      transferEncoding === false ||
+      (contentLengthHeader !== undefined && transferEncodingHeader !== undefined)
+    ) {
+      await this.reject(
+        request,
+        response,
+        requestId,
+        'http.framing.rejected',
+        'INVALID_REQUEST',
+        400,
+        'The HTTP request framing is invalid.',
+      );
+      return;
+    }
+
+    request.newaxHasBody = contentLength > 0 || transferEncoding === true;
     if (contentLength > this.policy.bodyLimitBytes) {
       await this.reject(
         request,
@@ -128,15 +148,6 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
     next();
   }
 
-  private resolveRequestId(
-    header: string | readonly string[] | undefined,
-  ): string {
-    if (typeof header === 'string' && REQUEST_ID_PATTERN.test(header.trim())) {
-      return header.trim().toLowerCase();
-    }
-    return this.requestIds.issue();
-  }
-
   private contentLength(
     header: string | readonly string[] | undefined,
   ): number | null {
@@ -150,6 +161,18 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
     return Number.isSafeInteger(value) && value >= 0 ? value : null;
   }
 
+  private transferEncoding(
+    header: string | readonly string[] | undefined,
+  ): boolean | null | false {
+    if (header === undefined) {
+      return null;
+    }
+    if (typeof header !== 'string') {
+      return false;
+    }
+    return header.trim().toLowerCase() === 'chunked' ? true : false;
+  }
+
   private async reject(
     request: HttpSecurityRequestAdapter,
     response: HttpSecurityResponseAdapter,
@@ -160,9 +183,7 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
     message: string,
   ): Promise<void> {
     const method = this.normalizeMethod(request.method);
-    const routeKey = `${method} ${
-      request.path ?? request.originalUrl ?? '/'
-    }`.slice(0, 128);
+    const routeKey = `${method} ${this.safePath(request)}`.slice(0, 128);
     try {
       await this.auditSink.record({
         requestId,
@@ -173,16 +194,17 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
         routeKey,
         method,
         statusCode,
-        ipAddress: request.ip ?? null,
+        ipAddress: this.safeIpAddress(request.ip),
         userAgent: this.singleHeader(request.headers['user-agent']),
         metadata: {},
         occurredAt: this.clock.now(),
       });
     } catch (error: unknown) {
-      this.logger.error(
-        'Failed to persist an HTTP boundary denial audit record.',
-        error instanceof Error ? error.stack : String(error),
-      );
+      this.logger.error({
+        event: 'http.audit.write_failed',
+        requestId,
+        errorType: error instanceof Error ? error.name : 'UnknownError',
+      });
     }
 
     response.status(statusCode).json({
@@ -194,11 +216,22 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
     });
   }
 
+  private safePath(request: HttpSecurityRequestAdapter): string {
+    const source = request.path ?? request.originalUrl ?? '/';
+    const queryIndex = source.indexOf('?');
+    const path = queryIndex < 0 ? source : source.slice(0, queryIndex);
+    return path.length === 0 ? '/' : path;
+  }
+
   private normalizeMethod(value: string): HttpSecurityMethod {
     const normalized = value.toUpperCase();
     return SUPPORTED_METHODS.has(normalized)
       ? (normalized as HttpSecurityMethod)
       : 'GET';
+  }
+
+  private safeIpAddress(value: string | undefined): string | null {
+    return value === undefined ? null : value.slice(0, 64);
   }
 
   private singleHeader(
