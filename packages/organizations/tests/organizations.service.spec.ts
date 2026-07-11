@@ -5,7 +5,6 @@ import type {
   OrganizationEvent,
   OrganizationEventPublisher,
 } from '../src/events/organization-event';
-import type { OrganizationModuleError } from '../src/errors/organization-module-error';
 import { ORGANIZATION_PERMISSIONS } from '../src/permissions/organization-permissions';
 import { OrganizationsService } from '../src/services/organizations.service';
 import type {
@@ -133,7 +132,7 @@ describe('OrganizationsService', () => {
       new RecordingEventPublisher(),
     );
 
-    await expect(service.list(context())).rejects.toMatchObject<Partial<OrganizationModuleError>>({
+    await expect(service.list(context())).rejects.toMatchObject({
       code: 'ORGANIZATION_FORBIDDEN',
     });
   });
@@ -178,7 +177,7 @@ describe('OrganizationsService', () => {
       service.update(context(ORGANIZATION_PERMISSIONS.update), child.id, {
         parentOrganizationId: proposedParent.id,
       }),
-    ).rejects.toMatchObject<Partial<OrganizationModuleError>>({
+    ).rejects.toMatchObject({
       code: 'ORGANIZATION_HIERARCHY_CYCLE',
     });
   });
@@ -193,7 +192,7 @@ describe('OrganizationsService', () => {
 
     await expect(
       service.archive(context(ORGANIZATION_PERMISSIONS.archive), record.id),
-    ).rejects.toMatchObject<Partial<OrganizationModuleError>>({
+    ).rejects.toMatchObject({
       code: 'ORGANIZATION_HAS_ACTIVE_CHILDREN',
     });
   });
