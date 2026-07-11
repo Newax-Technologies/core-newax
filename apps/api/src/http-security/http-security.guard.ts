@@ -12,7 +12,6 @@ import {
   RequestOriginPolicy,
   SecureCookieTransport,
   SignedCsrfTokenService,
-  type HttpSecurityAuditSink,
   type HttpSecurityContextMode,
   type HttpSecurityMethod,
   type HttpSecurityPolicy,
@@ -21,11 +20,9 @@ import {
 import {
   ContextAuthorizer,
   TrustedRequestContextService,
-  type TrustedOrganizationRequestContext,
   type TrustedRequestContext,
 } from '@newax/request-context';
 
-import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
 import {
   HTTP_AUTHENTICATION_SENSITIVE_KEY,
   HTTP_CONTEXT_MODE_KEY,
@@ -36,7 +33,6 @@ import type {
   HttpSecurityResponseAdapter,
 } from './http-security-request';
 import { HTTP_SECURITY_POLICY } from './http-security.tokens';
-import { SystemHttpSecurityClock } from './node-http-security.infrastructure';
 
 @Injectable()
 export class HttpSecurityGuard implements CanActivate {
@@ -51,9 +47,6 @@ export class HttpSecurityGuard implements CanActivate {
     private readonly rateLimiter: HttpRateLimiter,
     private readonly contexts: TrustedRequestContextService,
     private readonly authorizer: ContextAuthorizer,
-    @Inject(PrismaHttpSecurityAuditSink)
-    private readonly auditSink: HttpSecurityAuditSink,
-    private readonly clock: SystemHttpSecurityClock,
   ) {}
 
   async canActivate(executionContext: ExecutionContext): Promise<boolean> {
@@ -64,8 +57,13 @@ export class HttpSecurityGuard implements CanActivate {
       .switchToHttp()
       .getResponse<HttpSecurityResponseAdapter>();
     const method = this.normalizeMethod(request.method);
-    const routeKey = `${executionContext.getClass().name}.${executionContext.getHandler().name}`;
+    const routeKey = `${executionContext.getClass().name}.${executionContext.getHandler().name}`.slice(
+      0,
+      128,
+    );
     request.newaxRouteKey = routeKey;
+    request.newaxSecurityMethod = method;
+
     const requestId = this.requireRequestId(request.newaxRequestId);
     const securityRequest = this.toSecurityRequest(
       request,
@@ -73,6 +71,7 @@ export class HttpSecurityGuard implements CanActivate {
       routeKey,
       method,
     );
+    request.newaxSecurityRequest = securityRequest;
 
     const authenticationSensitive =
       this.reflector.getAllAndOverride<boolean>(
@@ -80,14 +79,17 @@ export class HttpSecurityGuard implements CanActivate {
         [executionContext.getHandler(), executionContext.getClass()],
       ) ?? false;
     const rateLimit = await this.rateLimiter.consume(
-      `${request.ip ?? 'unknown'}|${routeKey}`,
+      `${this.safeIpAddress(request.ip)}|${routeKey}`,
       authenticationSensitive,
     );
-    response.setHeader('RateLimit-Limit', String(
-      authenticationSensitive
-        ? this.policy.authenticationRateLimitMaximumRequests
-        : this.policy.rateLimitMaximumRequests,
-    ));
+    response.setHeader(
+      'RateLimit-Limit',
+      String(
+        authenticationSensitive
+          ? this.policy.authenticationRateLimitMaximumRequests
+          : this.policy.rateLimitMaximumRequests,
+      ),
+    );
     response.setHeader('RateLimit-Remaining', String(rateLimit.remaining));
     response.setHeader(
       'RateLimit-Reset',
@@ -100,9 +102,19 @@ export class HttpSecurityGuard implements CanActivate {
         HTTP_CONTEXT_MODE_KEY,
         [executionContext.getHandler(), executionContext.getClass()],
       ) ?? 'organization';
+    const requiredPermissions =
+      this.reflector.getAllAndOverride<readonly string[]>(
+        HTTP_REQUIRED_PERMISSIONS_KEY,
+        [executionContext.getHandler(), executionContext.getClass()],
+      ) ?? [];
+    this.assertMetadataCompatibility(contextMode, requiredPermissions);
+
+    const stateChanging = this.originPolicy.isStateChanging(method);
+    request.newaxStateChanging = stateChanging;
+    request.newaxRequiredPermissions = [...requiredPermissions];
 
     if (contextMode === 'public') {
-      if (this.originPolicy.isStateChanging(method)) {
+      if (stateChanging) {
         throw new HttpSecurityError(
           'HTTP_SECURITY_FORBIDDEN',
           'Unauthenticated state-changing HTTP endpoints are not enabled.',
@@ -113,7 +125,7 @@ export class HttpSecurityGuard implements CanActivate {
     }
 
     const cookies = this.cookieParser.parse(
-      this.singleHeader(request.headers.cookie),
+      this.singleHeader(request.headers.cookie, 8_192),
     );
     if (cookies.sessionToken === null) {
       throw new HttpSecurityError(
@@ -128,48 +140,47 @@ export class HttpSecurityGuard implements CanActivate {
       cookies.sessionToken,
       this.singleHeader(
         request.headers[this.cookieTransport.membershipHeaderName],
+        128,
       ),
       requestId,
     );
     request.trustedContext = trustedContext;
 
-    if (this.originPolicy.isStateChanging(method)) {
+    if (stateChanging) {
       this.csrfTokens.verify({
         sessionId: trustedContext.sessionId,
         cookieToken: cookies.csrfToken,
         headerToken: this.singleHeader(
           request.headers[this.cookieTransport.csrfHeaderName],
+          256,
         ),
       });
     }
 
-    const requiredPermissions =
-      this.reflector.getAllAndOverride<readonly string[]>(
-        HTTP_REQUIRED_PERMISSIONS_KEY,
-        [executionContext.getHandler(), executionContext.getClass()],
-      ) ?? [];
     if (requiredPermissions.length > 0) {
-      if (trustedContext.scope !== 'organization') {
-        throw new HttpSecurityError(
-          'HTTP_SECURITY_FORBIDDEN',
-          'Organization context is required for permission checks.',
-          403,
-        );
-      }
       this.authorizer.requireAllPermissions(
-        trustedContext,
+        trustedContext as Extract<
+          TrustedRequestContext,
+          { readonly scope: 'organization' }
+        >,
         requiredPermissions,
       );
     }
 
-    if (this.originPolicy.isStateChanging(method)) {
-      await this.auditAllowed(
-        trustedContext,
-        securityRequest,
-        requiredPermissions,
+    return true;
+  }
+
+  private assertMetadataCompatibility(
+    contextMode: HttpSecurityContextMode,
+    requiredPermissions: readonly string[],
+  ): void {
+    if (requiredPermissions.length > 0 && contextMode !== 'organization') {
+      throw new HttpSecurityError(
+        'HTTP_SECURITY_INVALID_INPUT',
+        'Permission metadata requires organization context.',
+        500,
       );
     }
-    return true;
   }
 
   private async resolveContext(
@@ -195,33 +206,6 @@ export class HttpSecurityGuard implements CanActivate {
     });
   }
 
-  private async auditAllowed(
-    context: TrustedRequestContext,
-    request: HttpSecurityRequest,
-    requiredPermissions: readonly string[],
-  ): Promise<void> {
-    await this.auditSink.record({
-      requestId: request.requestId,
-      actorUserId: context.userId,
-      organizationId:
-        context.scope === 'organization' ? context.organizationId : null,
-      action: 'http.request.authorized',
-      outcome: 'allowed',
-      routeKey: request.routeKey,
-      method: request.method,
-      statusCode: 0,
-      ipAddress: request.ipAddress,
-      userAgent: request.userAgent,
-      metadata: {
-        contextScope: context.scope,
-        membershipId:
-          context.scope === 'organization' ? context.membershipId : null,
-        requiredPermissions: [...requiredPermissions],
-      },
-      occurredAt: this.clock.now(),
-    });
-  }
-
   private toSecurityRequest(
     request: HttpSecurityRequestAdapter,
     requestId: string,
@@ -232,12 +216,13 @@ export class HttpSecurityGuard implements CanActivate {
       method,
       routeKey,
       requestId,
-      origin: this.singleHeader(request.headers.origin),
-      referer: this.singleHeader(request.headers.referer),
-      fetchSite: this.singleHeader(request.headers['sec-fetch-site']),
-      contentType: this.singleHeader(request.headers['content-type']),
-      ipAddress: request.ip ?? null,
-      userAgent: this.singleHeader(request.headers['user-agent']),
+      origin: this.singleHeader(request.headers.origin, 2_048),
+      referer: this.singleHeader(request.headers.referer, 4_096),
+      fetchSite: this.singleHeader(request.headers['sec-fetch-site'], 32),
+      contentType: this.singleHeader(request.headers['content-type'], 256),
+      hasBody: request.newaxHasBody ?? false,
+      ipAddress: this.safeIpAddress(request.ip),
+      userAgent: this.singleHeader(request.headers['user-agent'], 1_024),
     };
   }
 
@@ -272,8 +257,13 @@ export class HttpSecurityGuard implements CanActivate {
     );
   }
 
+  private safeIpAddress(value: string | undefined): string {
+    return value === undefined ? 'unresolved' : value.slice(0, 64);
+  }
+
   private singleHeader(
     value: string | readonly string[] | undefined,
+    maximumLength: number,
   ): string | null {
     if (value === undefined) {
       return null;
@@ -282,6 +272,13 @@ export class HttpSecurityGuard implements CanActivate {
       throw new HttpSecurityError(
         'HTTP_SECURITY_INVALID_INPUT',
         'Duplicate security headers are not allowed.',
+        400,
+      );
+    }
+    if (value.length > maximumLength) {
+      throw new HttpSecurityError(
+        'HTTP_SECURITY_INVALID_INPUT',
+        'A security-relevant HTTP header is too large.',
         400,
       );
     }
