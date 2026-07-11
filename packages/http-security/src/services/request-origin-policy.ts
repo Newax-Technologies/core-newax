@@ -51,15 +51,10 @@ export class RequestOriginPolicy {
       throw this.originRejected();
     }
 
-    if (
-      (request.method === 'POST' ||
-        request.method === 'PUT' ||
-        request.method === 'PATCH') &&
-      !this.isJsonContentType(request.contentType)
-    ) {
+    if (request.hasBody && !this.isJsonContentType(request.contentType)) {
       throw new HttpSecurityError(
         'HTTP_SECURITY_ORIGIN_REJECTED',
-        'State-changing HTTP requests must use a supported JSON content type.',
+        'State-changing HTTP request bodies must use a supported JSON content type.',
         415,
       );
     }
