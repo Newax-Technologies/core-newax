@@ -19,8 +19,7 @@ import type {
 const MAX_SESSION_TOKEN_LENGTH = 512;
 const MAX_IDENTIFIER_LENGTH = 128;
 const MAX_PERMISSION_CODE_LENGTH = 160;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 const PERMISSION_CODE_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/u;
 
 export class TrustedRequestContextService {
@@ -65,9 +64,7 @@ export class TrustedRequestContextService {
   ): Promise<TrustedOrganizationRequestContext> {
     const accountContext = await this.resolveAccountContext(input);
     const membershipId = this.normalizeMembershipId(input.membershipId);
-    const membership = await this.membershipDirectory.findMembershipById(
-      membershipId,
-    );
+    const membership = await this.membershipDirectory.findMembershipById(membershipId);
 
     if (membership !== null && membership.id !== membershipId) {
       throw this.integrityFailure(
@@ -86,10 +83,7 @@ export class TrustedRequestContextService {
     this.assertMembershipIntegrity(membership);
 
     const evaluatedAt = this.requireDate(this.clock.now(), 'evaluatedAt');
-    const evaluation = await this.permissionEvaluator.evaluate(
-      membership.id,
-      evaluatedAt,
-    );
+    const evaluation = await this.permissionEvaluator.evaluate(membership.id, evaluatedAt);
 
     if (
       evaluation.membershipId !== membership.id ||
@@ -99,17 +93,14 @@ export class TrustedRequestContextService {
         'Permission evaluation did not match the trusted membership boundary.',
       );
     }
-    this.requireDate(
-      evaluation.evaluatedAt,
-      'permissionEvaluation.evaluatedAt',
-    );
+    this.requireDate(evaluation.evaluatedAt, 'permissionEvaluation.evaluatedAt');
     if (!Array.isArray(evaluation.effectivePermissionCodes)) {
       throw this.integrityFailure(
         'Permission evaluation did not return a valid permission collection.',
       );
     }
-    const permissionCodes = evaluation.effectivePermissionCodes.map(
-      (permissionCode) => this.requirePermissionCode(permissionCode),
+    const permissionCodes = evaluation.effectivePermissionCodes.map((permissionCode) =>
+      this.requirePermissionCode(permissionCode),
     );
 
     return Object.freeze({
@@ -136,18 +127,11 @@ export class TrustedRequestContextService {
   private assertMembershipIntegrity(membership: TrustedMembershipRecord): void {
     this.requireTrustedUuid(membership.id, 'membership.id');
     this.requireTrustedUuid(membership.personId, 'membership.personId');
-    this.requireTrustedUuid(
-      membership.organizationId,
-      'membership.organizationId',
-    );
+    this.requireTrustedUuid(membership.organizationId, 'membership.organizationId');
   }
 
   private normalizeSessionToken(token: string): string | null {
-    if (
-      token.length === 0 ||
-      token.length > MAX_SESSION_TOKEN_LENGTH ||
-      token.trim() !== token
-    ) {
+    if (token.length === 0 || token.length > MAX_SESSION_TOKEN_LENGTH || token.trim() !== token) {
       return null;
     }
     return token;
@@ -162,23 +146,15 @@ export class TrustedRequestContextService {
   }
 
   private resolveRequestId(requestId: string | undefined): string {
-    return this.requireIdentifier(
-      requestId ?? this.requestIdFactory.issue(),
-      'requestId',
-    );
+    return this.requireIdentifier(requestId ?? this.requestIdFactory.issue(), 'requestId');
   }
 
   private requireIdentifier(value: string, field: string): string {
     const normalized = value.trim();
-    if (
-      normalized.length === 0 ||
-      normalized.length > MAX_IDENTIFIER_LENGTH
-    ) {
+    if (normalized.length === 0 || normalized.length > MAX_IDENTIFIER_LENGTH) {
       throw new RequestContextError(
         'REQUEST_CONTEXT_INVALID_INPUT',
-        `${field} must contain between 1 and ${String(
-          MAX_IDENTIFIER_LENGTH,
-        )} characters.`,
+        `${field} must contain between 1 and ${String(MAX_IDENTIFIER_LENGTH)} characters.`,
         { field },
       );
     }
@@ -192,9 +168,7 @@ export class TrustedRequestContextService {
       value.trim() !== value ||
       !PERMISSION_CODE_PATTERN.test(value)
     ) {
-      throw this.integrityFailure(
-        'Permission evaluation returned an invalid permission code.',
-      );
+      throw this.integrityFailure('Permission evaluation returned an invalid permission code.');
     }
     return value;
   }
@@ -228,9 +202,6 @@ export class TrustedRequestContextService {
   }
 
   private integrityFailure(message: string): RequestContextError {
-    return new RequestContextError(
-      'REQUEST_CONTEXT_INTEGRITY_FAILURE',
-      message,
-    );
+    return new RequestContextError('REQUEST_CONTEXT_INTEGRITY_FAILURE', message);
   }
 }
