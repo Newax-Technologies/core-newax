@@ -13,9 +13,7 @@ export class PermissionEvaluator {
     evaluatedAt: Date = new Date(),
   ): Promise<PermissionEvaluation> {
     const normalizedMembershipId = membershipId.trim();
-    const membership = await this.referenceDirectory.findMembershipById(
-      normalizedMembershipId,
-    );
+    const membership = await this.referenceDirectory.findMembershipById(normalizedMembershipId);
 
     if (
       membership === null ||
@@ -37,11 +35,7 @@ export class PermissionEvaluator {
       organization.id !== membership.organizationId ||
       organization.status !== 'active'
     ) {
-      return this.emptyEvaluation(
-        membership.id,
-        membership.organizationId,
-        evaluatedAt,
-      );
+      return this.emptyEvaluation(membership.id, membership.organizationId, evaluatedAt);
     }
 
     return this.repository.evaluateMembershipPermissions(
