@@ -22,24 +22,25 @@ ADRs are used for decisions with long-term impact on:
 
 ## Accepted Decision Index
 
-| ADR                                                                     | Status   | Decision                                                                                                                                        |
-| ----------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ADR 0001](0001-use-modular-monolith-first.md)                          | Accepted | Begin with a modular monolith and extract services only when evidence justifies the additional operational complexity.                          |
-| [ADR 0002](0002-use-permission-based-access-control.md)                 | Accepted | Authorize business actions through explicit permissions rather than hardcoded role names.                                                       |
-| [ADR 0003](0003-design-for-multi-tenancy.md)                            | Accepted | Design NEWAX Core for organization-scoped multi-tenancy and strict tenant isolation.                                                            |
-| [ADR 0004](0004-separate-client-customizations-from-core.md)            | Accepted | Keep client-specific configuration and extensions separate from reusable core modules.                                                          |
-| [ADR 0005](0005-use-event-driven-module-communication.md)               | Accepted | Use documented events for suitable cross-module communication while retaining direct service calls when clearer.                                |
-| [ADR 0006](0006-use-controlled-updates-and-versioning.md)               | Accepted | Use semantic versioning, changelogs, compatibility review, and controlled client updates.                                                       |
-| [ADR 0007](0007-define-lms-centralized-database-and-data-ownership.md)  | Accepted | Use a centralized LMS operational database with explicit module ownership and organization isolation.                                           |
-| [ADR 0008](0008-use-central-identity-and-organization-registry.md)      | Accepted | Use one Central Identity and Organization Registry across LMS and future NEWAX domains.                                                         |
-| [ADR 0009](0009-define-module-registry-and-dependency-rules.md)         | Accepted | Maintain a Module Registry and enforce architecture-layer dependency rules.                                                                     |
-| [ADR 0010](0010-define-authentication-and-user-identity-strategy.md)    | Accepted | Separate people, users, authentication, memberships, roles, permissions, and organization context.                                              |
+| ADR                                                                     | Status   | Decision                                                                                                                                      |
+| ----------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ADR 0001](0001-use-modular-monolith-first.md)                          | Accepted | Begin with a modular monolith and extract services only when evidence justifies the additional operational complexity.                        |
+| [ADR 0002](0002-use-permission-based-access-control.md)                 | Accepted | Authorize business actions through explicit permissions rather than hardcoded role names.                                                     |
+| [ADR 0003](0003-design-for-multi-tenancy.md)                            | Accepted | Design NEWAX Core for organization-scoped multi-tenancy and strict tenant isolation.                                                          |
+| [ADR 0004](0004-separate-client-customizations-from-core.md)            | Accepted | Keep client-specific configuration and extensions separate from reusable core modules.                                                        |
+| [ADR 0005](0005-use-event-driven-module-communication.md)               | Accepted | Use documented events for suitable cross-module communication while retaining direct service calls when clearer.                              |
+| [ADR 0006](0006-use-controlled-updates-and-versioning.md)               | Accepted | Use semantic versioning, changelogs, compatibility review, and controlled client updates.                                                     |
+| [ADR 0007](0007-define-lms-centralized-database-and-data-ownership.md)  | Accepted | Use a centralized LMS operational database with explicit module ownership and organization isolation.                                         |
+| [ADR 0008](0008-use-central-identity-and-organization-registry.md)      | Accepted | Use one Central Identity and Organization Registry across LMS and future NEWAX domains.                                                       |
+| [ADR 0009](0009-define-module-registry-and-dependency-rules.md)         | Accepted | Maintain a Module Registry and enforce architecture-layer dependency rules.                                                                   |
+| [ADR 0010](0010-define-authentication-and-user-identity-strategy.md)    | Accepted | Separate people, users, authentication, memberships, roles, permissions, and organization context.                                            |
 | [ADR 0011](0011-define-technology-stack-and-implementation-baseline.md) | Accepted | Use the TypeScript, Node.js, pnpm, NestJS, Next.js, PostgreSQL, Prisma, Vitest, Playwright, Docker, and GitHub Actions implementation baseline. |
-| [ADR 0012](0012-implement-central-registry-data-foundation.md)          | Accepted | Implement the first Prisma Central Registry foundation while keeping domain transactions outside the registry.                                  |
+| [ADR 0012](0012-implement-central-registry-data-foundation.md)          | Accepted | Implement the first Prisma Central Registry foundation while keeping domain transactions outside the registry.                                |
+| [ADR 0013](0013-build-people-registry-service-foundation.md)            | Accepted | Build the reusable People Registry service foundation with permission-controlled identity and identifier operations.                          |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than twelve independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than thirteen independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -60,6 +61,7 @@ The ADRs form a deliberate sequence rather than twelve independent opinions wand
 - ADR 0007 defines LMS database and data-ownership boundaries.
 - ADR 0009 defines module registration, lifecycle, and dependency rules.
 - ADR 0012 defines the first executable Central Registry persistence foundation and preserves domain transaction ownership.
+- ADR 0013 defines the first reusable People Registry service and identifier-protection rules.
 
 ### Implementation Baseline
 
@@ -180,7 +182,7 @@ An ADR does not replace a module README, API documentation, testing evidence, se
 Filename example:
 
 ```text
-0013-define-repository-bootstrap-and-boundary-enforcement.md
+0014-define-repository-bootstrap-and-boundary-enforcement.md
 ```
 
 ## Review Triggers
