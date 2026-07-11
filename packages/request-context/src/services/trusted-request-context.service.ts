@@ -56,13 +56,8 @@ export class TrustedRequestContextService {
     input: ResolveOrganizationContextInput,
   ): Promise<TrustedOrganizationRequestContext> {
     const accountContext = await this.resolveAccountContext(input);
-    const membershipId = this.requireIdentifier(
-      input.membershipId,
-      'membershipId',
-    );
-    const membership = await this.membershipDirectory.findMembershipById(
-      membershipId,
-    );
+    const membershipId = this.requireIdentifier(input.membershipId, 'membershipId');
+    const membership = await this.membershipDirectory.findMembershipById(membershipId);
 
     if (
       membership === null ||
@@ -77,10 +72,7 @@ export class TrustedRequestContextService {
     }
 
     const evaluatedAt = this.requireDate(this.clock.now(), 'evaluatedAt');
-    const evaluation = await this.permissionEvaluator.evaluate(
-      membership.id,
-      evaluatedAt,
-    );
+    const evaluation = await this.permissionEvaluator.evaluate(membership.id, evaluatedAt);
 
     if (
       evaluation.membershipId !== membership.id ||
@@ -102,9 +94,7 @@ export class TrustedRequestContextService {
       sessionExpiresAt: new Date(accountContext.sessionExpiresAt.getTime()),
       membershipId: membership.id,
       organizationId: membership.organizationId,
-      permissionCodes: new ImmutablePermissionSet(
-        evaluation.effectivePermissionCodes,
-      ),
+      permissionCodes: new ImmutablePermissionSet(evaluation.effectivePermissionCodes),
       evaluatedAt: new Date(evaluation.evaluatedAt.getTime()),
     });
   }
@@ -117,34 +107,22 @@ export class TrustedRequestContextService {
   }
 
   private normalizeSessionToken(token: string): string | null {
-    if (
-      token.length === 0 ||
-      token.length > MAX_SESSION_TOKEN_LENGTH ||
-      token.trim() !== token
-    ) {
+    if (token.length === 0 || token.length > MAX_SESSION_TOKEN_LENGTH || token.trim() !== token) {
       return null;
     }
     return token;
   }
 
   private resolveRequestId(requestId: string | undefined): string {
-    return this.requireIdentifier(
-      requestId ?? this.requestIdFactory.issue(),
-      'requestId',
-    );
+    return this.requireIdentifier(requestId ?? this.requestIdFactory.issue(), 'requestId');
   }
 
   private requireIdentifier(value: string, field: string): string {
     const normalized = value.trim();
-    if (
-      normalized.length === 0 ||
-      normalized.length > MAX_IDENTIFIER_LENGTH
-    ) {
+    if (normalized.length === 0 || normalized.length > MAX_IDENTIFIER_LENGTH) {
       throw new RequestContextError(
         'REQUEST_CONTEXT_INVALID_INPUT',
-        `${field} must contain between 1 and ${String(
-          MAX_IDENTIFIER_LENGTH,
-        )} characters.`,
+        `${field} must contain between 1 and ${String(MAX_IDENTIFIER_LENGTH)} characters.`,
         { field },
       );
     }

@@ -9,14 +9,10 @@ import type {
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
-export class PrismaTrustedMembershipDirectory
-  implements TrustedMembershipDirectory
-{
+export class PrismaTrustedMembershipDirectory implements TrustedMembershipDirectory {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  async findMembershipById(
-    membershipId: string,
-  ): Promise<TrustedMembershipRecord | null> {
+  async findMembershipById(membershipId: string): Promise<TrustedMembershipRecord | null> {
     const record = await this.prisma.coreMembership.findUnique({
       where: { id: membershipId },
       select: {
@@ -35,9 +31,7 @@ export class PrismaTrustedMembershipDirectory
           personId: record.personId,
           organizationId: record.organizationId,
           membershipStatus: this.mapMembershipStatus(record.status),
-          organizationStatus: this.mapOrganizationStatus(
-            record.organization.status,
-          ),
+          organizationStatus: this.mapOrganizationStatus(record.organization.status),
         };
   }
 

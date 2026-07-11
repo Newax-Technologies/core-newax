@@ -25,9 +25,7 @@ export class SystemTrustedContextClock implements TrustedContextClock {
 }
 
 @Injectable()
-export class AsyncLocalStorageTrustedRequestContextStore
-  implements TrustedRequestContextStore
-{
+export class AsyncLocalStorageTrustedRequestContextStore implements TrustedRequestContextStore {
   private readonly storage = new AsyncLocalStorage<TrustedRequestContext>();
 
   get(): TrustedRequestContext | null {

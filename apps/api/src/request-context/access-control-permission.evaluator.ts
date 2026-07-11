@@ -6,22 +6,14 @@ import type {
 } from '@newax/request-context';
 
 @Injectable()
-export class AccessControlPermissionEvaluator
-  implements TrustedPermissionEvaluator
-{
+export class AccessControlPermissionEvaluator implements TrustedPermissionEvaluator {
   constructor(
     @Inject(PermissionEvaluator)
     private readonly permissions: PermissionEvaluator,
   ) {}
 
-  async evaluate(
-    membershipId: string,
-    evaluatedAt: Date,
-  ): Promise<TrustedPermissionEvaluation> {
-    const evaluation = await this.permissions.evaluate(
-      membershipId,
-      evaluatedAt,
-    );
+  async evaluate(membershipId: string, evaluatedAt: Date): Promise<TrustedPermissionEvaluation> {
+    const evaluation = await this.permissions.evaluate(membershipId, evaluatedAt);
     return {
       membershipId: evaluation.membershipId,
       organizationId: evaluation.organizationId,

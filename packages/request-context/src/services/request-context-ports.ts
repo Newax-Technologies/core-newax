@@ -9,16 +9,11 @@ export interface TrustedSessionValidator {
 }
 
 export interface TrustedMembershipDirectory {
-  findMembershipById(
-    membershipId: string,
-  ): Promise<TrustedMembershipRecord | null>;
+  findMembershipById(membershipId: string): Promise<TrustedMembershipRecord | null>;
 }
 
 export interface TrustedPermissionEvaluator {
-  evaluate(
-    membershipId: string,
-    evaluatedAt: Date,
-  ): Promise<TrustedPermissionEvaluation>;
+  evaluate(membershipId: string, evaluatedAt: Date): Promise<TrustedPermissionEvaluation>;
 }
 
 export interface TrustedContextClock {

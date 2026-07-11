@@ -17,9 +17,7 @@ import type {
 
 const now = new Date('2026-07-12T00:00:00.000Z');
 
-function session(
-  overrides: Partial<TrustedSessionRecord> = {},
-): TrustedSessionRecord {
+function session(overrides: Partial<TrustedSessionRecord> = {}): TrustedSessionRecord {
   return {
     userId: '00000000-0000-4000-8000-000000000100',
     personId: '00000000-0000-4000-8000-000000000001',
@@ -29,9 +27,7 @@ function session(
   };
 }
 
-function membership(
-  overrides: Partial<TrustedMembershipRecord> = {},
-): TrustedMembershipRecord {
+function membership(overrides: Partial<TrustedMembershipRecord> = {}): TrustedMembershipRecord {
   return {
     id: '00000000-0000-4000-8000-000000000300',
     personId: '00000000-0000-4000-8000-000000000001',
@@ -53,9 +49,7 @@ class FakeSessionValidator implements TrustedSessionValidator {
 class FakeMembershipDirectory implements TrustedMembershipDirectory {
   record: TrustedMembershipRecord | null = membership();
 
-  async findMembershipById(
-    _membershipId: string,
-  ): Promise<TrustedMembershipRecord | null> {
+  async findMembershipById(_membershipId: string): Promise<TrustedMembershipRecord | null> {
     return this.record;
   }
 }
@@ -68,10 +62,7 @@ class FakePermissionEvaluator implements TrustedPermissionEvaluator {
     effectivePermissionCodes: ['people.view', 'memberships.view'],
   };
 
-  async evaluate(
-    _membershipId: string,
-    _evaluatedAt: Date,
-  ): Promise<TrustedPermissionEvaluation> {
+  async evaluate(_membershipId: string, _evaluatedAt: Date): Promise<TrustedPermissionEvaluation> {
     return this.record;
   }
 }
@@ -156,13 +147,8 @@ describe('TrustedRequestContextService', () => {
       membershipId: membership().id,
       organizationId: membership().organizationId,
     });
-    expect([...context.permissionCodes]).toEqual([
-      'memberships.view',
-      'people.view',
-    ]);
-    expect(
-      (context.permissionCodes as unknown as { add?: unknown }).add,
-    ).toBeUndefined();
+    expect([...context.permissionCodes]).toEqual(['memberships.view', 'people.view']);
+    expect((context.permissionCodes as unknown as { add?: unknown }).add).toBeUndefined();
   });
 
   it('conceals missing, cross-person, and inactive memberships behind one failure', async () => {
@@ -218,9 +204,7 @@ describe('ContextAuthorizer', () => {
       organizationId: context.organizationId,
       permissionCodes: context.permissionCodes,
     });
-    expect(() =>
-      authorizer.requirePermission(context, 'people.archive'),
-    ).toThrowError(
+    expect(() => authorizer.requirePermission(context, 'people.archive')).toThrowError(
       expect.objectContaining({ code: 'REQUEST_CONTEXT_FORBIDDEN' }),
     );
   });

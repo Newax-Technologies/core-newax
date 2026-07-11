@@ -5,18 +5,12 @@ import type {
 } from '../types/request-context';
 
 export class ContextAuthorizer {
-  hasPermission(
-    context: TrustedOrganizationRequestContext,
-    permissionCode: string,
-  ): boolean {
+  hasPermission(context: TrustedOrganizationRequestContext, permissionCode: string): boolean {
     const normalized = this.requirePermissionCode(permissionCode);
     return context.permissionCodes.has(normalized);
   }
 
-  requirePermission(
-    context: TrustedOrganizationRequestContext,
-    permissionCode: string,
-  ): void {
+  requirePermission(context: TrustedOrganizationRequestContext, permissionCode: string): void {
     const normalized = this.requirePermissionCode(permissionCode);
     if (!context.permissionCodes.has(normalized)) {
       throw new RequestContextError(
@@ -55,9 +49,7 @@ export class ContextAuthorizer {
     );
     if (
       normalized.length === 0 ||
-      !normalized.some((permissionCode) =>
-        context.permissionCodes.has(permissionCode),
-      )
+      !normalized.some((permissionCode) => context.permissionCodes.has(permissionCode))
     ) {
       throw new RequestContextError(
         'REQUEST_CONTEXT_FORBIDDEN',
@@ -67,9 +59,7 @@ export class ContextAuthorizer {
     }
   }
 
-  toModuleContext(
-    context: TrustedOrganizationRequestContext,
-  ): ModuleRequestContext {
+  toModuleContext(context: TrustedOrganizationRequestContext): ModuleRequestContext {
     return {
       actorUserId: context.userId,
       organizationId: context.organizationId,

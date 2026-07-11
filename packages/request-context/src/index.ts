@@ -1,7 +1,4 @@
-export {
-  RequestContextError,
-  type RequestContextErrorCode,
-} from './errors/request-context-error';
+export { RequestContextError, type RequestContextErrorCode } from './errors/request-context-error';
 export { ContextAuthorizer } from './security/context-authorizer';
 export { ImmutablePermissionSet } from './security/immutable-permission-set';
 export type {

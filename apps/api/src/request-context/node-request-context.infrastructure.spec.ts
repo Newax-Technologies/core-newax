@@ -4,9 +4,7 @@ import type { TrustedAccountRequestContext } from '@newax/request-context';
 
 import { AsyncLocalStorageTrustedRequestContextStore } from './node-request-context.infrastructure';
 
-function accountContext(
-  requestId: string,
-): TrustedAccountRequestContext {
+function accountContext(requestId: string): TrustedAccountRequestContext {
   return {
     scope: 'account',
     requestId,

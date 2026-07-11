@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
-import {
-  ContextAuthorizer,
-  TrustedRequestContextService,
-} from '@newax/request-context';
+import { ContextAuthorizer, TrustedRequestContextService } from '@newax/request-context';
 
 import { AccessControlModule } from '../access-control/access-control.module';
 import { AuthenticationModule } from '../authentication/authentication.module';
@@ -17,11 +14,7 @@ import {
 import { PrismaTrustedMembershipDirectory } from './prisma-trusted-membership.directory';
 
 @Module({
-  imports: [
-    DatabaseModule,
-    AuthenticationModule,
-    AccessControlModule,
-  ],
+  imports: [DatabaseModule, AuthenticationModule, AccessControlModule],
   providers: [
     AuthenticationSessionValidator,
     PrismaTrustedMembershipDirectory,
