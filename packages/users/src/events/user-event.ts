@@ -1,7 +1,4 @@
-import type {
-  UserIdentityType,
-  UserRecord,
-} from '../types/user';
+import type { UserIdentityType, UserRecord } from '../types/user';
 
 export type UserEvent =
   | {
@@ -14,11 +11,7 @@ export type UserEvent =
       readonly identityType: UserIdentityType;
     }
   | {
-      readonly name:
-        | 'user.suspended'
-        | 'user.disabled'
-        | 'user.enabled'
-        | 'user.archived';
+      readonly name: 'user.suspended' | 'user.disabled' | 'user.enabled' | 'user.archived';
       readonly actorUserId: string;
       readonly organizationId: null;
       readonly occurredAt: Date;
@@ -26,9 +19,7 @@ export type UserEvent =
     }
   | {
       readonly name:
-        | 'user.identity_added'
-        | 'user.identity_removed'
-        | 'user.primary_identity_changed';
+        'user.identity_added' | 'user.identity_removed' | 'user.primary_identity_changed';
       readonly actorUserId: string;
       readonly organizationId: null;
       readonly occurredAt: Date;

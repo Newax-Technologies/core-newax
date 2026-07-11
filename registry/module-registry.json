@@ -1,7 +1,7 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.4",
+  "registry_version": "0.1.5",
   "registry_status": "draft",
   "last_updated": "2026-07-11",
   "owner": "NEWAX Engineering",
@@ -109,30 +109,54 @@
       "module_key": "users",
       "module_layer": "foundation",
       "module_version": "0.1.0",
-      "module_status": "planned",
+      "module_status": "draft",
       "module_owner": "NEWAX Engineering",
-      "description": "Maintains login accounts linked to central person records without treating every person as a user.",
+      "description": "Maintains global login-capable accounts linked to central people while organization access remains membership and permission controlled.",
       "dependencies": [
         {
           "module_key": "people",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "organizations",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "memberships",
           "version": ">=0.1.0"
         }
       ],
       "required_permissions": [
         "users.view",
         "users.create",
-        "users.update",
         "users.suspend",
-        "users.disable"
+        "users.disable",
+        "users.enable",
+        "users.archive",
+        "users.identities.view",
+        "users.identities.manage"
       ],
-      "exposed_events": ["user.created", "user.updated", "user.suspended", "user.disabled"],
+      "exposed_events": [
+        "user.created",
+        "user.suspended",
+        "user.disabled",
+        "user.enabled",
+        "user.archived",
+        "user.identity_added",
+        "user.identity_removed",
+        "user.primary_identity_changed"
+      ],
       "consumed_events": ["person.archived"],
-      "configuration_options": ["account_status_values", "invitation_expiration_policy"],
-      "database_ownership": ["core_users"],
-      "tenant_scope": "multi_organization_access",
+      "configuration_options": [
+        "account_status_values",
+        "login_identity_types",
+        "identity_normalization_policy"
+      ],
+      "database_ownership": ["core_users", "core_user_identities"],
+      "tenant_scope": "global_account_with_organization_scoped_access",
       "documentation_path": "packages/users/README.md",
       "changelog_path": "packages/users/CHANGELOG.md",
-      "compatibility_notes": "A person may exist without a login account. Every user must reference one person record."
+      "compatibility_notes": "A person may exist without a user account. One global user may access multiple organizations only through approved memberships and permissions."
     },
     {
       "module_name": "Authentication",

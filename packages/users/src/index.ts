@@ -1,13 +1,7 @@
 export type { UsersRepository } from './database/users-repository';
 export type { UserEvent, UserEventPublisher } from './events/user-event';
-export {
-  UserModuleError,
-  type UserErrorCode,
-} from './errors/user-module-error';
-export {
-  USER_PERMISSIONS,
-  type UserPermission,
-} from './permissions/user-permissions';
+export { UserModuleError, type UserErrorCode } from './errors/user-module-error';
+export { USER_PERMISSIONS, type UserPermission } from './permissions/user-permissions';
 export { UserAuthenticationGateway } from './services/user-authentication-gateway';
 export {
   UserIdentityNormalizer,

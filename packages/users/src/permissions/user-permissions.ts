@@ -9,5 +9,4 @@ export const USER_PERMISSIONS = {
   view: 'users.view',
 } as const;
 
-export type UserPermission =
-  (typeof USER_PERMISSIONS)[keyof typeof USER_PERMISSIONS];
+export type UserPermission = (typeof USER_PERMISSIONS)[keyof typeof USER_PERMISSIONS];

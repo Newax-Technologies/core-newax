@@ -45,18 +45,14 @@ interface UserIdentityDatabaseRecord {
 export class PrismaUsersRepository implements UsersRepository {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  async addIdentity(
-    input: AddUserIdentityRecordInput,
-  ): Promise<AddUserIdentityResult> {
+  async addIdentity(input: AddUserIdentityRecordInput): Promise<AddUserIdentityResult> {
     const lockKeys = [
       `identity:${input.identityType}:${input.normalizedValue}`,
       `user:${input.userId}`,
     ].sort();
 
     return this.prisma.$transaction(
-      async (
-        transaction: Prisma.TransactionClient,
-      ): Promise<AddUserIdentityResult> => {
+      async (transaction: Prisma.TransactionClient): Promise<AddUserIdentityResult> => {
         await this.acquireLocks(transaction, lockKeys);
 
         const existing = await transaction.coreUserIdentity.findUnique({
@@ -107,9 +103,7 @@ export class PrismaUsersRepository implements UsersRepository {
     ].sort();
 
     return this.prisma.$transaction(
-      async (
-        transaction: Prisma.TransactionClient,
-      ): Promise<CreateUserResult> => {
+      async (transaction: Prisma.TransactionClient): Promise<CreateUserResult> => {
         await this.acquireLocks(transaction, lockKeys);
 
         const existingUser = await transaction.coreUser.findUnique({
@@ -206,10 +200,7 @@ export class PrismaUsersRepository implements UsersRepository {
     };
   }
 
-  async list(
-    organizationId: string,
-    query: UserListQuery,
-  ): Promise<UserPage> {
+  async list(organizationId: string, query: UserListQuery): Promise<UserPage> {
     const limit = query.limit ?? 50;
     const where: Prisma.CoreUserWhereInput = {
       person: {
@@ -259,9 +250,7 @@ export class PrismaUsersRepository implements UsersRepository {
       where,
       orderBy: { id: 'asc' },
       take: limit + 1,
-      ...(query.afterId === undefined
-        ? {}
-        : { cursor: { id: query.afterId }, skip: 1 }),
+      ...(query.afterId === undefined ? {} : { cursor: { id: query.afterId }, skip: 1 }),
     });
 
     const hasMore = records.length > limit;
@@ -273,9 +262,7 @@ export class PrismaUsersRepository implements UsersRepository {
     };
   }
 
-  async listIdentities(
-    userId: string,
-  ): Promise<readonly UserIdentityRecord[]> {
+  async listIdentities(userId: string): Promise<readonly UserIdentityRecord[]> {
     const records = await this.prisma.coreUserIdentity.findMany({
       where: { userId },
       orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }, { id: 'asc' }],
@@ -283,10 +270,7 @@ export class PrismaUsersRepository implements UsersRepository {
     return records.map((record) => this.mapIdentity(record));
   }
 
-  async recordSuccessfulLogin(
-    userId: string,
-    occurredAt: Date,
-  ): Promise<UserRecord | null> {
+  async recordSuccessfulLogin(userId: string, occurredAt: Date): Promise<UserRecord | null> {
     const existing = await this.prisma.coreUser.findUnique({
       where: { id: userId },
       select: { id: true },
@@ -304,14 +288,9 @@ export class PrismaUsersRepository implements UsersRepository {
     return this.mapUser(updated);
   }
 
-  async removeIdentity(
-    userId: string,
-    identityId: string,
-  ): Promise<RemoveUserIdentityResult> {
+  async removeIdentity(userId: string, identityId: string): Promise<RemoveUserIdentityResult> {
     return this.prisma.$transaction(
-      async (
-        transaction: Prisma.TransactionClient,
-      ): Promise<RemoveUserIdentityResult> => {
+      async (transaction: Prisma.TransactionClient): Promise<RemoveUserIdentityResult> => {
         await this.acquireLocks(transaction, [`user:${userId}`]);
         const identities = await transaction.coreUserIdentity.findMany({
           where: { userId },
@@ -331,9 +310,7 @@ export class PrismaUsersRepository implements UsersRepository {
 
         let newPrimaryIdentityId: string | null = null;
         if (target.isPrimary) {
-          const replacement = identities.find(
-            (current) => current.id !== target.id,
-          );
+          const replacement = identities.find((current) => current.id !== target.id);
           if (replacement !== undefined) {
             await transaction.coreUserIdentity.update({
               where: { id: replacement.id },
@@ -352,10 +329,7 @@ export class PrismaUsersRepository implements UsersRepository {
     );
   }
 
-  async setLockedUntil(
-    userId: string,
-    lockedUntil: Date | null,
-  ): Promise<UserRecord | null> {
+  async setLockedUntil(userId: string, lockedUntil: Date | null): Promise<UserRecord | null> {
     const existing = await this.prisma.coreUser.findUnique({
       where: { id: userId },
       select: { id: true },
@@ -370,14 +344,9 @@ export class PrismaUsersRepository implements UsersRepository {
     return this.mapUser(updated);
   }
 
-  async setPrimaryIdentity(
-    userId: string,
-    identityId: string,
-  ): Promise<UserIdentityRecord | null> {
+  async setPrimaryIdentity(userId: string, identityId: string): Promise<UserIdentityRecord | null> {
     return this.prisma.$transaction(
-      async (
-        transaction: Prisma.TransactionClient,
-      ): Promise<UserIdentityRecord | null> => {
+      async (transaction: Prisma.TransactionClient): Promise<UserIdentityRecord | null> => {
         await this.acquireLocks(transaction, [`user:${userId}`]);
         const identity = await transaction.coreUserIdentity.findFirst({
           where: { id: identityId, userId },
@@ -424,9 +393,7 @@ export class PrismaUsersRepository implements UsersRepository {
     };
   }
 
-  private mapIdentity(
-    record: UserIdentityDatabaseRecord,
-  ): UserIdentityRecord {
+  private mapIdentity(record: UserIdentityDatabaseRecord): UserIdentityRecord {
     return {
       ...record,
       identityType: this.mapIdentityType(record.identityType),

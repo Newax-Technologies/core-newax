@@ -1,9 +1,5 @@
 import { Module } from '@nestjs/common';
-import {
-  UserAuthenticationGateway,
-  UserIdentityNormalizer,
-  UsersService,
-} from '@newax/users';
+import { UserAuthenticationGateway, UserIdentityNormalizer, UsersService } from '@newax/users';
 
 import { DatabaseModule } from '../database/database.module';
 import { LoggingUserEventPublisher } from './logging-user-event.publisher';
@@ -31,12 +27,7 @@ import { PrismaUsersRepository } from './prisma-users.repository';
         identityNormalizer: UserIdentityNormalizer,
         eventPublisher: LoggingUserEventPublisher,
       ): UsersService =>
-        new UsersService(
-          repository,
-          referenceDirectory,
-          identityNormalizer,
-          eventPublisher,
-        ),
+        new UsersService(repository, referenceDirectory, identityNormalizer, eventPublisher),
     },
     {
       provide: UserAuthenticationGateway,
@@ -44,8 +35,7 @@ import { PrismaUsersRepository } from './prisma-users.repository';
       useFactory: (
         repository: PrismaUsersRepository,
         identityNormalizer: UserIdentityNormalizer,
-      ): UserAuthenticationGateway =>
-        new UserAuthenticationGateway(repository, identityNormalizer),
+      ): UserAuthenticationGateway => new UserAuthenticationGateway(repository, identityNormalizer),
     },
   ],
   exports: [UsersService, UserAuthenticationGateway],

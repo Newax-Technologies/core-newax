@@ -1,10 +1,7 @@
 import type { UsersRepository } from '../database/users-repository';
 import type { UserEventPublisher } from '../events/user-event';
 import { UserModuleError } from '../errors/user-module-error';
-import {
-  USER_PERMISSIONS,
-  type UserPermission,
-} from '../permissions/user-permissions';
+import { USER_PERMISSIONS, type UserPermission } from '../permissions/user-permissions';
 import type {
   AddUserIdentityInput,
   CreateUserInput,
@@ -31,10 +28,7 @@ export class UsersService {
     private readonly eventPublisher: UserEventPublisher,
   ) {}
 
-  async create(
-    context: UserRequestContext,
-    input: CreateUserInput,
-  ): Promise<UserRecord> {
+  async create(context: UserRequestContext, input: CreateUserInput): Promise<UserRecord> {
     this.requirePermission(context, USER_PERMISSIONS.create);
     const organizationId = await this.requireActiveOrganization(context);
     const personId = this.requireText(input.personId, 'personId', 128);
@@ -78,18 +72,12 @@ export class UsersService {
     return result.user;
   }
 
-  async getById(
-    context: UserRequestContext,
-    userId: string,
-  ): Promise<UserRecord> {
+  async getById(context: UserRequestContext, userId: string): Promise<UserRecord> {
     this.requirePermission(context, USER_PERMISSIONS.view);
     return this.requireVisibleUser(context, userId);
   }
 
-  async list(
-    context: UserRequestContext,
-    query: UserListQuery = {},
-  ): Promise<UserPage> {
+  async list(context: UserRequestContext, query: UserListQuery = {}): Promise<UserPage> {
     this.requirePermission(context, USER_PERMISSIONS.view);
     const organizationId = this.requireOrganizationId(context);
     const normalized: Mutable<UserListQuery> = {
@@ -109,10 +97,7 @@ export class UsersService {
     return this.repository.list(organizationId, normalized);
   }
 
-  async suspend(
-    context: UserRequestContext,
-    userId: string,
-  ): Promise<UserRecord> {
+  async suspend(context: UserRequestContext, userId: string): Promise<UserRecord> {
     return this.changePlatformStatus(
       context,
       userId,
@@ -122,10 +107,7 @@ export class UsersService {
     );
   }
 
-  async disable(
-    context: UserRequestContext,
-    userId: string,
-  ): Promise<UserRecord> {
+  async disable(context: UserRequestContext, userId: string): Promise<UserRecord> {
     return this.changePlatformStatus(
       context,
       userId,
@@ -135,10 +117,7 @@ export class UsersService {
     );
   }
 
-  async enable(
-    context: UserRequestContext,
-    userId: string,
-  ): Promise<UserRecord> {
+  async enable(context: UserRequestContext, userId: string): Promise<UserRecord> {
     this.requirePlatformPermission(context, USER_PERMISSIONS.enable);
     const user = await this.requireUser(userId);
 
@@ -157,10 +136,7 @@ export class UsersService {
     return updated;
   }
 
-  async archive(
-    context: UserRequestContext,
-    userId: string,
-  ): Promise<UserRecord> {
+  async archive(context: UserRequestContext, userId: string): Promise<UserRecord> {
     this.requirePlatformPermission(context, USER_PERMISSIONS.archive);
     const user = await this.requireUser(userId);
     if (user.status === 'archived') {
@@ -188,10 +164,7 @@ export class UsersService {
   ): Promise<UserIdentityRecord> {
     this.requirePlatformPermission(context, USER_PERMISSIONS.identitiesManage);
     const user = await this.requireMutableUser(userId);
-    const identity = this.identityNormalizer.normalize(
-      input.identityType,
-      input.identityValue,
-    );
+    const identity = this.identityNormalizer.normalize(input.identityType, input.identityValue);
     const result = await this.repository.addIdentity({
       userId: user.id,
       identityType: identity.identityType,
@@ -256,15 +229,8 @@ export class UsersService {
   ): Promise<void> {
     this.requirePlatformPermission(context, USER_PERMISSIONS.identitiesManage);
     const user = await this.requireMutableUser(userId);
-    const normalizedIdentityId = this.requireText(
-      identityId,
-      'identityId',
-      128,
-    );
-    const result = await this.repository.removeIdentity(
-      user.id,
-      normalizedIdentityId,
-    );
+    const normalizedIdentityId = this.requireText(identityId, 'identityId', 128);
+    const result = await this.repository.removeIdentity(user.id, normalizedIdentityId);
 
     if (result.status === 'not_found') {
       throw new UserModuleError(
@@ -330,10 +296,7 @@ export class UsersService {
   ): Promise<UserRecord> {
     const organizationId = this.requireOrganizationId(context);
     const user = await this.requireUser(userId);
-    const membership = await this.referenceDirectory.findMembership(
-      user.personId,
-      organizationId,
-    );
+    const membership = await this.referenceDirectory.findMembership(user.personId, organizationId);
     if (
       membership === null ||
       (membership.status !== 'active' && membership.status !== 'suspended')
@@ -347,14 +310,9 @@ export class UsersService {
   }
 
   private async requireUser(userId: string): Promise<UserRecord> {
-    const user = await this.repository.findById(
-      this.requireText(userId, 'userId', 128),
-    );
+    const user = await this.repository.findById(this.requireText(userId, 'userId', 128));
     if (user === null) {
-      throw new UserModuleError(
-        'USER_ACCOUNT_NOT_FOUND',
-        'The user account does not exist.',
-      );
+      throw new UserModuleError('USER_ACCOUNT_NOT_FOUND', 'The user account does not exist.');
     }
     return user;
   }
@@ -370,18 +328,11 @@ export class UsersService {
     return user;
   }
 
-  private async requireActiveOrganization(
-    context: UserRequestContext,
-  ): Promise<string> {
+  private async requireActiveOrganization(context: UserRequestContext): Promise<string> {
     const organizationId = this.requireOrganizationId(context);
-    const organization = await this.referenceDirectory.findOrganizationById(
-      organizationId,
-    );
+    const organization = await this.referenceDirectory.findOrganizationById(organizationId);
     if (organization === null) {
-      throw new UserModuleError(
-        'USER_ORGANIZATION_NOT_FOUND',
-        'The organization does not exist.',
-      );
+      throw new UserModuleError('USER_ORGANIZATION_NOT_FOUND', 'The organization does not exist.');
     }
     if (organization.status !== 'active') {
       throw new UserModuleError(
@@ -396,10 +347,7 @@ export class UsersService {
   private async requireActivePerson(personId: string): Promise<void> {
     const person = await this.referenceDirectory.findPersonById(personId);
     if (person === null) {
-      throw new UserModuleError(
-        'USER_PERSON_NOT_FOUND',
-        'The person does not exist.',
-      );
+      throw new UserModuleError('USER_PERSON_NOT_FOUND', 'The person does not exist.');
     }
     if (person.status !== 'active') {
       throw new UserModuleError(
@@ -410,14 +358,8 @@ export class UsersService {
     }
   }
 
-  private async requireActiveMembership(
-    personId: string,
-    organizationId: string,
-  ): Promise<void> {
-    const membership = await this.referenceDirectory.findMembership(
-      personId,
-      organizationId,
-    );
+  private async requireActiveMembership(personId: string, organizationId: string): Promise<void> {
+    const membership = await this.referenceDirectory.findMembership(personId, organizationId);
     if (membership === null) {
       throw new UserModuleError(
         'USER_MEMBERSHIP_NOT_FOUND',
@@ -433,29 +375,18 @@ export class UsersService {
     }
   }
 
-  private requirePermission(
-    context: UserRequestContext,
-    permission: UserPermission,
-  ): void {
+  private requirePermission(context: UserRequestContext, permission: UserPermission): void {
     if (context.actorUserId.trim().length === 0) {
-      throw new UserModuleError(
-        'USER_INVALID_INPUT',
-        'actorUserId is required.',
-      );
+      throw new UserModuleError('USER_INVALID_INPUT', 'actorUserId is required.');
     }
     if (!context.permissionCodes.has(permission)) {
-      throw new UserModuleError(
-        'USER_FORBIDDEN',
-        `The operation requires ${permission}.`,
-        { permission },
-      );
+      throw new UserModuleError('USER_FORBIDDEN', `The operation requires ${permission}.`, {
+        permission,
+      });
     }
   }
 
-  private requirePlatformPermission(
-    context: UserRequestContext,
-    permission: UserPermission,
-  ): void {
+  private requirePlatformPermission(context: UserRequestContext, permission: UserPermission): void {
     this.requirePermission(context, permission);
     if (context.organizationId !== null) {
       throw new UserModuleError(
@@ -467,10 +398,7 @@ export class UsersService {
 
   private requireOrganizationId(context: UserRequestContext): string {
     if (context.organizationId === null) {
-      throw new UserModuleError(
-        'USER_INVALID_INPUT',
-        'organizationId is required.',
-      );
+      throw new UserModuleError('USER_INVALID_INPUT', 'organizationId is required.');
     }
     return this.requireText(context.organizationId, 'organizationId', 128);
   }
@@ -500,11 +428,7 @@ export class UsersService {
     return limit;
   }
 
-  private requireText(
-    value: string,
-    field: string,
-    maxLength: number,
-  ): string {
+  private requireText(value: string, field: string, maxLength: number): string {
     const normalized = value.trim();
     if (normalized.length === 0 || normalized.length > maxLength) {
       throw new UserModuleError(

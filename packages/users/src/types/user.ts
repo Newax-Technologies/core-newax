@@ -1,18 +1,8 @@
-export type UserStatus =
-  | 'invited'
-  | 'active'
-  | 'suspended'
-  | 'disabled'
-  | 'archived';
+export type UserStatus = 'invited' | 'active' | 'suspended' | 'disabled' | 'archived';
 
 export type MutableUserStatus = Exclude<UserStatus, 'archived'>;
 export type UserIdentityType = 'email' | 'username' | 'phone';
-export type UserReferenceStatus =
-  | 'active'
-  | 'suspended'
-  | 'disabled'
-  | 'archived'
-  | 'ended';
+export type UserReferenceStatus = 'active' | 'suspended' | 'disabled' | 'archived' | 'ended';
 
 export interface UserRequestContext {
   readonly actorUserId: string;

@@ -60,9 +60,7 @@ class FakeUsersRepository implements UsersRepository {
   createResult: CreateUserResult | null = null;
   lastCreateInput: CreateUserRecordInput | null = null;
 
-  async addIdentity(
-    input: AddUserIdentityRecordInput,
-  ): Promise<AddUserIdentityResult> {
+  async addIdentity(input: AddUserIdentityRecordInput): Promise<AddUserIdentityResult> {
     const created = identity({
       id: '00000000-0000-4000-8000-000000000201',
       ...input,
@@ -103,8 +101,7 @@ class FakeUsersRepository implements UsersRepository {
   ): Promise<AuthenticationUserRecord | null> {
     const found = [...this.identities.values()].find(
       (current) =>
-        current.identityType === identityType &&
-        current.normalizedValue === normalizedValue,
+        current.identityType === identityType && current.normalizedValue === normalizedValue,
     );
     if (found === undefined) {
       return null;
@@ -124,23 +121,15 @@ class FakeUsersRepository implements UsersRepository {
     };
   }
 
-  async list(
-    _organizationId: string,
-    _query: UserListQuery,
-  ): Promise<UserPage> {
+  async list(_organizationId: string, _query: UserListQuery): Promise<UserPage> {
     return { items: [...this.users.values()], nextCursor: null };
   }
 
   async listIdentities(userId: string): Promise<readonly UserIdentityRecord[]> {
-    return [...this.identities.values()].filter(
-      (current) => current.userId === userId,
-    );
+    return [...this.identities.values()].filter((current) => current.userId === userId);
   }
 
-  async recordSuccessfulLogin(
-    userId: string,
-    occurredAt: Date,
-  ): Promise<UserRecord | null> {
+  async recordSuccessfulLogin(userId: string, occurredAt: Date): Promise<UserRecord | null> {
     const current = this.users.get(userId);
     if (current === undefined) {
       return null;
@@ -150,10 +139,7 @@ class FakeUsersRepository implements UsersRepository {
     return updated;
   }
 
-  async removeIdentity(
-    _userId: string,
-    identityId: string,
-  ): Promise<RemoveUserIdentityResult> {
+  async removeIdentity(_userId: string, identityId: string): Promise<RemoveUserIdentityResult> {
     if (!this.identities.has(identityId)) {
       return { status: 'not_found' };
     }
@@ -165,10 +151,7 @@ class FakeUsersRepository implements UsersRepository {
     };
   }
 
-  async setLockedUntil(
-    userId: string,
-    lockedUntil: Date | null,
-  ): Promise<UserRecord | null> {
+  async setLockedUntil(userId: string, lockedUntil: Date | null): Promise<UserRecord | null> {
     const current = this.users.get(userId);
     if (current === undefined) {
       return null;
@@ -178,10 +161,7 @@ class FakeUsersRepository implements UsersRepository {
     return updated;
   }
 
-  async setPrimaryIdentity(
-    userId: string,
-    identityId: string,
-  ): Promise<UserIdentityRecord | null> {
+  async setPrimaryIdentity(userId: string, identityId: string): Promise<UserIdentityRecord | null> {
     const current = this.identities.get(identityId);
     if (current === undefined || current.userId !== userId) {
       return null;
@@ -214,9 +194,7 @@ class FakeReferenceDirectory implements UserReferenceDirectory {
     return this.memberships.get(`${personId}|${organizationId}`) ?? null;
   }
 
-  async findOrganizationById(
-    organizationId: string,
-  ): Promise<UserReferenceRecord | null> {
+  async findOrganizationById(organizationId: string): Promise<UserReferenceRecord | null> {
     return this.organizations.get(organizationId) ?? null;
   }
 
@@ -298,21 +276,16 @@ describe('UsersService', () => {
       publisher,
     );
 
-    const created = await service.create(
-      organizationContext(USER_PERMISSIONS.create),
-      {
-        personId: '00000000-0000-4000-8000-000000000001',
-        primaryIdentity: {
-          identityType: 'email',
-          identityValue: ' PERSON@Example.COM ',
-        },
+    const created = await service.create(organizationContext(USER_PERMISSIONS.create), {
+      personId: '00000000-0000-4000-8000-000000000001',
+      primaryIdentity: {
+        identityType: 'email',
+        identityValue: ' PERSON@Example.COM ',
       },
-    );
+    });
 
     expect(created.status).toBe('invited');
-    expect(repository.lastCreateInput?.normalizedValue).toBe(
-      'person@example.com',
-    );
+    expect(repository.lastCreateInput?.normalizedValue).toBe('person@example.com');
     expect(publisher.events[0]?.name).toBe('user.created');
   });
 
@@ -350,16 +323,10 @@ describe('UsersService', () => {
     );
 
     await expect(
-      service.suspend(
-        organizationContext(USER_PERMISSIONS.suspend),
-        current.id,
-      ),
+      service.suspend(organizationContext(USER_PERMISSIONS.suspend), current.id),
     ).rejects.toMatchObject({ code: 'USER_PLATFORM_CONTEXT_REQUIRED' });
 
-    const suspended = await service.suspend(
-      platformContext(USER_PERMISSIONS.suspend),
-      current.id,
-    );
+    const suspended = await service.suspend(platformContext(USER_PERMISSIONS.suspend), current.id);
     expect(suspended.status).toBe('suspended');
   });
 
@@ -375,10 +342,7 @@ describe('UsersService', () => {
     );
 
     await expect(
-      service.getById(
-        organizationContext(USER_PERMISSIONS.view),
-        current.id,
-      ),
+      service.getById(organizationContext(USER_PERMISSIONS.view), current.id),
     ).rejects.toMatchObject({ code: 'USER_ACCOUNT_NOT_FOUND' });
   });
 });

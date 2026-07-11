@@ -8,9 +8,7 @@ import type {
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
-export class PrismaUserReferenceDirectory
-  implements UserReferenceDirectory
-{
+export class PrismaUserReferenceDirectory implements UserReferenceDirectory {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async findMembership(
@@ -37,9 +35,7 @@ export class PrismaUserReferenceDirectory
         };
   }
 
-  async findOrganizationById(
-    organizationId: string,
-  ): Promise<UserReferenceRecord | null> {
+  async findOrganizationById(organizationId: string): Promise<UserReferenceRecord | null> {
     const record = await this.prisma.coreOrganization.findUnique({
       where: { id: organizationId },
       select: { id: true, status: true },
@@ -54,9 +50,7 @@ export class PrismaUserReferenceDirectory
         };
   }
 
-  async findPersonById(
-    personId: string,
-  ): Promise<UserReferenceRecord | null> {
+  async findPersonById(personId: string): Promise<UserReferenceRecord | null> {
     const record = await this.prisma.corePerson.findUnique({
       where: { id: personId },
       select: { id: true, status: true },

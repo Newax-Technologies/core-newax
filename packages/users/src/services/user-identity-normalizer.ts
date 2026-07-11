@@ -8,10 +8,7 @@ export interface NormalizedUserIdentity {
 }
 
 export class UserIdentityNormalizer {
-  normalize(
-    identityType: UserIdentityType,
-    identityValue: string,
-  ): NormalizedUserIdentity {
+  normalize(identityType: UserIdentityType, identityValue: string): NormalizedUserIdentity {
     const value = identityValue.trim();
 
     if (value.length === 0 || value.length > 320) {
@@ -25,11 +22,9 @@ export class UserIdentityNormalizer {
     if (identityType === 'email') {
       const normalizedValue = value.toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedValue)) {
-        throw new UserModuleError(
-          'USER_INVALID_INPUT',
-          'A valid email identity is required.',
-          { field: 'identityValue' },
-        );
+        throw new UserModuleError('USER_INVALID_INPUT', 'A valid email identity is required.', {
+          field: 'identityValue',
+        });
       }
       return { identityType, identityValue: value, normalizedValue };
     }
@@ -48,11 +43,9 @@ export class UserIdentityNormalizer {
 
     const normalizedValue = value.replace(/[\s()-]/g, '');
     if (!/^\+[1-9]\d{7,14}$/.test(normalizedValue)) {
-      throw new UserModuleError(
-        'USER_INVALID_INPUT',
-        'Phone identities must use E.164 format.',
-        { field: 'identityValue' },
-      );
+      throw new UserModuleError('USER_INVALID_INPUT', 'Phone identities must use E.164 format.', {
+        field: 'identityValue',
+      });
     }
 
     return {
