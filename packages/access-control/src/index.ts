@@ -3,10 +3,7 @@ export type {
   AccessControlEvent,
   AccessControlEventPublisher,
 } from './events/access-control-event';
-export {
-  AccessControlError,
-  type AccessControlErrorCode,
-} from './errors/access-control-error';
+export { AccessControlError, type AccessControlErrorCode } from './errors/access-control-error';
 export {
   ACCESS_CONTROL_PERMISSIONS,
   type AccessControlPermission,

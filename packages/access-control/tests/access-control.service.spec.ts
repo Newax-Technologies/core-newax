@@ -203,8 +203,7 @@ class FakeAccessControlRepository implements AccessControlRepository {
     const updated = {
       ...current,
       name: input.name ?? current.name,
-      description:
-        'description' in input ? (input.description ?? null) : current.description,
+      description: 'description' in input ? (input.description ?? null) : current.description,
     };
     this.roles.set(id, updated);
     return updated;
@@ -268,11 +267,7 @@ describe('AccessControlService', () => {
   it('derives stable permission codes and emits registration events', async () => {
     const repository = new FakeAccessControlRepository();
     const publisher = new RecordingPublisher();
-    const service = new AccessControlService(
-      repository,
-      new FakeReferenceDirectory(),
-      publisher,
-    );
+    const service = new AccessControlService(repository, new FakeReferenceDirectory(), publisher);
 
     const created = await service.registerPermission(
       context(ACCESS_CONTROL_PERMISSIONS.permissionsManage),
@@ -335,7 +330,10 @@ describe('PermissionEvaluator', () => {
       status: 'suspended',
     });
 
-    const result = await new PermissionEvaluator(repository, references).evaluate('membership', now);
+    const result = await new PermissionEvaluator(repository, references).evaluate(
+      'membership',
+      now,
+    );
     expect(result.effectivePermissionCodes).toEqual([]);
   });
 
@@ -348,7 +346,10 @@ describe('PermissionEvaluator', () => {
       status: 'active',
     });
 
-    const result = await new PermissionEvaluator(repository, references).evaluate('membership', now);
+    const result = await new PermissionEvaluator(repository, references).evaluate(
+      'membership',
+      now,
+    );
     expect(result.allowedPermissionCodes).toContain('records.delete');
     expect(result.deniedPermissionCodes).toContain('records.delete');
     expect(result.effectivePermissionCodes).not.toContain('records.delete');

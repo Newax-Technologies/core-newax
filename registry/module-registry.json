@@ -1,7 +1,7 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.3",
+  "registry_version": "0.1.4",
   "registry_status": "draft",
   "last_updated": "2026-07-11",
   "owner": "NEWAX Engineering",
@@ -178,37 +178,13 @@
       "compatibility_notes": "Authentication proves login identity. Authorization remains permission-based and organization-aware."
     },
     {
-      "module_name": "Roles",
-      "module_key": "roles",
+      "module_name": "Access Control",
+      "module_key": "access-control",
       "module_layer": "foundation",
       "module_version": "0.1.0",
-      "module_status": "planned",
+      "module_status": "draft",
       "module_owner": "NEWAX Engineering",
-      "description": "Defines organization-scoped responsibility groups used to bundle permissions.",
-      "dependencies": [
-        {
-          "module_key": "organizations",
-          "version": ">=0.1.0"
-        }
-      ],
-      "required_permissions": ["roles.view", "roles.create", "roles.update", "roles.archive"],
-      "exposed_events": ["role.created", "role.updated", "role.archived"],
-      "consumed_events": ["organization.archived"],
-      "configuration_options": ["role_scope_policy"],
-      "database_ownership": ["core_roles"],
-      "tenant_scope": "organization_scoped",
-      "documentation_path": "packages/roles/README.md",
-      "changelog_path": "packages/roles/CHANGELOG.md",
-      "compatibility_notes": "Roles group permissions. Business logic must never authorize actions by hardcoded role name."
-    },
-    {
-      "module_name": "Permissions",
-      "module_key": "permissions",
-      "module_layer": "foundation",
-      "module_version": "0.1.0",
-      "module_status": "planned",
-      "module_owner": "NEWAX Engineering",
-      "description": "Defines permission-based authorization and assigns permissions through roles and memberships.",
+      "description": "Defines permission-driven authorization, role templates, organization roles, membership-role assignments, and effective permission evaluation.",
       "dependencies": [
         {
           "module_key": "organizations",
@@ -217,34 +193,46 @@
         {
           "module_key": "memberships",
           "version": ">=0.1.0"
-        },
-        {
-          "module_key": "users",
-          "version": ">=0.1.0"
-        },
-        {
-          "module_key": "roles",
-          "version": ">=0.1.0"
         }
       ],
       "required_permissions": [
-        "permissions.view",
-        "permissions.manage",
-        "roles.assign",
-        "roles.remove"
+        "access_control.permissions.view",
+        "access_control.permissions.manage",
+        "access_control.roles.view",
+        "access_control.roles.create",
+        "access_control.roles.update",
+        "access_control.roles.archive",
+        "access_control.roles.permissions.manage",
+        "access_control.assignments.view",
+        "access_control.assignments.manage",
+        "access_control.templates.manage"
       ],
-      "exposed_events": ["permission.changed", "role.assigned", "role.removed"],
-      "consumed_events": ["membership.removed", "user.suspended", "organization.archived"],
+      "exposed_events": [
+        "permission.registered",
+        "permission.updated",
+        "role.created",
+        "role.updated",
+        "role.archived",
+        "role.permission_changed",
+        "role.assigned",
+        "role.removed"
+      ],
+      "consumed_events": ["membership.removed", "organization.archived"],
       "configuration_options": [
         "permission_naming_convention",
-        "organization_scoped_permissions",
-        "role_assignment_policy"
+        "role_assignment_policy",
+        "deny_precedence_policy"
       ],
-      "database_ownership": ["core_permissions", "core_role_permissions"],
-      "tenant_scope": "organization_scoped",
-      "documentation_path": "packages/permissions/README.md",
-      "changelog_path": "packages/permissions/CHANGELOG.md",
-      "compatibility_notes": "Protected actions must check explicit permissions using the module.action convention."
+      "database_ownership": [
+        "core_permissions",
+        "core_roles",
+        "core_role_permissions",
+        "core_membership_roles"
+      ],
+      "tenant_scope": "organization_scoped_with_global_templates",
+      "documentation_path": "packages/access-control/README.md",
+      "changelog_path": "packages/access-control/CHANGELOG.md",
+      "compatibility_notes": "Replaces the planned Roles and Permissions entries before activation. Business logic must authorize through stable permission codes, never role names."
     },
     {
       "module_name": "Contacts",

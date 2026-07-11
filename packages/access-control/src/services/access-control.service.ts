@@ -48,9 +48,8 @@ export class AccessControlService {
     const moduleCode = this.normalizeSegment(input.moduleCode, 'moduleCode');
     const resource = this.normalizeSegment(input.resource, 'resource');
     const action = this.normalizeSegment(input.action, 'action');
-    const code = resource === moduleCode
-      ? `${moduleCode}.${action}`
-      : `${moduleCode}.${resource}.${action}`;
+    const code =
+      resource === moduleCode ? `${moduleCode}.${action}` : `${moduleCode}.${resource}.${action}`;
 
     const result = await this.repository.registerPermission({
       code,
@@ -159,10 +158,7 @@ export class AccessControlService {
     return this.finishRoleCreation(context, result, organizationId);
   }
 
-  async getRoleById(
-    context: AccessControlRequestContext,
-    roleId: string,
-  ): Promise<RoleRecord> {
+  async getRoleById(context: AccessControlRequestContext, roleId: string): Promise<RoleRecord> {
     this.requirePermission(context, ACCESS_CONTROL_PERMISSIONS.rolesView);
     return this.requireVisibleRole(context, roleId);
   }
@@ -192,7 +188,11 @@ export class AccessControlService {
     roleId: string,
     input: UpdateRoleInput,
   ): Promise<RoleRecord> {
-    const role = await this.requireManageableRole(context, roleId, ACCESS_CONTROL_PERMISSIONS.rolesUpdate);
+    const role = await this.requireManageableRole(
+      context,
+      roleId,
+      ACCESS_CONTROL_PERMISSIONS.rolesUpdate,
+    );
     const update: Mutable<UpdateRoleRecordInput> = {};
     if (input.name !== undefined) update.name = this.requireText(input.name, 'name', 128);
     if ('description' in input) {
@@ -207,10 +207,7 @@ export class AccessControlService {
     return updated;
   }
 
-  async archiveRole(
-    context: AccessControlRequestContext,
-    roleId: string,
-  ): Promise<RoleRecord> {
+  async archiveRole(context: AccessControlRequestContext, roleId: string): Promise<RoleRecord> {
     const role = await this.requireManageableRole(
       context,
       roleId,
@@ -232,7 +229,10 @@ export class AccessControlService {
       this.requireText(input.permissionId, 'permissionId', 128),
     );
     if (permission === null || permission.status !== 'active') {
-      throw new AccessControlError('ACCESS_PERMISSION_NOT_FOUND', 'The active permission does not exist.');
+      throw new AccessControlError(
+        'ACCESS_PERMISSION_NOT_FOUND',
+        'The active permission does not exist.',
+      );
     }
 
     const assignment = await this.repository.setRolePermission(
@@ -276,9 +276,8 @@ export class AccessControlService {
     const membership = await this.requireActiveMembership(input.membershipId, organizationId);
     const role = await this.requireOrganizationRole(input.roleId, organizationId);
     const validFrom = this.normalizeDate(input.validFrom ?? new Date(), 'validFrom');
-    const validUntil = input.validUntil == null
-      ? null
-      : this.normalizeDate(input.validUntil, 'validUntil');
+    const validUntil =
+      input.validUntil == null ? null : this.normalizeDate(input.validUntil, 'validUntil');
     if (validUntil !== null && validUntil <= validFrom) {
       throw new AccessControlError(
         'ACCESS_INVALID_INPUT',
@@ -324,9 +323,12 @@ export class AccessControlService {
       this.requireText(assignmentId, 'assignmentId', 128),
     );
     if (assignment === null) {
-      throw new AccessControlError('ACCESS_ASSIGNMENT_NOT_FOUND', 'The role assignment does not exist.');
+      throw new AccessControlError(
+        'ACCESS_ASSIGNMENT_NOT_FOUND',
+        'The role assignment does not exist.',
+      );
     }
-    await this.requireActiveMembership(assignment.membershipId, organizationId);
+    await this.requireScopedMembership(assignment.membershipId, organizationId);
     if (assignment.revokedAt !== null) return assignment;
 
     const revoked = await this.repository.revokeAssignment(
@@ -380,10 +382,14 @@ export class AccessControlService {
     organizationId: string | null,
   ): Promise<RoleRecord> {
     if (result.status === 'conflict') {
-      throw new AccessControlError('ACCESS_ROLE_CONFLICT', 'A role with this code already exists.', {
-        existingRoleId: result.existingRoleId,
-        organizationId,
-      });
+      throw new AccessControlError(
+        'ACCESS_ROLE_CONFLICT',
+        'A role with this code already exists.',
+        {
+          existingRoleId: result.existingRoleId,
+          organizationId,
+        },
+      );
     }
     await this.publishRole('role.created', context.actorUserId, result.role);
     return result.role;
@@ -428,12 +434,19 @@ export class AccessControlService {
     roleId: string,
   ): Promise<RoleRecord> {
     const role = await this.repository.findRoleById(this.requireText(roleId, 'roleId', 128));
-    const organizationId = this.requireOrganizationId(context);
+    const organizationId =
+      context.organizationId === null
+        ? null
+        : this.requireText(context.organizationId, 'organizationId', 128);
     if (
       role === null ||
-      (role.roleType === 'organization' && role.organizationId !== organizationId)
+      (role.roleType === 'organization' &&
+        (organizationId === null || role.organizationId !== organizationId))
     ) {
-      throw new AccessControlError('ACCESS_ROLE_NOT_FOUND', 'The role does not exist in this context.');
+      throw new AccessControlError(
+        'ACCESS_ROLE_NOT_FOUND',
+        'The role does not exist in this context.',
+      );
     }
     return role;
   }
@@ -448,7 +461,10 @@ export class AccessControlService {
       role.roleType !== 'organization' ||
       role.organizationId !== organizationId
     ) {
-      throw new AccessControlError('ACCESS_ROLE_NOT_FOUND', 'The organization role does not exist.');
+      throw new AccessControlError(
+        'ACCESS_ROLE_NOT_FOUND',
+        'The organization role does not exist.',
+      );
     }
     if (role.status !== 'active') {
       throw new AccessControlError('ACCESS_ROLE_UNAVAILABLE', 'The role is archived.');
@@ -456,21 +472,26 @@ export class AccessControlService {
     return role;
   }
 
-  private async requireActiveMembership(
-    membershipId: string,
-    organizationId: string,
-  ) {
+  private async requireActiveMembership(membershipId: string, organizationId: string) {
+    const membership = await this.requireScopedMembership(membershipId, organizationId);
+    if (membership.status !== 'active') {
+      throw new AccessControlError(
+        'ACCESS_MEMBERSHIP_UNAVAILABLE',
+        'Only active memberships may receive role assignments.',
+        { status: membership.status },
+      );
+    }
+    return membership;
+  }
+
+  private async requireScopedMembership(membershipId: string, organizationId: string) {
     const membership = await this.referenceDirectory.findMembershipById(
       this.requireText(membershipId, 'membershipId', 128),
     );
     if (membership === null || membership.organizationId !== organizationId) {
-      throw new AccessControlError('ACCESS_MEMBERSHIP_NOT_FOUND', 'The membership does not exist.');
-    }
-    if (membership.status !== 'active') {
       throw new AccessControlError(
-        'ACCESS_MEMBERSHIP_UNAVAILABLE',
-        'Only active memberships may receive or revoke role assignments.',
-        { status: membership.status },
+        'ACCESS_MEMBERSHIP_NOT_FOUND',
+        'The membership does not exist in this organization.',
       );
     }
     return membership;
@@ -484,7 +505,10 @@ export class AccessControlService {
     const organizationId = this.requireOrganizationId(context);
     const organization = await this.referenceDirectory.findOrganizationById(organizationId);
     if (organization === null) {
-      throw new AccessControlError('ACCESS_ORGANIZATION_NOT_FOUND', 'The organization does not exist.');
+      throw new AccessControlError(
+        'ACCESS_ORGANIZATION_NOT_FOUND',
+        'The organization does not exist.',
+      );
     }
     if (organization.status !== 'active') {
       throw new AccessControlError(
@@ -564,9 +588,7 @@ export class AccessControlService {
   }
 
   private normalizeSegment(value: string, field: string): string {
-    const normalized = this.requireText(value, field, 128)
-      .toLowerCase()
-      .replace(/\s+/g, '_');
+    const normalized = this.requireText(value, field, 128).toLowerCase().replace(/\s+/g, '_');
     if (!/^[a-z0-9][a-z0-9_-]*$/.test(normalized)) {
       throw new AccessControlError(
         'ACCESS_INVALID_INPUT',

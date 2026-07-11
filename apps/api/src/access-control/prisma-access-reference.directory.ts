@@ -40,12 +40,7 @@ export class PrismaAccessReferenceDirectory implements AccessReferenceDirectory 
   }
 
   private mapStatus(value: string): AccessReferenceStatus {
-    if (
-      value === 'active' ||
-      value === 'suspended' ||
-      value === 'archived' ||
-      value === 'ended'
-    ) {
+    if (value === 'active' || value === 'suspended' || value === 'archived' || value === 'ended') {
       return value;
     }
     throw new Error(`Unsupported access reference status: ${value}`);

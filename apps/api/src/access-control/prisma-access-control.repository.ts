@@ -91,9 +91,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
     const now = new Date();
 
     return this.prisma.$transaction(
-      async (
-        transaction: Prisma.TransactionClient,
-      ): Promise<AssignMembershipRoleResult> => {
+      async (transaction: Prisma.TransactionClient): Promise<AssignMembershipRoleResult> => {
         await transaction.$queryRaw`
           SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
         `;
@@ -190,9 +188,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
 
     const allowedPermissionCodes = [...allowed].sort();
     const deniedPermissionCodes = [...denied].sort();
-    const effectivePermissionCodes = allowedPermissionCodes.filter(
-      (code) => !denied.has(code),
-    );
+    const effectivePermissionCodes = allowedPermissionCodes.filter((code) => !denied.has(code));
 
     return {
       membershipId,
@@ -204,9 +200,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
     };
   }
 
-  async findAssignmentById(
-    id: string,
-  ): Promise<MembershipRoleAssignmentRecord | null> {
+  async findAssignmentById(id: string): Promise<MembershipRoleAssignmentRecord | null> {
     const record = await this.prisma.coreMembershipRole.findUnique({ where: { id } });
     return record === null ? null : this.mapAssignment(record);
   }
@@ -238,9 +232,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
       where,
       orderBy: { id: 'asc' },
       take: limit + 1,
-      ...(query.afterId === undefined
-        ? {}
-        : { cursor: { id: query.afterId }, skip: 1 }),
+      ...(query.afterId === undefined ? {} : { cursor: { id: query.afterId }, skip: 1 }),
     });
 
     const hasMore = records.length > limit;
@@ -270,9 +262,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
       where,
       orderBy: { id: 'asc' },
       take: limit + 1,
-      ...(query.afterId === undefined
-        ? {}
-        : { cursor: { id: query.afterId }, skip: 1 }),
+      ...(query.afterId === undefined ? {} : { cursor: { id: query.afterId }, skip: 1 }),
     });
     const hasMore = records.length > limit;
     const page = hasMore ? records.slice(0, limit) : records;
@@ -283,9 +273,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
     };
   }
 
-  async listRolePermissions(
-    roleId: string,
-  ): Promise<readonly RolePermissionRecord[]> {
+  async listRolePermissions(roleId: string): Promise<readonly RolePermissionRecord[]> {
     const records = await this.prisma.coreRolePermission.findMany({
       where: { roleId },
       orderBy: { permissionId: 'asc' },
@@ -293,10 +281,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
     return records.map((record) => this.mapRolePermission(record));
   }
 
-  async listRoles(
-    organizationId: string | null,
-    query: RoleListQuery,
-  ): Promise<RolePage> {
+  async listRoles(organizationId: string | null, query: RoleListQuery): Promise<RolePage> {
     const limit = query.limit ?? 50;
     const where: Prisma.CoreRoleWhereInput = {};
 
@@ -330,9 +315,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
       where,
       orderBy: { id: 'asc' },
       take: limit + 1,
-      ...(query.afterId === undefined
-        ? {}
-        : { cursor: { id: query.afterId }, skip: 1 }),
+      ...(query.afterId === undefined ? {} : { cursor: { id: query.afterId }, skip: 1 }),
     });
     const hasMore = records.length > limit;
     const page = hasMore ? records.slice(0, limit) : records;
@@ -347,9 +330,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
     input: RegisterPermissionRecordInput,
   ): Promise<PermissionRegistrationResult> {
     return this.prisma.$transaction(
-      async (
-        transaction: Prisma.TransactionClient,
-      ): Promise<PermissionRegistrationResult> => {
+      async (transaction: Prisma.TransactionClient): Promise<PermissionRegistrationResult> => {
         await transaction.$queryRaw`
           SELECT pg_advisory_xact_lock(hashtextextended(${input.code}, 0))
         `;
@@ -378,10 +359,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
     );
   }
 
-  async removeRolePermission(
-    roleId: string,
-    permissionId: string,
-  ): Promise<boolean> {
+  async removeRolePermission(roleId: string, permissionId: string): Promise<boolean> {
     const result = await this.prisma.coreRolePermission.deleteMany({
       where: { roleId, permissionId },
     });
@@ -414,10 +392,7 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
     return this.mapRolePermission(record);
   }
 
-  async updateRole(
-    id: string,
-    input: UpdateRoleRecordInput,
-  ): Promise<RoleRecord> {
+  async updateRole(id: string, input: UpdateRoleRecordInput): Promise<RoleRecord> {
     const data: Prisma.CoreRoleUncheckedUpdateInput = {};
     if (input.name !== undefined) data.name = input.name;
     if ('description' in input) data.description = input.description ?? null;
@@ -485,18 +460,14 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
     return { ...record, status: record.status };
   }
 
-  private mapRolePermission(
-    record: RolePermissionDatabaseRecord,
-  ): RolePermissionRecord {
+  private mapRolePermission(record: RolePermissionDatabaseRecord): RolePermissionRecord {
     if (record.effect !== 'allow' && record.effect !== 'deny') {
       throw new Error(`Unsupported permission effect: ${record.effect}`);
     }
     return { ...record, effect: record.effect };
   }
 
-  private mapAssignment(
-    record: AssignmentDatabaseRecord,
-  ): MembershipRoleAssignmentRecord {
+  private mapAssignment(record: AssignmentDatabaseRecord): MembershipRoleAssignmentRecord {
     return { ...record };
   }
 

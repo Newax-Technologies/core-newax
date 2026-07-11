@@ -22,13 +22,9 @@ import type {
 
 export interface AccessControlRepository {
   archiveRole(id: string): Promise<RoleRecord>;
-  assignMembershipRole(
-    input: AssignMembershipRoleRecordInput,
-  ): Promise<AssignMembershipRoleResult>;
+  assignMembershipRole(input: AssignMembershipRoleRecordInput): Promise<AssignMembershipRoleResult>;
   createRole(input: CreateRoleRecordInput): Promise<CreateRoleResult>;
-  createRoleFromTemplate(
-    input: CreateRoleFromTemplateRecordInput,
-  ): Promise<CreateRoleResult>;
+  createRoleFromTemplate(input: CreateRoleFromTemplateRecordInput): Promise<CreateRoleResult>;
   evaluateMembershipPermissions(
     membershipId: string,
     organizationId: string,
@@ -37,16 +33,11 @@ export interface AccessControlRepository {
   findAssignmentById(id: string): Promise<MembershipRoleAssignmentRecord | null>;
   findPermissionById(id: string): Promise<PermissionRecord | null>;
   findRoleById(id: string): Promise<RoleRecord | null>;
-  listAssignments(
-    organizationId: string,
-    query: AssignmentListQuery,
-  ): Promise<AssignmentPage>;
+  listAssignments(organizationId: string, query: AssignmentListQuery): Promise<AssignmentPage>;
   listPermissions(query: PermissionListQuery): Promise<PermissionPage>;
   listRolePermissions(roleId: string): Promise<readonly RolePermissionRecord[]>;
   listRoles(organizationId: string | null, query: RoleListQuery): Promise<RolePage>;
-  registerPermission(
-    input: RegisterPermissionRecordInput,
-  ): Promise<PermissionRegistrationResult>;
+  registerPermission(input: RegisterPermissionRecordInput): Promise<PermissionRegistrationResult>;
   removeRolePermission(roleId: string, permissionId: string): Promise<boolean>;
   revokeAssignment(
     id: string,

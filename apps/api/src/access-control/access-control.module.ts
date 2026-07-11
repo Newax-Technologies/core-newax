@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
-import {
-  AccessControlService,
-  PermissionEvaluator,
-} from '@newax/access-control';
+import { AccessControlService, PermissionEvaluator } from '@newax/access-control';
 
 import { DatabaseModule } from '../database/database.module';
 import { LoggingAccessControlEventPublisher } from './logging-access-control-event.publisher';
