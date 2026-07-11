@@ -5,7 +5,7 @@ import type {
   OrganizationEvent,
   OrganizationEventPublisher,
 } from '../src/events/organization-event';
-import { OrganizationModuleError } from '../src/errors/organization-module-error';
+import type { OrganizationModuleError } from '../src/errors/organization-module-error';
 import { ORGANIZATION_PERMISSIONS } from '../src/permissions/organization-permissions';
 import { OrganizationsService } from '../src/services/organizations.service';
 import type {
