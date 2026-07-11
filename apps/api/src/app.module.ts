@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { AccessControlModule } from './access-control/access-control.module';
 import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
@@ -20,6 +21,7 @@ import { PeopleModule } from './people/people.module';
     OrganizationsModule,
     PeopleModule,
     MembershipsModule,
+    AccessControlModule,
   ],
   controllers: [HealthController],
   providers: [],
