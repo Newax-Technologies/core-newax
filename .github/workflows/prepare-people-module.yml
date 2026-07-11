@@ -1,0 +1,95 @@
+name: Prepare People Module
+
+on:
+  push:
+    branches:
+      - agent/people-registry-services
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prepare-people-module
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: ${{ !contains(github.event.head_commit.message, '[skip prepare]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v7
+        with:
+          ref: agent/people-registry-services
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Update workspace lockfile
+        run: pnpm install --lockfile-only
+
+      - name: Update module registry
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+          const path = 'registry/module-registry.json';
+          const registry = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const people = registry.modules.find((module) => module.module_key === 'people');
+
+          if (!people) {
+            throw new Error('People module registry entry was not found.');
+          }
+
+          registry.registry_version = '0.1.2';
+          registry.last_updated = '2026-07-11';
+          people.module_status = 'draft';
+          people.required_permissions = [
+            'people.view',
+            'people.create',
+            'people.update',
+            'people.archive',
+            'people.identifiers.view',
+            'people.identifiers.manage',
+          ];
+          people.exposed_events = [
+            'person.created',
+            'person.updated',
+            'person.archived',
+            'person.identifier_added',
+            'person.identifier_verified',
+          ];
+          people.database_ownership = ['core_people', 'core_person_identifiers'];
+
+          fs.writeFileSync(path, `${JSON.stringify(registry, null, 2)}\n`);
+          EOF
+
+      - name: Format changed files
+        run: |
+          pnpm exec prettier --write \
+            apps/api/package.json \
+            apps/api/src/app.module.ts \
+            apps/api/src/people \
+            packages/people \
+            registry/module-registry.json
+
+      - name: Commit prepared files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml registry/module-registry.json apps/api packages/people
+
+          if git diff --cached --quiet; then
+            echo "People module files are already prepared."
+            exit 0
+          fi
+
+          git commit -m "Prepare people module workspace [skip prepare]"
+          git push origin HEAD:agent/people-registry-services
