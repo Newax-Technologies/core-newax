@@ -1,0 +1,120 @@
+name: Prepare Request Context
+
+on:
+  push:
+    branches:
+      - agent/trusted-request-context
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prepare-request-context
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: ${{ !contains(github.event.head_commit.message, '[skip context prepare]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/trusted-request-context
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Register trusted request context module
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+          const path = 'registry/module-registry.json';
+          const registry = JSON.parse(fs.readFileSync(path, 'utf8'));
+          registry.registry_version = '0.1.7';
+          registry.last_updated = '2026-07-12';
+
+          const moduleDefinition = {
+            module_name: 'Trusted Request Context',
+            module_key: 'request-context',
+            module_layer: 'foundation',
+            module_version: '0.1.0',
+            module_status: 'draft',
+            module_owner: 'NEWAX Engineering',
+            description:
+              'Resolves tenant-safe execution context from authenticated sessions, active memberships, organizations, and effective permissions.',
+            dependencies: [
+              { module_key: 'authentication', version: '>=0.1.0' },
+              { module_key: 'memberships', version: '>=0.1.0' },
+              { module_key: 'access-control', version: '>=0.1.0' },
+            ],
+            required_permissions: [],
+            exposed_events: [],
+            consumed_events: [],
+            configuration_options: [
+              'membership_selection_policy',
+              'request_context_storage',
+              'permission_evaluation_policy',
+            ],
+            database_ownership: [],
+            tenant_scope: 'authenticated_account_and_organization_scoped',
+            documentation_path: 'packages/request-context/README.md',
+            changelog_path: 'packages/request-context/CHANGELOG.md',
+            compatibility_notes:
+              'Clients may select a membership identifier only. User, person, organization, and permission authority must be derived from trusted server-side records.',
+          };
+
+          const existingIndex = registry.modules.findIndex(
+            (item) => item.module_key === moduleDefinition.module_key,
+          );
+          if (existingIndex >= 0) {
+            registry.modules[existingIndex] = moduleDefinition;
+          } else {
+            const accessControlIndex = registry.modules.findIndex(
+              (item) => item.module_key === 'access-control',
+            );
+            registry.modules.splice(accessControlIndex + 1, 0, moduleDefinition);
+          }
+
+          fs.writeFileSync(path, `${JSON.stringify(registry, null, 2)}\n`);
+          EOF
+
+      - name: Update workspace lockfile
+        run: pnpm install --lockfile-only
+
+      - name: Format request context slice
+        run: |
+          pnpm exec prettier --write \
+            apps/api/package.json \
+            apps/api/src/app.module.ts \
+            apps/api/src/request-context \
+            docs/decisions/README.md \
+            docs/decisions/0018-build-trusted-request-context-foundation.md \
+            packages/request-context \
+            registry/module-registry.json
+
+      - name: Commit prepared files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            apps/api/package.json \
+            apps/api/src/app.module.ts \
+            apps/api/src/request-context \
+            docs/decisions \
+            packages/request-context \
+            pnpm-lock.yaml \
+            registry/module-registry.json
+
+          if git diff --cached --quiet; then
+            echo "Request context files are already prepared."
+            exit 0
+          fi
+
+          git commit -m "Prepare trusted request context workspace [skip context prepare]"
+          git push origin HEAD:agent/trusted-request-context
