@@ -1,10 +1,7 @@
 import type { PeopleRepository } from '../database/people-repository';
 import type { PersonEventPublisher } from '../events/person-event';
 import { PeopleModuleError } from '../errors/people-module-error';
-import {
-  PEOPLE_PERMISSIONS,
-  type PeoplePermission,
-} from '../permissions/people-permissions';
+import { PEOPLE_PERMISSIONS, type PeoplePermission } from '../permissions/people-permissions';
 import type {
   AddPersonIdentifierInput,
   CreatePersonInput,
@@ -32,10 +29,7 @@ export class PeopleService {
     private readonly eventPublisher: PersonEventPublisher,
   ) {}
 
-  async create(
-    context: PeopleRequestContext,
-    input: CreatePersonInput,
-  ): Promise<PersonRecord> {
+  async create(context: PeopleRequestContext, input: CreatePersonInput): Promise<PersonRecord> {
     this.requirePermission(context, PEOPLE_PERMISSIONS.create);
 
     const person = await this.repository.create({
@@ -67,10 +61,7 @@ export class PeopleService {
     return this.requirePerson(personId);
   }
 
-  async list(
-    context: PeopleRequestContext,
-    query: PersonListQuery = {},
-  ): Promise<PersonPage> {
+  async list(context: PeopleRequestContext, query: PersonListQuery = {}): Promise<PersonPage> {
     this.requirePermission(context, PEOPLE_PERMISSIONS.view);
 
     const limit = query.limit ?? DEFAULT_PAGE_SIZE;
@@ -326,20 +317,15 @@ export class PeopleService {
     const date = this.normalizeOptionalDate(value, 'dateOfBirth');
 
     if (date !== null && date.getTime() > Date.now()) {
-      throw new PeopleModuleError(
-        'PERSON_INVALID_INPUT',
-        'dateOfBirth cannot be in the future.',
-        { field: 'dateOfBirth' },
-      );
+      throw new PeopleModuleError('PERSON_INVALID_INPUT', 'dateOfBirth cannot be in the future.', {
+        field: 'dateOfBirth',
+      });
     }
 
     return date;
   }
 
-  private normalizeOptionalDate(
-    value: Date | null | undefined,
-    field: string,
-  ): Date | null {
+  private normalizeOptionalDate(value: Date | null | undefined, field: string): Date | null {
     if (value === null || value === undefined) {
       return null;
     }
@@ -380,11 +366,7 @@ export class PeopleService {
   }
 
   private normalizeIdentifierValue(value: string): string {
-    const normalized = this.requireText(
-      value,
-      'identifierValue',
-      MAX_IDENTIFIER_LENGTH,
-    )
+    const normalized = this.requireText(value, 'identifierValue', MAX_IDENTIFIER_LENGTH)
       .toUpperCase()
       .replace(/[\s-]+/g, '');
 

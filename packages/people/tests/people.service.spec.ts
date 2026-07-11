@@ -134,8 +134,7 @@ class FakePeopleRepository implements PeopleRepository {
       lastName: input.lastName ?? current.lastName,
       preferredName:
         'preferredName' in input ? (input.preferredName ?? null) : current.preferredName,
-      dateOfBirth:
-        'dateOfBirth' in input ? (input.dateOfBirth ?? null) : current.dateOfBirth,
+      dateOfBirth: 'dateOfBirth' in input ? (input.dateOfBirth ?? null) : current.dateOfBirth,
       gender: 'gender' in input ? (input.gender ?? null) : current.gender,
       updatedAt: now,
     };

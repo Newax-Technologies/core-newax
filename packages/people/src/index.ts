@@ -8,10 +8,7 @@ export type {
   PersonLifecycleEventName,
 } from './events/person-event';
 export { PeopleModuleError, type PeopleErrorCode } from './errors/people-module-error';
-export {
-  PEOPLE_PERMISSIONS,
-  type PeoplePermission,
-} from './permissions/people-permissions';
+export { PEOPLE_PERMISSIONS, type PeoplePermission } from './permissions/people-permissions';
 export { PeopleService } from './services/people.service';
 export type {
   AddPersonIdentifierInput,

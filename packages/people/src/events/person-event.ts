@@ -2,9 +2,7 @@ import type { PersonIdentifierRecord, PersonRecord } from '../types/person';
 
 export type PersonLifecycleEventName = 'person.archived' | 'person.created' | 'person.updated';
 
-export type PersonIdentifierEventName =
-  | 'person.identifier_added'
-  | 'person.identifier_verified';
+export type PersonIdentifierEventName = 'person.identifier_added' | 'person.identifier_verified';
 
 export interface PersonLifecycleEvent {
   readonly name: PersonLifecycleEventName;

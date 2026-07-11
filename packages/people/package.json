@@ -6,7 +6,12 @@
   "license": "UNLICENSED",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "README.md", "CHANGELOG.md", "VERSION"],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "VERSION"
+  ],
   "engines": {
     "node": "24.18.0",
     "pnpm": "11.11.0"
