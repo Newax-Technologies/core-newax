@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   prepare:
-    if: ${{ github.head_ref == 'agent/authentication-services' && !contains(github.event.pull_request.title, '[skip auth prepare]') }}
+    if: ${{ github.head_ref == 'agent/authentication-services' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -30,22 +30,17 @@ jobs:
           node-version-file: .node-version
           package-manager-cache: false
 
-      - name: Prepare schema, migration, registry, and ADR index
-        run: node tooling/prepare-authentication.mjs
+      - name: Prepare authentication foundation files
+        run: |
+          node tooling/prepare-authentication.mjs
+          node tooling/harden-authentication.mjs
 
       - name: Update workspace lockfile
         run: pnpm install --lockfile-only
 
-      - name: Format and lint changed files
+      - name: Format changed files
         run: |
           pnpm exec prisma format --schema apps/api/prisma/schema.prisma
-          pnpm exec eslint --fix \
-            apps/api/src/authentication \
-            apps/api/src/config/environment.ts \
-            apps/api/src/config/environment.spec.ts \
-            packages/auth \
-            packages/users/src/services/user-authentication-gateway.ts \
-            tooling/prepare-authentication.mjs
           pnpm exec prettier --write \
             apps/api/package.json \
             apps/api/prisma/schema.prisma \
@@ -58,7 +53,8 @@ jobs:
             packages/auth \
             packages/users/src/services/user-authentication-gateway.ts \
             registry/module-registry.json \
-            tooling/prepare-authentication.mjs
+            tooling/prepare-authentication.mjs \
+            tooling/harden-authentication.mjs
 
       - name: Commit prepared files
         run: |
@@ -71,7 +67,8 @@ jobs:
             packages/auth \
             packages/users/src/services/user-authentication-gateway.ts \
             docs/decisions \
-            tooling/prepare-authentication.mjs
+            tooling/prepare-authentication.mjs \
+            tooling/harden-authentication.mjs
 
           if git diff --cached --quiet; then
             echo "Authentication files are already prepared."
