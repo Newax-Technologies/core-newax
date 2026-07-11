@@ -28,7 +28,9 @@ interface OrganizationDatabaseRecord {
 
 @Injectable()
 export class PrismaOrganizationRepository implements OrganizationRepository {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+  ) {}
 
   async archive(id: string, archivedAt: Date): Promise<OrganizationRecord> {
     const record = await this.prisma.coreOrganization.update({
