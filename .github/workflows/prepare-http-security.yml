@@ -1,10 +1,9 @@
 name: Prepare HTTP Security Boundary
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/http-security-boundary
-  workflow_dispatch:
+      - agent/trusted-request-context
 
 permissions:
   contents: write
@@ -15,7 +14,7 @@ concurrency:
 
 jobs:
   prepare:
-    if: ${{ !contains(github.event.head_commit.message, '[skip http prepare]') }}
+    if: ${{ github.head_ref == 'agent/http-security-boundary' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -42,6 +41,7 @@ jobs:
           pnpm --filter @newax/api db:format
           pnpm exec eslint --fix \
             apps/api/src/config/environment.ts \
+            apps/api/src/config/environment.spec.ts \
             apps/api/src/config/http-security-environment.ts \
             apps/api/src/config/http-security-environment.spec.ts \
             apps/api/src/health/health.controller.ts \
@@ -53,6 +53,7 @@ jobs:
             apps/api/package.json \
             apps/api/prisma/schema.prisma \
             apps/api/src/config/environment.ts \
+            apps/api/src/config/environment.spec.ts \
             apps/api/src/config/http-security-environment.ts \
             apps/api/src/config/http-security-environment.spec.ts \
             apps/api/src/health/health.controller.ts \
