@@ -87,16 +87,16 @@ core_audit_logs
 
 Entity responsibilities:
 
-| Entity | Responsibility |
-| --- | --- |
+| Entity               | Responsibility                                                                         |
+| -------------------- | -------------------------------------------------------------------------------------- |
 | `core_organizations` | Stores client organizations, business units, branches, or tenant-facing organizations. |
-| `core_people` | Stores person records independent of login status or project-specific role. |
-| `core_users` | Stores authentication-facing user records linked to people where appropriate. |
-| `core_memberships` | Stores relationships between people or users and organizations. |
-| `core_roles` | Stores role labels or responsibility groups. |
-| `core_permissions` | Stores permission definitions or permission assignments as the access model evolves. |
-| `core_contacts` | Stores reusable contact information for people or organizations. |
-| `core_audit_logs` | Stores audit context for important actions across core and connected domains. |
+| `core_people`        | Stores person records independent of login status or project-specific role.            |
+| `core_users`         | Stores authentication-facing user records linked to people where appropriate.          |
+| `core_memberships`   | Stores relationships between people or users and organizations.                        |
+| `core_roles`         | Stores role labels or responsibility groups.                                           |
+| `core_permissions`   | Stores permission definitions or permission assignments as the access model evolves.   |
+| `core_contacts`      | Stores reusable contact information for people or organizations.                       |
+| `core_audit_logs`    | Stores audit context for important actions across core and connected domains.          |
 
 This table list is architectural direction only. It does not create migrations or implementation code.
 

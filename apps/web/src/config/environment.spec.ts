@@ -26,9 +26,7 @@ describe('readWebEnvironment', () => {
   });
 
   it('rejects an empty hostname', () => {
-    expect(() => readWebEnvironment({ HOSTNAME: '   ' })).toThrow(
-      'HOSTNAME must not be empty.',
-    );
+    expect(() => readWebEnvironment({ HOSTNAME: '   ' })).toThrow('HOSTNAME must not be empty.');
   });
 
   it.each([
@@ -42,17 +40,14 @@ describe('readWebEnvironment', () => {
   });
 
   it('accepts an explicit false indexing value', () => {
-    expect(
-      readWebEnvironment({ SEARCH_INDEXING_ENABLED: 'false' }).SEARCH_INDEXING_ENABLED,
-    ).toBe(false);
+    expect(readWebEnvironment({ SEARCH_INDEXING_ENABLED: 'false' }).SEARCH_INDEXING_ENABLED).toBe(
+      false,
+    );
   });
 
-  it.each(['', 'TRUE', '1', 'yes'])(
-    'rejects invalid indexing value %j',
-    (invalidBoolean) => {
-      expect(() =>
-        readWebEnvironment({ SEARCH_INDEXING_ENABLED: invalidBoolean }),
-      ).toThrow('SEARCH_INDEXING_ENABLED must be either true or false.');
-    },
-  );
+  it.each(['', 'TRUE', '1', 'yes'])('rejects invalid indexing value %j', (invalidBoolean) => {
+    expect(() => readWebEnvironment({ SEARCH_INDEXING_ENABLED: invalidBoolean })).toThrow(
+      'SEARCH_INDEXING_ENABLED must be either true or false.',
+    );
+  });
 });

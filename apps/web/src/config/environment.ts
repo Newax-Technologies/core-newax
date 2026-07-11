@@ -66,9 +66,7 @@ function parseSearchIndexingEnabled(value: string | undefined): boolean {
   throw new Error('SEARCH_INDEXING_ENABLED must be either true or false.');
 }
 
-export function readWebEnvironment(
-  source: WebEnvironmentSource = process.env,
-): WebEnvironment {
+export function readWebEnvironment(source: WebEnvironmentSource = process.env): WebEnvironment {
   return {
     HOSTNAME: parseHostname(source.HOSTNAME),
     PORT: parsePort(source.PORT),

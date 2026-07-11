@@ -48,10 +48,7 @@
       "module_version": "1.0.0",
       "module_layer": "foundation",
       "security_sensitive": true,
-      "dependencies": [
-        "people",
-        "organizations"
-      ],
+      "dependencies": ["people", "organizations"],
       "update_eligible": false,
       "notes": "Represents login accounts connected to people."
     },
@@ -61,10 +58,7 @@
       "module_version": "1.0.0",
       "module_layer": "foundation",
       "security_sensitive": true,
-      "dependencies": [
-        "organizations",
-        "permissions"
-      ],
+      "dependencies": ["organizations", "permissions"],
       "update_eligible": false,
       "notes": "Groups permissions into responsibility sets."
     },
@@ -74,11 +68,7 @@
       "module_version": "1.0.0",
       "module_layer": "foundation",
       "security_sensitive": true,
-      "dependencies": [
-        "organizations",
-        "people",
-        "users"
-      ],
+      "dependencies": ["organizations", "people", "users"],
       "update_eligible": false,
       "notes": "Defines actual access rights. Business logic must check permissions, not role names."
     },
@@ -88,10 +78,7 @@
       "module_version": "1.0.0",
       "module_layer": "platform_service",
       "security_sensitive": true,
-      "dependencies": [
-        "organizations",
-        "users"
-      ],
+      "dependencies": ["organizations", "users"],
       "update_eligible": false,
       "notes": "Records important system, security, tenant, and administrative actions."
     },
@@ -101,11 +88,7 @@
       "module_version": "1.0.0",
       "module_layer": "platform_service",
       "security_sensitive": true,
-      "dependencies": [
-        "organizations",
-        "permissions",
-        "audit"
-      ],
+      "dependencies": ["organizations", "permissions", "audit"],
       "update_eligible": false,
       "notes": "Provides reporting and exports while enforcing permissions and tenant boundaries."
     },
@@ -115,12 +98,7 @@
       "module_version": "1.0.0",
       "module_layer": "business_domain",
       "security_sensitive": true,
-      "dependencies": [
-        "organizations",
-        "people",
-        "permissions",
-        "audit"
-      ],
+      "dependencies": ["organizations", "people", "permissions", "audit"],
       "update_eligible": false,
       "notes": "Owns LMS student profile records and references central people and organizations."
     },
@@ -130,12 +108,7 @@
       "module_version": "1.0.0",
       "module_layer": "business_domain",
       "security_sensitive": true,
-      "dependencies": [
-        "organizations",
-        "people",
-        "permissions",
-        "audit"
-      ],
+      "dependencies": ["organizations", "people", "permissions", "audit"],
       "update_eligible": false,
       "notes": "Owns LMS teacher profile records and references central people and organizations."
     },
@@ -145,11 +118,7 @@
       "module_version": "1.0.0",
       "module_layer": "business_domain",
       "security_sensitive": false,
-      "dependencies": [
-        "organizations",
-        "permissions",
-        "audit"
-      ],
+      "dependencies": ["organizations", "permissions", "audit"],
       "update_eligible": false,
       "notes": "Owns course records and course-related tenant boundaries."
     },
@@ -159,12 +128,7 @@
       "module_version": "1.0.0",
       "module_layer": "business_domain",
       "security_sensitive": false,
-      "dependencies": [
-        "organizations",
-        "lms-courses",
-        "permissions",
-        "audit"
-      ],
+      "dependencies": ["organizations", "lms-courses", "permissions", "audit"],
       "update_eligible": false,
       "notes": "Owns lecture records connected to LMS courses."
     },
@@ -174,13 +138,7 @@
       "module_version": "1.0.0",
       "module_layer": "business_domain",
       "security_sensitive": true,
-      "dependencies": [
-        "organizations",
-        "people",
-        "permissions",
-        "audit",
-        "lms-courses"
-      ],
+      "dependencies": ["organizations", "people", "permissions", "audit", "lms-courses"],
       "update_eligible": false,
       "notes": "Owns tests and test result responsibilities with stronger access controls."
     },
@@ -190,13 +148,7 @@
       "module_version": "1.0.0",
       "module_layer": "business_domain",
       "security_sensitive": true,
-      "dependencies": [
-        "organizations",
-        "people",
-        "users",
-        "permissions",
-        "audit"
-      ],
+      "dependencies": ["organizations", "people", "users", "permissions", "audit"],
       "update_eligible": false,
       "notes": "Owns LMS payment records, approval state, and payment-related audit context."
     }
@@ -232,11 +184,7 @@
       "extension_version": "0.1.0",
       "extension_status": "planned",
       "extension_owner": "NEWAX Engineering",
-      "depends_on_modules": [
-        "lms-payments",
-        "reports",
-        "audit"
-      ],
+      "depends_on_modules": ["lms-payments", "reports", "audit"],
       "customization_type": "client_specific_extension",
       "allowed_integration_points": [
         "payment.approved event",
@@ -279,31 +227,17 @@
   "dependency_tracking": [
     {
       "module_key": "lms-payments",
-      "depends_on": [
-        "organizations",
-        "people",
-        "users",
-        "permissions",
-        "audit"
-      ],
+      "depends_on": ["organizations", "people", "users", "permissions", "audit"],
       "source": "module-registry"
     },
     {
       "module_key": "reports",
-      "depends_on": [
-        "organizations",
-        "permissions",
-        "audit"
-      ],
+      "depends_on": ["organizations", "permissions", "audit"],
       "source": "module-registry"
     },
     {
       "extension_key": "abc-institute-payment-receipt-extension",
-      "depends_on": [
-        "lms-payments",
-        "reports",
-        "audit"
-      ],
+      "depends_on": ["lms-payments", "reports", "audit"],
       "source": "client-extension-record"
     }
   ],

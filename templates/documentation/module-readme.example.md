@@ -8,16 +8,16 @@ This is an example document only. It does not create production code, actual mod
 
 ## Module Summary
 
-| Field | Value |
-| --- | --- |
-| Module name | LMS Students |
-| Module key | `lms-students` |
-| Module layer | Business Domain Module |
-| Domain | LMS |
-| Version | `0.1.0` |
-| Status | Example only |
-| Owner | NEWAX Engineering |
-| Changelog | `packages/lms-students/CHANGELOG.md` |
+| Field        | Value                                |
+| ------------ | ------------------------------------ |
+| Module name  | LMS Students                         |
+| Module key   | `lms-students`                       |
+| Module layer | Business Domain Module               |
+| Domain       | LMS                                  |
+| Version      | `0.1.0`                              |
+| Status       | Example only                         |
+| Owner        | NEWAX Engineering                    |
+| Changelog    | `packages/lms-students/CHANGELOG.md` |
 
 ## Purpose
 
@@ -57,13 +57,13 @@ This example does not implement these features. It documents expected README str
 
 Required dependencies may include:
 
-| Module | Purpose |
-| --- | --- |
-| `organizations` | Provides organization and tenant context. |
-| `people` | Provides shared human identity through `core_people`. |
-| `users` | Provides login account references where actions are performed by authenticated users. |
-| `permissions` | Provides permission-based access control. |
-| `audit` | Records security-sensitive and operational actions where required. |
+| Module          | Purpose                                                                               |
+| --------------- | ------------------------------------------------------------------------------------- |
+| `organizations` | Provides organization and tenant context.                                             |
+| `people`        | Provides shared human identity through `core_people`.                                 |
+| `users`         | Provides login account references where actions are performed by authenticated users. |
+| `permissions`   | Provides permission-based access control.                                             |
+| `audit`         | Records security-sensitive and operational actions where required.                    |
 
 Dependency rules:
 
@@ -78,12 +78,12 @@ The module should document every permission it owns or requires.
 
 Example permissions:
 
-| Permission | Purpose |
-| --- | --- |
-| `students.view` | Allows viewing student profiles. |
-| `students.create` | Allows creating student profiles. |
-| `students.update` | Allows updating student profiles. |
-| `students.delete` | Allows deleting or archiving student profiles where supported. |
+| Permission         | Purpose                                                               |
+| ------------------ | --------------------------------------------------------------------- |
+| `students.view`    | Allows viewing student profiles.                                      |
+| `students.create`  | Allows creating student profiles.                                     |
+| `students.update`  | Allows updating student profiles.                                     |
+| `students.delete`  | Allows deleting or archiving student profiles where supported.        |
 | `students.suspend` | Allows suspending student access or profile activity where supported. |
 
 Rules:
@@ -99,19 +99,19 @@ The module should document events it publishes and listens to.
 
 ### Exposed Events
 
-| Event | When Published | Notes |
-| --- | --- | --- |
-| `student.created` | After a student profile is created. | May be used by notifications, reports, or client extensions. |
-| `student.updated` | After important student profile fields change. | Must not expose unnecessary sensitive data. |
-| `student.suspended` | After a student profile is suspended. | Security-sensitive where access is affected. |
-| `student.archived` | After a student profile is archived. | May be used for audit and reporting. |
+| Event               | When Published                                 | Notes                                                        |
+| ------------------- | ---------------------------------------------- | ------------------------------------------------------------ |
+| `student.created`   | After a student profile is created.            | May be used by notifications, reports, or client extensions. |
+| `student.updated`   | After important student profile fields change. | Must not expose unnecessary sensitive data.                  |
+| `student.suspended` | After a student profile is suspended.          | Security-sensitive where access is affected.                 |
+| `student.archived`  | After a student profile is archived.           | May be used for audit and reporting.                         |
 
 ### Consumed Events
 
-| Event | Expected Behavior |
-| --- | --- |
+| Event                   | Expected Behavior                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- |
 | `organization.archived` | Student records for that organization may become inactive or hidden according to approved business rules. |
-| `permission.changed` | Permission-sensitive access may need cache refresh or re-evaluation where applicable. |
+| `permission.changed`    | Permission-sensitive access may need cache refresh or re-evaluation where applicable.                     |
 
 Event rules:
 
@@ -126,12 +126,12 @@ Configurable options should be documented clearly.
 
 Example configuration categories:
 
-| Configuration | Purpose | Notes |
-| --- | --- | --- |
-| `student_status_values` | Defines supported student lifecycle statuses. | Must align with module behavior and reporting. |
-| `student_profile_required_fields` | Defines required fields for student profiles. | May vary by client through approved configuration. |
-| `student_archive_policy` | Defines how archiving affects LMS workflows. | Must preserve audit and tenant safety. |
-| `student_search_fields` | Defines approved fields available for student search. | Must not expose sensitive data unnecessarily. |
+| Configuration                     | Purpose                                               | Notes                                              |
+| --------------------------------- | ----------------------------------------------------- | -------------------------------------------------- |
+| `student_status_values`           | Defines supported student lifecycle statuses.         | Must align with module behavior and reporting.     |
+| `student_profile_required_fields` | Defines required fields for student profiles.         | May vary by client through approved configuration. |
+| `student_archive_policy`          | Defines how archiving affects LMS workflows.          | Must preserve audit and tenant safety.             |
+| `student_search_fields`           | Defines approved fields available for student search. | Must not expose sensitive data unnecessarily.      |
 
 Configuration rules:
 
@@ -202,14 +202,14 @@ The module README should summarize API contracts where applicable.
 
 Example API documentation shape:
 
-| Method | Endpoint | Purpose | Permission |
-| --- | --- | --- | --- |
-| `GET` | `/api/lms/students` | List organization-scoped student profiles. | `students.view` |
-| `POST` | `/api/lms/students` | Create a student profile. | `students.create` |
-| `GET` | `/api/lms/students/{id}` | View a student profile. | `students.view` |
-| `PATCH` | `/api/lms/students/{id}` | Update a student profile. | `students.update` |
-| `DELETE` | `/api/lms/students/{id}` | Archive or delete a student profile where supported. | `students.delete` |
-| `POST` | `/api/lms/students/{id}/suspend` | Suspend a student profile where supported. | `students.suspend` |
+| Method   | Endpoint                         | Purpose                                              | Permission         |
+| -------- | -------------------------------- | ---------------------------------------------------- | ------------------ |
+| `GET`    | `/api/lms/students`              | List organization-scoped student profiles.           | `students.view`    |
+| `POST`   | `/api/lms/students`              | Create a student profile.                            | `students.create`  |
+| `GET`    | `/api/lms/students/{id}`         | View a student profile.                              | `students.view`    |
+| `PATCH`  | `/api/lms/students/{id}`         | Update a student profile.                            | `students.update`  |
+| `DELETE` | `/api/lms/students/{id}`         | Archive or delete a student profile where supported. | `students.delete`  |
+| `POST`   | `/api/lms/students/{id}/suspend` | Suspend a student profile where supported.           | `students.suspend` |
 
 API documentation should include:
 

@@ -38,12 +38,12 @@ Without environment standards, NEWAX risks data exposure, broken production syst
 
 NEWAX uses these standard environment types:
 
-| Environment | Purpose |
-| --- | --- |
-| `local` | Used by individual developers on their own machines. |
-| `development` | Used for active internal development and integration. |
-| `staging` | Used for testing before production release and should closely match production. |
-| `production` | Used by real clients and real users. |
+| Environment   | Purpose                                                                         |
+| ------------- | ------------------------------------------------------------------------------- |
+| `local`       | Used by individual developers on their own machines.                            |
+| `development` | Used for active internal development and integration.                           |
+| `staging`     | Used for testing before production release and should closely match production. |
+| `production`  | Used by real clients and real users.                                            |
 
 Each environment must be treated according to its risk level. Production is the highest-risk environment and requires the strongest controls.
 

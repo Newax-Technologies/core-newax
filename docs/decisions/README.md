@@ -22,18 +22,18 @@ ADRs are used for decisions with long-term impact on:
 
 ## Accepted Decision Index
 
-| ADR | Status | Decision |
-| --- | --- | --- |
-| [ADR 0001](0001-use-modular-monolith-first.md) | Accepted | Begin with a modular monolith and extract services only when evidence justifies the additional operational complexity. |
-| [ADR 0002](0002-use-permission-based-access-control.md) | Accepted | Authorize business actions through explicit permissions rather than hardcoded role names. |
-| [ADR 0003](0003-design-for-multi-tenancy.md) | Accepted | Design NEWAX Core for organization-scoped multi-tenancy and strict tenant isolation. |
-| [ADR 0004](0004-separate-client-customizations-from-core.md) | Accepted | Keep client-specific configuration and extensions separate from reusable core modules. |
-| [ADR 0005](0005-use-event-driven-module-communication.md) | Accepted | Use documented events for suitable cross-module communication while retaining direct service calls when clearer. |
-| [ADR 0006](0006-use-controlled-updates-and-versioning.md) | Accepted | Use semantic versioning, changelogs, compatibility review, and controlled client updates. |
-| [ADR 0007](0007-define-lms-centralized-database-and-data-ownership.md) | Accepted | Use a centralized LMS operational database with explicit module ownership and organization isolation. |
-| [ADR 0008](0008-use-central-identity-and-organization-registry.md) | Accepted | Use one Central Identity and Organization Registry across LMS and future NEWAX domains. |
-| [ADR 0009](0009-define-module-registry-and-dependency-rules.md) | Accepted | Maintain a Module Registry and enforce architecture-layer dependency rules. |
-| [ADR 0010](0010-define-authentication-and-user-identity-strategy.md) | Accepted | Separate people, users, authentication, memberships, roles, permissions, and organization context. |
+| ADR                                                                     | Status   | Decision                                                                                                                                        |
+| ----------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ADR 0001](0001-use-modular-monolith-first.md)                          | Accepted | Begin with a modular monolith and extract services only when evidence justifies the additional operational complexity.                          |
+| [ADR 0002](0002-use-permission-based-access-control.md)                 | Accepted | Authorize business actions through explicit permissions rather than hardcoded role names.                                                       |
+| [ADR 0003](0003-design-for-multi-tenancy.md)                            | Accepted | Design NEWAX Core for organization-scoped multi-tenancy and strict tenant isolation.                                                            |
+| [ADR 0004](0004-separate-client-customizations-from-core.md)            | Accepted | Keep client-specific configuration and extensions separate from reusable core modules.                                                          |
+| [ADR 0005](0005-use-event-driven-module-communication.md)               | Accepted | Use documented events for suitable cross-module communication while retaining direct service calls when clearer.                                |
+| [ADR 0006](0006-use-controlled-updates-and-versioning.md)               | Accepted | Use semantic versioning, changelogs, compatibility review, and controlled client updates.                                                       |
+| [ADR 0007](0007-define-lms-centralized-database-and-data-ownership.md)  | Accepted | Use a centralized LMS operational database with explicit module ownership and organization isolation.                                           |
+| [ADR 0008](0008-use-central-identity-and-organization-registry.md)      | Accepted | Use one Central Identity and Organization Registry across LMS and future NEWAX domains.                                                         |
+| [ADR 0009](0009-define-module-registry-and-dependency-rules.md)         | Accepted | Maintain a Module Registry and enforce architecture-layer dependency rules.                                                                     |
+| [ADR 0010](0010-define-authentication-and-user-identity-strategy.md)    | Accepted | Separate people, users, authentication, memberships, roles, permissions, and organization context.                                              |
 | [ADR 0011](0011-define-technology-stack-and-implementation-baseline.md) | Accepted | Use the TypeScript, Node.js, pnpm, NestJS, Next.js, PostgreSQL, Prisma, Vitest, Playwright, Docker, and GitHub Actions implementation baseline. |
 
 ## Decision Sequence
@@ -106,12 +106,12 @@ Do not create an ADR for routine implementation choices, small refactors, format
 
 Use one of these statuses:
 
-| Status | Meaning |
-| --- | --- |
-| `Proposed` | The decision is under review and must not be treated as accepted architecture. |
-| `Accepted` | The decision is approved and governs relevant implementation. |
+| Status       | Meaning                                                                                            |
+| ------------ | -------------------------------------------------------------------------------------------------- |
+| `Proposed`   | The decision is under review and must not be treated as accepted architecture.                     |
+| `Accepted`   | The decision is approved and governs relevant implementation.                                      |
 | `Deprecated` | The decision should no longer guide new implementation, but remains part of the historical record. |
-| `Replaced` | A newer ADR supersedes the decision. The replacement must be identified. |
+| `Replaced`   | A newer ADR supersedes the decision. The replacement must be identified.                           |
 
 An accepted ADR must not be edited to hide a later change in direction. Create a new ADR and mark the previous decision as replaced or deprecated. Architecture history is allowed to be inconvenient. That is still better than pretending nobody made the earlier decision.
 

@@ -56,12 +56,12 @@ The registry gives NEWAX long-term control over reusable business infrastructure
 
 Every registry entry must classify the module into one architecture layer.
 
-| Layer | Name | Purpose |
-| --- | --- | --- |
-| Layer 1 | Foundation Modules | Core identity, organization, user, role, and permission foundations. |
-| Layer 2 | Platform Service Modules | Shared operational services reused across domains and client solutions. |
-| Layer 3 | Business Domain Modules | Domain-specific reusable business capabilities. |
-| Layer 4 | Client Solution Modules | Composed solutions built from foundation, platform, and business modules. |
+| Layer   | Name                     | Purpose                                                                   |
+| ------- | ------------------------ | ------------------------------------------------------------------------- |
+| Layer 1 | Foundation Modules       | Core identity, organization, user, role, and permission foundations.      |
+| Layer 2 | Platform Service Modules | Shared operational services reused across domains and client solutions.   |
+| Layer 3 | Business Domain Modules  | Domain-specific reusable business capabilities.                           |
+| Layer 4 | Client Solution Modules  | Composed solutions built from foundation, platform, and business modules. |
 
 Layer classification controls dependency direction and module ownership expectations.
 
@@ -170,25 +170,25 @@ Client solution modules are composition records, not replacements for module own
 
 Every registry entry should include:
 
-| Field | Purpose |
-| --- | --- |
-| `module_name` | Human-readable module name. |
-| `module_key` | Stable machine-friendly module identifier. |
-| `module_layer` | One of `foundation`, `platform_service`, `business_domain`, or `client_solution`. |
-| `module_version` | Current approved module version. |
-| `module_status` | Lifecycle status. |
-| `module_owner` | Responsible Product, Engineering, Architecture, Security, or module owner. |
-| `description` | Short description of the module purpose. |
-| `dependencies` | Required module dependencies and version expectations. |
-| `required_permissions` | Permissions owned or required by the module. |
-| `exposed_events` | Events published by the module. |
-| `consumed_events` | Events consumed by the module. |
-| `configuration_options` | Supported configuration keys or categories. |
-| `database_ownership` | Tables, records, or data responsibilities owned by the module. |
-| `tenant_scope` | Whether the module is global, tenant-scoped, organization-scoped, or mixed. |
-| `documentation_path` | Path to module documentation. |
-| `changelog_path` | Path to the module changelog. |
-| `compatibility_notes` | Known compatibility constraints, dependency rules, or upgrade notes. |
+| Field                   | Purpose                                                                           |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| `module_name`           | Human-readable module name.                                                       |
+| `module_key`            | Stable machine-friendly module identifier.                                        |
+| `module_layer`          | One of `foundation`, `platform_service`, `business_domain`, or `client_solution`. |
+| `module_version`        | Current approved module version.                                                  |
+| `module_status`         | Lifecycle status.                                                                 |
+| `module_owner`          | Responsible Product, Engineering, Architecture, Security, or module owner.        |
+| `description`           | Short description of the module purpose.                                          |
+| `dependencies`          | Required module dependencies and version expectations.                            |
+| `required_permissions`  | Permissions owned or required by the module.                                      |
+| `exposed_events`        | Events published by the module.                                                   |
+| `consumed_events`       | Events consumed by the module.                                                    |
+| `configuration_options` | Supported configuration keys or categories.                                       |
+| `database_ownership`    | Tables, records, or data responsibilities owned by the module.                    |
+| `tenant_scope`          | Whether the module is global, tenant-scoped, organization-scoped, or mixed.       |
+| `documentation_path`    | Path to module documentation.                                                     |
+| `changelog_path`        | Path to the module changelog.                                                     |
+| `compatibility_notes`   | Known compatibility constraints, dependency rules, or upgrade notes.              |
 
 Additional metadata may be added later if approved through architecture review.
 

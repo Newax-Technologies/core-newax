@@ -55,25 +55,25 @@ Every client deployment must have a manifest before it is treated as a managed N
 
 Every client deployment manifest should include:
 
-| Field | Purpose |
-| --- | --- |
-| `client_name` | Human-readable client name. |
-| `client_key` | Stable machine-friendly client identifier. |
-| `organization_id` | Central Registry organization identifier for the client where available. |
-| `solution_name` | Human-readable solution name. |
-| `solution_key` | Stable solution identifier. |
-| `deployment_environment` | Environment where the manifest applies. |
-| `deployment_status` | Current lifecycle status of the deployment. |
-| `support_plan` | Support level assigned to the deployment. |
-| `installed_modules` | Installed module keys and exact versions. |
-| `installed_packages` | Installed package keys and versions where packages are used. |
-| `client_extensions` | Client-specific extensions installed outside reusable core modules. |
-| `configuration_profile` | Configuration profile or tracked configuration groups for the deployment. |
-| `database_model` | Declared database deployment model. |
-| `tenant_scope` | Tenant or organization scope for the deployment. |
-| `update_policy` | How updates may be applied. |
-| `last_updated` | Date or timestamp when the manifest was last updated. |
-| `approved_by` | Person, role, or group that approved the manifest. |
+| Field                    | Purpose                                                                   |
+| ------------------------ | ------------------------------------------------------------------------- |
+| `client_name`            | Human-readable client name.                                               |
+| `client_key`             | Stable machine-friendly client identifier.                                |
+| `organization_id`        | Central Registry organization identifier for the client where available.  |
+| `solution_name`          | Human-readable solution name.                                             |
+| `solution_key`           | Stable solution identifier.                                               |
+| `deployment_environment` | Environment where the manifest applies.                                   |
+| `deployment_status`      | Current lifecycle status of the deployment.                               |
+| `support_plan`           | Support level assigned to the deployment.                                 |
+| `installed_modules`      | Installed module keys and exact versions.                                 |
+| `installed_packages`     | Installed package keys and versions where packages are used.              |
+| `client_extensions`      | Client-specific extensions installed outside reusable core modules.       |
+| `configuration_profile`  | Configuration profile or tracked configuration groups for the deployment. |
+| `database_model`         | Declared database deployment model.                                       |
+| `tenant_scope`           | Tenant or organization scope for the deployment.                          |
+| `update_policy`          | How updates may be applied.                                               |
+| `last_updated`           | Date or timestamp when the manifest was last updated.                     |
+| `approved_by`            | Person, role, or group that approved the manifest.                        |
 
 Additional fields may be added as NEWAX builds operational tooling, but these fields are the baseline.
 

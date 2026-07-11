@@ -78,10 +78,7 @@ const buttonStyle: CSSProperties = {
   cursor: 'pointer',
 };
 
-export default function GlobalErrorPage({
-  error,
-  unstable_retry,
-}: GlobalErrorPageProperties) {
+export default function GlobalErrorPage({ error, unstable_retry }: GlobalErrorPageProperties) {
   return (
     <html lang="en">
       <body style={pageStyle}>
@@ -116,9 +113,7 @@ export default function GlobalErrorPage({
             </p>
 
             {error.digest ? (
-              <p style={{ margin: '1.25rem 0 0', color: '#52616e' }}>
-                Reference: {error.digest}
-              </p>
+              <p style={{ margin: '1.25rem 0 0', color: '#52616e' }}>Reference: {error.digest}</p>
             ) : null}
 
             <div>

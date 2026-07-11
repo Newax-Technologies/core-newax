@@ -139,12 +139,8 @@ Why this is bad:
     "code": "VALIDATION_ERROR",
     "message": "The submitted data is invalid.",
     "details": {
-      "status": [
-        "Status must be one of: active, inactive, suspended, archived."
-      ],
-      "person_id": [
-        "Person is required."
-      ]
+      "status": ["Status must be one of: active, inactive, suspended, archived."],
+      "person_id": ["Person is required."]
     }
   }
 }

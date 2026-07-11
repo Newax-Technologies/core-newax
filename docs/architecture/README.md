@@ -18,9 +18,9 @@ Architecture documentation explains:
 
 ## Architecture Documents
 
-| Document | Purpose |
-| --- | --- |
-| [Core Architecture](core-architecture.md) | Defines the modular-monolith-first approach, architectural layers, module boundaries, dependency direction, and long-term extraction strategy. |
+| Document                                                          | Purpose                                                                                                                                            |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Core Architecture](core-architecture.md)                         | Defines the modular-monolith-first approach, architectural layers, module boundaries, dependency direction, and long-term extraction strategy.     |
 | [Central Registry Architecture](central-registry-architecture.md) | Defines the shared People, Organizations, Users, Memberships, Roles, Permissions, Contacts, and Audit foundation used across future NEWAX domains. |
 
 Related governance:

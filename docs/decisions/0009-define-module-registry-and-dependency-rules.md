@@ -167,12 +167,12 @@ Modules must be classified into architecture layers.
 
 Layer model:
 
-| Layer | Name | Purpose |
-| --- | --- | --- |
-| Layer 1 | Foundation Modules | Identity, people, organization, user, role, and permission foundations. |
-| Layer 2 | Platform Service Modules | Shared operational services used across domains and client solutions. |
-| Layer 3 | Business Domain Modules | Domain-specific reusable business capabilities. |
-| Layer 4 | Client Solution Modules | Composed client-facing solutions built from reusable modules. |
+| Layer   | Name                     | Purpose                                                                 |
+| ------- | ------------------------ | ----------------------------------------------------------------------- |
+| Layer 1 | Foundation Modules       | Identity, people, organization, user, role, and permission foundations. |
+| Layer 2 | Platform Service Modules | Shared operational services used across domains and client solutions.   |
+| Layer 3 | Business Domain Modules  | Domain-specific reusable business capabilities.                         |
+| Layer 4 | Client Solution Modules  | Composed client-facing solutions built from reusable modules.           |
 
 Lower layers must remain more stable and more independent than higher layers.
 
@@ -282,21 +282,21 @@ Every registry entry should include practical metadata.
 
 Required metadata should include:
 
-| Field | Purpose |
-| --- | --- |
-| `module_name` | Human-readable module name. |
-| `module_key` | Stable machine-friendly identifier. |
-| `module_layer` | Architecture layer classification. |
-| `module_version` | Current module version. |
-| `module_status` | Lifecycle status. |
-| `module_owner` | Responsible Product, Engineering, Architecture, or module owner. |
-| `dependencies` | Required module dependencies and version constraints where needed. |
-| `required_permissions` | Permissions required or owned by the module. |
-| `exposed_events` | Events published by the module. |
-| `consumed_events` | Events listened to by the module. |
-| `configuration_options` | Supported configuration points. |
-| `compatibility_notes` | Known compatibility constraints or upgrade notes. |
-| `documentation_path` | Path to module documentation. |
+| Field                   | Purpose                                                            |
+| ----------------------- | ------------------------------------------------------------------ |
+| `module_name`           | Human-readable module name.                                        |
+| `module_key`            | Stable machine-friendly identifier.                                |
+| `module_layer`          | Architecture layer classification.                                 |
+| `module_version`        | Current module version.                                            |
+| `module_status`         | Lifecycle status.                                                  |
+| `module_owner`          | Responsible Product, Engineering, Architecture, or module owner.   |
+| `dependencies`          | Required module dependencies and version constraints where needed. |
+| `required_permissions`  | Permissions required or owned by the module.                       |
+| `exposed_events`        | Events published by the module.                                    |
+| `consumed_events`       | Events listened to by the module.                                  |
+| `configuration_options` | Supported configuration points.                                    |
+| `compatibility_notes`   | Known compatibility constraints or upgrade notes.                  |
+| `documentation_path`    | Path to module documentation.                                      |
 
 Module status values:
 

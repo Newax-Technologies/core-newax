@@ -41,19 +41,19 @@ New contributors should review the standards in this order:
 
 ## Standards Index
 
-| Standard | Primary purpose | Applies to |
-| --- | --- | --- |
-| [Module Standard](module-standard.md) | Defines required module structure, boundaries, files, APIs, services, data ownership, permissions, configuration, events, testing, documentation, versioning, and extension rules. | Every reusable module |
-| [Module Registry Standard](module-registry-standard.md) | Defines module classification, metadata, lifecycle, naming, dependency direction, versioning, ownership, compatibility, and registration rules. | Module Registry and all registered modules |
-| [Client Deployment Manifest Standard](client-deployment-manifest-standard.md) | Defines how client systems record installed packages, modules, versions, environments, database models, support plans, client extensions, and update policies. | Every client deployment |
-| [Package Standard](package-standard.md) | Defines how modules are grouped into controlled deployable and sellable packages or solution editions. | Packages and solution composition |
-| [Environment Standard](environment-standard.md) | Defines local, development, staging, and production environment expectations, including secrets, access, data handling, backups, logging, and deployment safety. | Every project and deployment environment |
-| [Security Baseline Standard](security-baseline-standard.md) | Defines minimum authentication, authorization, tenant isolation, sensitive data, audit, API, file, export, backup, and production security controls. | Every module and client system |
-| [Data Model Naming Standard](data-model-naming-standard.md) | Defines table, column, identifier, relationship, timestamp, status, audit, tenant, and domain naming rules. | Database designs, models, migrations, and reports |
-| [API Design Standard](api-design-standard.md) | Defines endpoint naming, methods, requests, responses, errors, validation, pagination, filtering, permissions, tenancy, versioning, and deprecation. | Internal and client-facing APIs |
-| [Testing Standard](testing-standard.md) | Defines unit, integration, API, authentication, permission, tenant-isolation, database, event, security, acceptance, staging, and smoke-testing expectations. | Every reusable or business-critical capability |
-| [Documentation Standard](documentation-standard.md) | Defines required documentation for modules, APIs, permissions, events, configuration, databases, testing, packages, deployments, security, and maintenance. | Every reusable module, package, and client solution |
-| [Module Approval Checklist](module-approval-checklist.md) | Defines the formal quality gate before a module may move from `draft` to `active`. | Every module seeking reusable status |
+| Standard                                                                      | Primary purpose                                                                                                                                                                    | Applies to                                          |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| [Module Standard](module-standard.md)                                         | Defines required module structure, boundaries, files, APIs, services, data ownership, permissions, configuration, events, testing, documentation, versioning, and extension rules. | Every reusable module                               |
+| [Module Registry Standard](module-registry-standard.md)                       | Defines module classification, metadata, lifecycle, naming, dependency direction, versioning, ownership, compatibility, and registration rules.                                    | Module Registry and all registered modules          |
+| [Client Deployment Manifest Standard](client-deployment-manifest-standard.md) | Defines how client systems record installed packages, modules, versions, environments, database models, support plans, client extensions, and update policies.                     | Every client deployment                             |
+| [Package Standard](package-standard.md)                                       | Defines how modules are grouped into controlled deployable and sellable packages or solution editions.                                                                             | Packages and solution composition                   |
+| [Environment Standard](environment-standard.md)                               | Defines local, development, staging, and production environment expectations, including secrets, access, data handling, backups, logging, and deployment safety.                   | Every project and deployment environment            |
+| [Security Baseline Standard](security-baseline-standard.md)                   | Defines minimum authentication, authorization, tenant isolation, sensitive data, audit, API, file, export, backup, and production security controls.                               | Every module and client system                      |
+| [Data Model Naming Standard](data-model-naming-standard.md)                   | Defines table, column, identifier, relationship, timestamp, status, audit, tenant, and domain naming rules.                                                                        | Database designs, models, migrations, and reports   |
+| [API Design Standard](api-design-standard.md)                                 | Defines endpoint naming, methods, requests, responses, errors, validation, pagination, filtering, permissions, tenancy, versioning, and deprecation.                               | Internal and client-facing APIs                     |
+| [Testing Standard](testing-standard.md)                                       | Defines unit, integration, API, authentication, permission, tenant-isolation, database, event, security, acceptance, staging, and smoke-testing expectations.                      | Every reusable or business-critical capability      |
+| [Documentation Standard](documentation-standard.md)                           | Defines required documentation for modules, APIs, permissions, events, configuration, databases, testing, packages, deployments, security, and maintenance.                        | Every reusable module, package, and client solution |
+| [Module Approval Checklist](module-approval-checklist.md)                     | Defines the formal quality gate before a module may move from `draft` to `active`.                                                                                                 | Every module seeking reusable status                |
 
 ## Standards by Engineering Activity
 
@@ -180,19 +180,19 @@ A registry entry tracks a module. It does not prove the module has been implemen
 
 The following templates support these standards:
 
-| Template | Related standard |
-| --- | --- |
-| [Module Template](../../templates/module-template/README.md) | Module Standard |
-| [Module Registry Example](../../templates/module-registry/module-registry.example.json) | Module Registry Standard |
+| Template                                                                                                                 | Related standard                    |
+| ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| [Module Template](../../templates/module-template/README.md)                                                             | Module Standard                     |
+| [Module Registry Example](../../templates/module-registry/module-registry.example.json)                                  | Module Registry Standard            |
 | [Client Deployment Manifest Example](../../templates/client-deployment-manifest/client-deployment-manifest.example.json) | Client Deployment Manifest Standard |
-| [Package Example](../../templates/package/package.example.json) | Package Standard |
-| [Environment Example](../../templates/environment/environment.example.md) | Environment Standard |
-| [Security Review Checklist Example](../../templates/security/security-review-checklist.example.md) | Security Baseline Standard |
-| [Data Model Naming Example](../../templates/data-model/data-model-naming.example.md) | Data Model Naming Standard |
-| [API Design Example](../../templates/api/api-design.example.md) | API Design Standard |
-| [Module Testing Checklist Example](../../templates/testing/module-testing-checklist.example.md) | Testing Standard |
-| [Module README Example](../../templates/documentation/module-readme.example.md) | Documentation Standard |
-| [Module Approval Example](../../templates/approval/module-approval-checklist.example.md) | Module Approval Checklist |
+| [Package Example](../../templates/package/package.example.json)                                                          | Package Standard                    |
+| [Environment Example](../../templates/environment/environment.example.md)                                                | Environment Standard                |
+| [Security Review Checklist Example](../../templates/security/security-review-checklist.example.md)                       | Security Baseline Standard          |
+| [Data Model Naming Example](../../templates/data-model/data-model-naming.example.md)                                     | Data Model Naming Standard          |
+| [API Design Example](../../templates/api/api-design.example.md)                                                          | API Design Standard                 |
+| [Module Testing Checklist Example](../../templates/testing/module-testing-checklist.example.md)                          | Testing Standard                    |
+| [Module README Example](../../templates/documentation/module-readme.example.md)                                          | Documentation Standard              |
+| [Module Approval Example](../../templates/approval/module-approval-checklist.example.md)                                 | Module Approval Checklist           |
 
 Templates are starting points and examples. They do not replace engineering judgment, testing, security review, or formal approval.
 

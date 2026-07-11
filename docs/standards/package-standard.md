@@ -81,24 +81,24 @@ Package types must be documented clearly. A package type should help Product, En
 
 Every package should include:
 
-| Field | Purpose |
-| --- | --- |
-| `package_name` | Human-readable package name. |
-| `package_key` | Stable machine-friendly package identifier. |
-| `package_version` | Current package version. |
-| `package_status` | Package lifecycle status. |
-| `package_layer` | Package classification or layer. |
-| `description` | Short explanation of the package purpose. |
-| `included_modules` | Modules included by default. |
-| `required_dependencies` | Required packages, modules, standards, or platform capabilities. |
-| `optional_modules` | Modules approved as optional additions. |
-| `excluded_modules` | Modules not included in the package. |
-| `compatible_database_models` | Supported database deployment models. |
-| `compatible_client_types` | Client types or deployment contexts the package supports. |
-| `support_level` | Default support expectation for the package. |
-| `documentation_path` | Path to package documentation. |
-| `changelog_path` | Path to the package changelog. |
-| `approval_status` | Review or approval state for the package. |
+| Field                        | Purpose                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| `package_name`               | Human-readable package name.                                     |
+| `package_key`                | Stable machine-friendly package identifier.                      |
+| `package_version`            | Current package version.                                         |
+| `package_status`             | Package lifecycle status.                                        |
+| `package_layer`              | Package classification or layer.                                 |
+| `description`                | Short explanation of the package purpose.                        |
+| `included_modules`           | Modules included by default.                                     |
+| `required_dependencies`      | Required packages, modules, standards, or platform capabilities. |
+| `optional_modules`           | Modules approved as optional additions.                          |
+| `excluded_modules`           | Modules not included in the package.                             |
+| `compatible_database_models` | Supported database deployment models.                            |
+| `compatible_client_types`    | Client types or deployment contexts the package supports.        |
+| `support_level`              | Default support expectation for the package.                     |
+| `documentation_path`         | Path to package documentation.                                   |
+| `changelog_path`             | Path to the package changelog.                                   |
+| `approval_status`            | Review or approval state for the package.                        |
 
 Package status values:
 

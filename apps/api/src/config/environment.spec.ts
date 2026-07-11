@@ -26,46 +26,38 @@ describe('validateEnvironment', () => {
     });
   });
 
-  it.each([
-    ['staging'],
-    [''],
-    [42],
-  ])('rejects an invalid NODE_ENV value: %s', (NODE_ENV) => {
+  it.each([['staging'], [''], [42]])('rejects an invalid NODE_ENV value: %s', (NODE_ENV) => {
     expect(() => validateEnvironment({ NODE_ENV })).toThrow(
       /NODE_ENV must be (a string|one of: development, test, production)/,
     );
   });
 
-  it.each([
-    [''],
-    ['   '],
-    [42],
-  ])('rejects an invalid HOST value: %s', (HOST) => {
+  it.each([[''], ['   '], [42]])('rejects an invalid HOST value: %s', (HOST) => {
     expect(() => validateEnvironment({ HOST })).toThrow(/HOST must/);
   });
 
-  it.each([
-    [0],
-    [65_536],
-    [3.5],
-    ['invalid'],
-    [''],
-  ])('rejects an invalid PORT value: %s', (PORT) => {
-    expect(() => validateEnvironment({ PORT })).toThrow(
-      'PORT must be an integer between 1 and 65535.',
-    );
-  });
-
-  it.each([[true], [false], [null], [{}], [[]]])(
-    'rejects an unsupported PORT type: %s',
+  it.each([[0], [65_536], [3.5], ['invalid'], ['']])(
+    'rejects an invalid PORT value: %s',
     (PORT) => {
-      expect(() => validateEnvironment({ PORT })).toThrow('PORT must be a string or number.');
+      expect(() => validateEnvironment({ PORT })).toThrow(
+        'PORT must be an integer between 1 and 65535.',
+      );
     },
   );
 
+  it.each([[true], [false], [null], [{}], [[]]])('rejects an unsupported PORT type: %s', (PORT) => {
+    expect(() => validateEnvironment({ PORT })).toThrow('PORT must be a string or number.');
+  });
+
   it.each([
-    [' postgresql://newax:secret@localhost:5432/newax ', 'postgresql://newax:secret@localhost:5432/newax'],
-    [' postgres://newax:secret@localhost:5432/newax ', 'postgres://newax:secret@localhost:5432/newax'],
+    [
+      ' postgresql://newax:secret@localhost:5432/newax ',
+      'postgresql://newax:secret@localhost:5432/newax',
+    ],
+    [
+      ' postgres://newax:secret@localhost:5432/newax ',
+      'postgres://newax:secret@localhost:5432/newax',
+    ],
   ])('normalizes a valid PostgreSQL database URL', (DATABASE_URL, expectedDatabaseUrl) => {
     expect(validateEnvironment({ DATABASE_URL })).toMatchObject({
       DATABASE_URL: expectedDatabaseUrl,

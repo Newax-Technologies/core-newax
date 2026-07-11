@@ -66,11 +66,11 @@ Folders may remain empty during planning, but the module must explain which fold
 
 Each reusable module must include:
 
-| File | Purpose |
-| --- | --- |
-| `README.md` | Explains the module purpose, ownership, boundaries, public surface, setup assumptions, and usage guidance. |
-| `CHANGELOG.md` | Tracks user-impacting, integration-impacting, schema-impacting, and permission-impacting changes. |
-| `VERSION` | Contains the current module version in a simple, documented format. |
+| File           | Purpose                                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------------------------- |
+| `README.md`    | Explains the module purpose, ownership, boundaries, public surface, setup assumptions, and usage guidance. |
+| `CHANGELOG.md` | Tracks user-impacting, integration-impacting, schema-impacting, and permission-impacting changes.          |
+| `VERSION`      | Contains the current module version in a simple, documented format.                                        |
 
 The module `README.md` must include:
 

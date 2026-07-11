@@ -31,11 +31,11 @@ Do not commit `.env.local` or place secrets in variables exposed to browser code
 
 The template documents these settings:
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `HOSTNAME` | `0.0.0.0` | Network interface used by the deployed web server |
-| `PORT` | `3001` | Web server port, separated from the API default of `3000` |
-| `SEARCH_INDEXING_ENABLED` | `false` | Controls whether public search-engine crawling is permitted |
+| Variable                  | Default   | Purpose                                                     |
+| ------------------------- | --------- | ----------------------------------------------------------- |
+| `HOSTNAME`                | `0.0.0.0` | Network interface used by the deployed web server           |
+| `PORT`                    | `3001`    | Web server port, separated from the API default of `3000`   |
+| `SEARCH_INDEXING_ENABLED` | `false`   | Controls whether public search-engine crawling is permitted |
 
 For local development, pass the binding values directly to the Next.js command so they are available when the server starts:
 
@@ -82,13 +82,13 @@ Robots rules are crawler instructions, not a security control. Private routes an
 
 Run commands from the repository root with `pnpm --filter @newax/web <command>`.
 
-| Command | Purpose |
-| --- | --- |
-| `build` | Create the production Next.js build |
-| `dev` | Start the development server |
-| `start` | Run the production server after a build |
-| `lint` | Check web source with ESLint |
-| `lint:fix` | Apply safe ESLint fixes |
+| Command     | Purpose                                           |
+| ----------- | ------------------------------------------------- |
+| `build`     | Create the production Next.js build               |
+| `dev`       | Start the development server                      |
+| `start`     | Run the production server after a build           |
+| `lint`      | Check web source with ESLint                      |
+| `lint:fix`  | Apply safe ESLint fixes                           |
 | `typecheck` | Type-check the application without emitting files |
 
 ## Current structure

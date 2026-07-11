@@ -14,10 +14,7 @@
       "module_owner": "NEWAX Engineering",
       "description": "Handles login access, sessions, account status, password policies, and future authentication features.",
       "dependencies": [],
-      "required_permissions": [
-        "authentication.manage",
-        "authentication.sessions.view"
-      ],
+      "required_permissions": ["authentication.manage", "authentication.sessions.view"],
       "exposed_events": [
         "user.login",
         "user.logout",
@@ -25,19 +22,14 @@
         "user.password_reset_requested",
         "user.password_reset_completed"
       ],
-      "consumed_events": [
-        "permission.changed"
-      ],
+      "consumed_events": ["permission.changed"],
       "configuration_options": [
         "session_expiration_minutes",
         "password_policy",
         "login_attempt_policy",
         "future_two_factor_authentication"
       ],
-      "database_ownership": [
-        "core_users",
-        "future_authentication_sessions"
-      ],
+      "database_ownership": ["core_users", "future_authentication_sessions"],
       "tenant_scope": "organization_scoped_access",
       "documentation_path": "packages/auth/README.md",
       "changelog_path": "packages/auth/CHANGELOG.md",
@@ -58,19 +50,10 @@
         "organizations.update",
         "organizations.archive"
       ],
-      "exposed_events": [
-        "organization.created",
-        "organization.updated",
-        "organization.archived"
-      ],
+      "exposed_events": ["organization.created", "organization.updated", "organization.archived"],
       "consumed_events": [],
-      "configuration_options": [
-        "organization_status_values",
-        "tenant_configuration_defaults"
-      ],
-      "database_ownership": [
-        "core_organizations"
-      ],
+      "configuration_options": ["organization_status_values", "tenant_configuration_defaults"],
+      "database_ownership": ["core_organizations"],
       "tenant_scope": "foundation_tenant_context",
       "documentation_path": "packages/organizations/README.md",
       "changelog_path": "packages/organizations/CHANGELOG.md",
@@ -104,24 +87,14 @@
         "roles.assign",
         "roles.remove"
       ],
-      "exposed_events": [
-        "permission.changed",
-        "role.assigned",
-        "role.removed"
-      ],
-      "consumed_events": [
-        "organization.archived",
-        "user.suspended"
-      ],
+      "exposed_events": ["permission.changed", "role.assigned", "role.removed"],
+      "consumed_events": ["organization.archived", "user.suspended"],
       "configuration_options": [
         "permission_naming_convention",
         "organization_scoped_permissions",
         "role_assignment_policy"
       ],
-      "database_ownership": [
-        "core_roles",
-        "core_permissions"
-      ],
+      "database_ownership": ["core_roles", "core_permissions"],
       "tenant_scope": "organization_scoped",
       "documentation_path": "packages/permissions/README.md",
       "changelog_path": "packages/permissions/CHANGELOG.md",
@@ -145,13 +118,8 @@
           "version": ">=1.0.0"
         }
       ],
-      "required_permissions": [
-        "audit.view",
-        "audit.export"
-      ],
-      "exposed_events": [
-        "audit.entry_recorded"
-      ],
+      "required_permissions": ["audit.view", "audit.export"],
+      "exposed_events": ["audit.entry_recorded"],
       "consumed_events": [
         "user.login",
         "permission.changed",
@@ -164,9 +132,7 @@
         "sensitive_event_categories",
         "export_controls"
       ],
-      "database_ownership": [
-        "core_audit_logs"
-      ],
+      "database_ownership": ["core_audit_logs"],
       "tenant_scope": "mixed_global_and_organization_scoped",
       "documentation_path": "packages/audit/README.md",
       "changelog_path": "packages/audit/CHANGELOG.md",
@@ -204,21 +170,10 @@
         "students.update",
         "students.suspend"
       ],
-      "exposed_events": [
-        "student.created",
-        "student.updated",
-        "student.suspended"
-      ],
-      "consumed_events": [
-        "organization.archived"
-      ],
-      "configuration_options": [
-        "student_status_values",
-        "student_profile_required_fields"
-      ],
-      "database_ownership": [
-        "lms_student_profiles"
-      ],
+      "exposed_events": ["student.created", "student.updated", "student.suspended"],
+      "consumed_events": ["organization.archived"],
+      "configuration_options": ["student_status_values", "student_profile_required_fields"],
+      "database_ownership": ["lms_student_profiles"],
       "tenant_scope": "organization_scoped",
       "documentation_path": "packages/lms-students/README.md",
       "changelog_path": "packages/lms-students/CHANGELOG.md",
@@ -260,22 +215,14 @@
         "payments.approve",
         "payments.reject"
       ],
-      "exposed_events": [
-        "payment.submitted",
-        "payment.approved",
-        "payment.rejected"
-      ],
-      "consumed_events": [
-        "student.created"
-      ],
+      "exposed_events": ["payment.submitted", "payment.approved", "payment.rejected"],
+      "consumed_events": ["student.created"],
       "configuration_options": [
         "payment_status_values",
         "approval_thresholds",
         "receipt_format_defaults"
       ],
-      "database_ownership": [
-        "lms_payments"
-      ],
+      "database_ownership": ["lms_payments"],
       "tenant_scope": "organization_scoped",
       "documentation_path": "packages/lms-payments/README.md",
       "changelog_path": "packages/lms-payments/CHANGELOG.md",
@@ -303,24 +250,15 @@
           "version": ">=1.0.0"
         }
       ],
-      "required_permissions": [
-        "reports.view",
-        "reports.export"
-      ],
-      "exposed_events": [
-        "report.viewed",
-        "report.exported"
-      ],
+      "required_permissions": ["reports.view", "reports.export"],
+      "exposed_events": ["report.viewed", "report.exported"],
       "consumed_events": [],
       "configuration_options": [
         "export_formats",
         "report_retention_policy",
         "sensitive_report_controls"
       ],
-      "database_ownership": [
-        "future_report_definitions",
-        "future_report_exports"
-      ],
+      "database_ownership": ["future_report_definitions", "future_report_exports"],
       "tenant_scope": "organization_scoped",
       "documentation_path": "packages/reports/README.md",
       "changelog_path": "packages/reports/CHANGELOG.md",

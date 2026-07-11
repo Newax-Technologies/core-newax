@@ -27,7 +27,9 @@ export default function HomePage() {
       </header>
 
       <section id="top" className="hero" aria-labelledby="hero-title">
-        <p className="eyebrow">Enterprise Software. Intelligent Automation. Connected Infrastructure.</p>
+        <p className="eyebrow">
+          Enterprise Software. Intelligent Automation. Connected Infrastructure.
+        </p>
         <h1 id="hero-title">We build the systems modern organizations depend on.</h1>
         <p className="hero-summary">
           NEWAX designs, builds, integrates, and supports the business infrastructure that helps

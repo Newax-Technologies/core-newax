@@ -90,12 +90,12 @@ At the beginning, NEWAX needs control, reliability, and clear module boundaries 
 
 NEWAX Core is organized around four conceptual layers.
 
-| Layer | Name | Purpose |
-| --- | --- | --- |
-| Layer 1 | Foundation | Core identity, people, organization, user, role, and permission capabilities. |
-| Layer 2 | Platform Services | Shared operational services reused across business modules and client solutions. |
-| Layer 3 | Business Modules | Domain-specific reusable capabilities for industries or business verticals. |
-| Layer 4 | Client Solutions | Client-facing composed solutions built from reusable foundation, platform, and business modules. |
+| Layer   | Name              | Purpose                                                                                          |
+| ------- | ----------------- | ------------------------------------------------------------------------------------------------ |
+| Layer 1 | Foundation        | Core identity, people, organization, user, role, and permission capabilities.                    |
+| Layer 2 | Platform Services | Shared operational services reused across business modules and client solutions.                 |
+| Layer 3 | Business Modules  | Domain-specific reusable capabilities for industries or business verticals.                      |
+| Layer 4 | Client Solutions  | Client-facing composed solutions built from reusable foundation, platform, and business modules. |
 
 Layering exists to protect ownership and prevent higher-level client or business concerns from leaking into lower-level reusable foundations.
 

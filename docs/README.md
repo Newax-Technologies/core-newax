@@ -47,28 +47,28 @@ New contributors should review the documentation in this order:
 
 Architecture documents describe how NEWAX Core is structured and how its main foundations relate.
 
-| Document | Purpose |
-| --- | --- |
-| [Architecture Index](architecture/README.md) | Entry point for architecture documentation. |
-| [Core Architecture](architecture/core-architecture.md) | Defines the layered NEWAX Core architecture and modular-monolith-first direction. |
+| Document                                                                       | Purpose                                                                                                                                  |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| [Architecture Index](architecture/README.md)                                   | Entry point for architecture documentation.                                                                                              |
+| [Core Architecture](architecture/core-architecture.md)                         | Defines the layered NEWAX Core architecture and modular-monolith-first direction.                                                        |
 | [Central Registry Architecture](architecture/central-registry-architecture.md) | Defines the shared People, Organizations, Users, Memberships, Roles, Permissions, Contacts, and Audit foundation used by future domains. |
 
 ## Architecture Decision Records
 
 Architecture Decision Records explain major technical decisions, their context, consequences, and constraints.
 
-| ADR | Decision |
-| --- | --- |
-| [ADR 0001](decisions/0001-use-modular-monolith-first.md) | Use a modular monolith first. |
-| [ADR 0002](decisions/0002-use-permission-based-access-control.md) | Use permission-based access control instead of hardcoded role authorization. |
-| [ADR 0003](decisions/0003-design-for-multi-tenancy.md) | Design for multi-tenancy and organization-scoped data boundaries. |
-| [ADR 0004](decisions/0004-separate-client-customizations-from-core.md) | Separate client customizations from reusable core modules. |
-| [ADR 0005](decisions/0005-use-event-driven-module-communication.md) | Use documented events for suitable cross-module communication. |
-| [ADR 0006](decisions/0006-use-controlled-updates-and-versioning.md) | Use controlled updates and semantic versioning. |
-| [ADR 0007](decisions/0007-define-lms-centralized-database-and-data-ownership.md) | Define the LMS centralized database and module data-ownership model. |
-| [ADR 0008](decisions/0008-use-central-identity-and-organization-registry.md) | Use a Central Identity and Organization Registry across future domains. |
-| [ADR 0009](decisions/0009-define-module-registry-and-dependency-rules.md) | Define the Module Registry and dependency rules. |
-| [ADR 0010](decisions/0010-define-authentication-and-user-identity-strategy.md) | Separate authentication, person identity, user accounts, and authorization. |
+| ADR                                                                              | Decision                                                                     |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [ADR 0001](decisions/0001-use-modular-monolith-first.md)                         | Use a modular monolith first.                                                |
+| [ADR 0002](decisions/0002-use-permission-based-access-control.md)                | Use permission-based access control instead of hardcoded role authorization. |
+| [ADR 0003](decisions/0003-design-for-multi-tenancy.md)                           | Design for multi-tenancy and organization-scoped data boundaries.            |
+| [ADR 0004](decisions/0004-separate-client-customizations-from-core.md)           | Separate client customizations from reusable core modules.                   |
+| [ADR 0005](decisions/0005-use-event-driven-module-communication.md)              | Use documented events for suitable cross-module communication.               |
+| [ADR 0006](decisions/0006-use-controlled-updates-and-versioning.md)              | Use controlled updates and semantic versioning.                              |
+| [ADR 0007](decisions/0007-define-lms-centralized-database-and-data-ownership.md) | Define the LMS centralized database and module data-ownership model.         |
+| [ADR 0008](decisions/0008-use-central-identity-and-organization-registry.md)     | Use a Central Identity and Organization Registry across future domains.      |
+| [ADR 0009](decisions/0009-define-module-registry-and-dependency-rules.md)        | Define the Module Registry and dependency rules.                             |
+| [ADR 0010](decisions/0010-define-authentication-and-user-identity-strategy.md)   | Separate authentication, person identity, user accounts, and authorization.  |
 
 Additional resources:
 
@@ -79,26 +79,26 @@ Additional resources:
 
 Standards define the minimum expectations for reusable NEWAX modules, packages, APIs, environments, client deployments, security, testing, and documentation.
 
-| Standard | Purpose |
-| --- | --- |
-| [Module Standard](standards/module-standard.md) | Defines the required structure and responsibilities of reusable modules. |
-| [Module Registry Standard](standards/module-registry-standard.md) | Defines module metadata, lifecycle, dependency, ownership, and registration rules. |
+| Standard                                                                                | Purpose                                                                                                                          |
+| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| [Module Standard](standards/module-standard.md)                                         | Defines the required structure and responsibilities of reusable modules.                                                         |
+| [Module Registry Standard](standards/module-registry-standard.md)                       | Defines module metadata, lifecycle, dependency, ownership, and registration rules.                                               |
 | [Client Deployment Manifest Standard](standards/client-deployment-manifest-standard.md) | Defines how installed modules, versions, packages, extensions, environments, and update policies are tracked for client systems. |
-| [Package Standard](standards/package-standard.md) | Defines how modules are grouped into controlled packages and solution editions. |
-| [Environment Standard](standards/environment-standard.md) | Defines local, development, staging, and production environment expectations. |
-| [Security Baseline Standard](standards/security-baseline-standard.md) | Defines minimum authentication, permission, tenant, data, audit, secret, file, backup, and production security rules. |
-| [Data Model Naming Standard](standards/data-model-naming-standard.md) | Defines database table, column, key, timestamp, tenant, audit, and domain naming rules. |
-| [API Design Standard](standards/api-design-standard.md) | Defines endpoint, request, response, validation, pagination, authorization, tenancy, and versioning rules. |
-| [Testing Standard](standards/testing-standard.md) | Defines unit, integration, API, permission, tenant-isolation, security, acceptance, and release testing requirements. |
-| [Documentation Standard](standards/documentation-standard.md) | Defines documentation requirements for modules, APIs, permissions, events, configuration, databases, packages, and deployments. |
-| [Module Approval Checklist](standards/module-approval-checklist.md) | Defines the quality gate required before a module may move from `draft` to `active`. |
+| [Package Standard](standards/package-standard.md)                                       | Defines how modules are grouped into controlled packages and solution editions.                                                  |
+| [Environment Standard](standards/environment-standard.md)                               | Defines local, development, staging, and production environment expectations.                                                    |
+| [Security Baseline Standard](standards/security-baseline-standard.md)                   | Defines minimum authentication, permission, tenant, data, audit, secret, file, backup, and production security rules.            |
+| [Data Model Naming Standard](standards/data-model-naming-standard.md)                   | Defines database table, column, key, timestamp, tenant, audit, and domain naming rules.                                          |
+| [API Design Standard](standards/api-design-standard.md)                                 | Defines endpoint, request, response, validation, pagination, authorization, tenancy, and versioning rules.                       |
+| [Testing Standard](standards/testing-standard.md)                                       | Defines unit, integration, API, permission, tenant-isolation, security, acceptance, and release testing requirements.            |
+| [Documentation Standard](standards/documentation-standard.md)                           | Defines documentation requirements for modules, APIs, permissions, events, configuration, databases, packages, and deployments.  |
+| [Module Approval Checklist](standards/module-approval-checklist.md)                     | Defines the quality gate required before a module may move from `draft` to `active`.                                             |
 
 ## Registries
 
 The operational registry is stored outside the documentation directory because it is structured governance data rather than narrative documentation.
 
-| Registry | Status | Purpose |
-| --- | --- | --- |
+| Registry                                                  | Status  | Purpose                                                                                                                                                |
+| --------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [NEWAX Module Registry](../registry/module-registry.json) | `draft` | Tracks planned modules, layers, versions, dependencies, permissions, events, configuration, database ownership, tenant scope, and documentation paths. |
 
 Registry rules:
@@ -113,19 +113,19 @@ Registry rules:
 
 Templates provide approved starting structures. They are examples, not production implementations or automatic approvals.
 
-| Template | Purpose |
-| --- | --- |
-| [Module Template](../templates/module-template/README.md) | Starting structure for reusable modules. |
-| [Module Registry Example](../templates/module-registry/module-registry.example.json) | Example module-registry metadata. |
-| [Client Deployment Manifest Example](../templates/client-deployment-manifest/client-deployment-manifest.example.json) | Example client deployment composition and version record. |
-| [Package Example](../templates/package/package.example.json) | Example package definition. |
-| [Environment Example](../templates/environment/environment.example.md) | Example environment documentation. |
-| [Security Review Checklist Example](../templates/security/security-review-checklist.example.md) | Example security review checklist. |
-| [Data Model Naming Example](../templates/data-model/data-model-naming.example.md) | Good and bad database naming examples. |
-| [API Design Example](../templates/api/api-design.example.md) | Example endpoints, responses, errors, permissions, and tenant-safe behavior. |
-| [Module Testing Checklist Example](../templates/testing/module-testing-checklist.example.md) | Example module release-testing checklist. |
-| [Module README Example](../templates/documentation/module-readme.example.md) | Example complete module README for `lms-students`. |
-| [Module Approval Example](../templates/approval/module-approval-checklist.example.md) | Example completed approval review for `lms-students`. |
+| Template                                                                                                              | Purpose                                                                      |
+| --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [Module Template](../templates/module-template/README.md)                                                             | Starting structure for reusable modules.                                     |
+| [Module Registry Example](../templates/module-registry/module-registry.example.json)                                  | Example module-registry metadata.                                            |
+| [Client Deployment Manifest Example](../templates/client-deployment-manifest/client-deployment-manifest.example.json) | Example client deployment composition and version record.                    |
+| [Package Example](../templates/package/package.example.json)                                                          | Example package definition.                                                  |
+| [Environment Example](../templates/environment/environment.example.md)                                                | Example environment documentation.                                           |
+| [Security Review Checklist Example](../templates/security/security-review-checklist.example.md)                       | Example security review checklist.                                           |
+| [Data Model Naming Example](../templates/data-model/data-model-naming.example.md)                                     | Good and bad database naming examples.                                       |
+| [API Design Example](../templates/api/api-design.example.md)                                                          | Example endpoints, responses, errors, permissions, and tenant-safe behavior. |
+| [Module Testing Checklist Example](../templates/testing/module-testing-checklist.example.md)                          | Example module release-testing checklist.                                    |
+| [Module README Example](../templates/documentation/module-readme.example.md)                                          | Example complete module README for `lms-students`.                           |
+| [Module Approval Example](../templates/approval/module-approval-checklist.example.md)                                 | Example completed approval review for `lms-students`.                        |
 
 ## Architecture Layers
 

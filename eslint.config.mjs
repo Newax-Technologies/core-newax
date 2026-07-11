@@ -65,11 +65,7 @@ export default [
     },
   },
   {
-    files: [
-      'eslint.config.mjs',
-      'tooling/**/*.{js,mjs,cjs,ts}',
-      'apps/api/**/*.{js,mjs,cjs,ts}',
-    ],
+    files: ['eslint.config.mjs', 'tooling/**/*.{js,mjs,cjs,ts}', 'apps/api/**/*.{js,mjs,cjs,ts}'],
     languageOptions: {
       globals: globals.node,
     },

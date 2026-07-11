@@ -48,14 +48,14 @@ The approval process protects reliability, ownership, maintainability, and clien
 
 Every registered module must use one of the following statuses:
 
-| Status | Meaning |
-| --- | --- |
-| `planned` | The module is proposed but has not entered implementation. |
-| `draft` | The module is being designed, developed, documented, or tested. |
-| `active` | The module has passed approval and may be reused in approved client systems. |
+| Status       | Meaning                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------- |
+| `planned`    | The module is proposed but has not entered implementation.                               |
+| `draft`      | The module is being designed, developed, documented, or tested.                          |
+| `active`     | The module has passed approval and may be reused in approved client systems.             |
 | `deprecated` | The module remains supported temporarily but should not be selected for new deployments. |
-| `replaced` | Another module or major version has replaced this module. |
-| `archived` | The module is no longer maintained or approved for deployment. |
+| `replaced`   | Another module or major version has replaced this module.                                |
+| `archived`   | The module is no longer maintained or approved for deployment.                           |
 
 Status changes must be recorded in the Module Registry and, where relevant, in the module changelog.
 
@@ -385,23 +385,23 @@ A module may move to `active` only when:
 
 ### Approval Record
 
-| Field | Value |
-| --- | --- |
-| Module name | |
-| Module key | |
-| Version | |
-| Layer | |
-| Previous status | `draft` |
-| Approved status | `active` |
-| Product approver | |
-| Engineering approver | |
-| Security reviewer | |
-| Approval date | |
-| Reviewed commit or release | |
-| Known limitations | |
-| Accepted risks | |
-| Related ADRs | |
-| Registry entry | |
+| Field                      | Value    |
+| -------------------------- | -------- |
+| Module name                |          |
+| Module key                 |          |
+| Version                    |          |
+| Layer                      |          |
+| Previous status            | `draft`  |
+| Approved status            | `active` |
+| Product approver           |          |
+| Engineering approver       |          |
+| Security reviewer          |          |
+| Approval date              |          |
+| Reviewed commit or release |          |
+| Known limitations          |          |
+| Accepted risks             |          |
+| Related ADRs               |          |
+| Registry entry             |          |
 
 ## 22. Conditional Approval
 

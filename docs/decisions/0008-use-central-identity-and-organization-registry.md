@@ -146,16 +146,16 @@ core_audit_logs
 
 Entity responsibilities:
 
-| Entity | Responsibility |
-| --- | --- |
+| Entity               | Responsibility                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------- |
 | `core_organizations` | Represents client organizations, companies, institutes, branches, departments, or business units. |
-| `core_people` | Represents real human beings once, independent of project-specific roles. |
-| `core_users` | Represents login accounts connected to people. |
-| `core_memberships` | Connects people or users to organizations. |
-| `core_roles` | Represents responsibility groups inside an organization. |
-| `core_permissions` | Defines or supports actual access rights. |
-| `core_contacts` | Stores communication details where needed. |
-| `core_audit_logs` | Records important system, identity, access, and security actions. |
+| `core_people`        | Represents real human beings once, independent of project-specific roles.                         |
+| `core_users`         | Represents login accounts connected to people.                                                    |
+| `core_memberships`   | Connects people or users to organizations.                                                        |
+| `core_roles`         | Represents responsibility groups inside an organization.                                          |
+| `core_permissions`   | Defines or supports actual access rights.                                                         |
+| `core_contacts`      | Stores communication details where needed.                                                        |
+| `core_audit_logs`    | Records important system, identity, access, and security actions.                                 |
 
 This table list is architecture direction only and does not create database migrations.
 

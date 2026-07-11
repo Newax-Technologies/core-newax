@@ -10,22 +10,22 @@ The module used in this example is `lms-students`.
 
 ## 1. Module Summary
 
-| Field | Example value |
-| --- | --- |
-| Module name | LMS Students |
-| Module key | `lms-students` |
-| Module layer | `business_domain` |
-| Domain | LMS |
-| Version reviewed | `1.0.0` |
-| Previous status | `draft` |
-| Proposed status | `active` |
-| Module owner | NEWAX Engineering |
-| Product owner | NEWAX Product |
-| Tenant scope | `organization_scoped` |
-| Documentation path | `packages/lms-students/README.md` |
-| Changelog path | `packages/lms-students/CHANGELOG.md` |
-| Reviewed release | `lms-students-v1.0.0` |
-| Review type | Initial activation review |
+| Field              | Example value                        |
+| ------------------ | ------------------------------------ |
+| Module name        | LMS Students                         |
+| Module key         | `lms-students`                       |
+| Module layer       | `business_domain`                    |
+| Domain             | LMS                                  |
+| Version reviewed   | `1.0.0`                              |
+| Previous status    | `draft`                              |
+| Proposed status    | `active`                             |
+| Module owner       | NEWAX Engineering                    |
+| Product owner      | NEWAX Product                        |
+| Tenant scope       | `organization_scoped`                |
+| Documentation path | `packages/lms-students/README.md`    |
+| Changelog path     | `packages/lms-students/CHANGELOG.md` |
+| Reviewed release   | `lms-students-v1.0.0`                |
+| Review type        | Initial activation review            |
 
 ## 2. Business Purpose
 
@@ -56,73 +56,73 @@ The module does not own general identity, login accounts, organization records, 
 
 ### Responsibilities outside this module
 
-| Responsibility | Owning module |
-| --- | --- |
-| Human identity | `people` |
-| Organization records | `organizations` |
-| Person-to-organization membership | `memberships` |
-| Login account | `users` |
-| Authentication | `authentication` |
-| Permission definitions and assignment | `permissions` |
-| Course ownership | `lms-courses` |
-| Student-course relationships | `lms-enrollments` |
-| Tests and attempts | `lms-tests` |
-| Test results | `lms-test-results` |
-| Payment records | `lms-payments` |
-| Audit storage | `audit` |
+| Responsibility                        | Owning module      |
+| ------------------------------------- | ------------------ |
+| Human identity                        | `people`           |
+| Organization records                  | `organizations`    |
+| Person-to-organization membership     | `memberships`      |
+| Login account                         | `users`            |
+| Authentication                        | `authentication`   |
+| Permission definitions and assignment | `permissions`      |
+| Course ownership                      | `lms-courses`      |
+| Student-course relationships          | `lms-enrollments`  |
+| Tests and attempts                    | `lms-tests`        |
+| Test results                          | `lms-test-results` |
+| Payment records                       | `lms-payments`     |
+| Audit storage                         | `audit`            |
 
 ## 4. Declared Dependencies
 
-| Dependency | Version expectation | Reason |
-| --- | --- | --- |
-| `people` | `>=1.0.0 <2.0.0` | References the central person identity through `person_id`. |
-| `organizations` | `>=1.0.0 <2.0.0` | References the owning organization through `organization_id`. |
-| `memberships` | `>=1.0.0 <2.0.0` | Confirms the person belongs to the organization where required. |
-| `permissions` | `>=1.0.0 <2.0.0` | Enforces explicit student permissions. |
-| `audit` | `>=1.0.0 <2.0.0` | Records security-sensitive student actions through approved events or contracts. |
+| Dependency      | Version expectation | Reason                                                                           |
+| --------------- | ------------------- | -------------------------------------------------------------------------------- |
+| `people`        | `>=1.0.0 <2.0.0`    | References the central person identity through `person_id`.                      |
+| `organizations` | `>=1.0.0 <2.0.0`    | References the owning organization through `organization_id`.                    |
+| `memberships`   | `>=1.0.0 <2.0.0`    | Confirms the person belongs to the organization where required.                  |
+| `permissions`   | `>=1.0.0 <2.0.0`    | Enforces explicit student permissions.                                           |
+| `audit`         | `>=1.0.0 <2.0.0`    | Records security-sensitive student actions through approved events or contracts. |
 
 No circular dependencies were identified in this example.
 
 ## 5. Required Permissions
 
-| Permission | Purpose | Sensitivity |
-| --- | --- | --- |
-| `students.view` | View student profiles within an authorized organization. | Standard |
-| `students.create` | Create a student profile for an existing person. | Sensitive |
-| `students.update` | Update approved student profile fields. | Sensitive |
-| `students.suspend` | Suspend a student profile. | High |
-| `students.archive` | Archive a student profile according to retention policy. | High |
+| Permission         | Purpose                                                  | Sensitivity |
+| ------------------ | -------------------------------------------------------- | ----------- |
+| `students.view`    | View student profiles within an authorized organization. | Standard    |
+| `students.create`  | Create a student profile for an existing person.         | Sensitive   |
+| `students.update`  | Update approved student profile fields.                  | Sensitive   |
+| `students.suspend` | Suspend a student profile.                               | High        |
+| `students.archive` | Archive a student profile according to retention policy. | High        |
 
 Business logic checks explicit permissions. No workflow authorizes access using hardcoded role names such as `Admin`, `Teacher`, or `Owner`.
 
 ## 6. Exposed Events
 
-| Event | Published when | Sensitive payload rule |
-| --- | --- | --- |
-| `student.created` | A student profile is successfully created. | Include identifiers and operational metadata only. |
-| `student.updated` | Approved student profile fields are changed. | Do not publish unnecessary personal details. |
-| `student.suspended` | Student access or status is suspended. | Include reason category only when appropriate. |
-| `student.archived` | A student profile is archived. | Exclude sensitive identity data. |
+| Event               | Published when                               | Sensitive payload rule                             |
+| ------------------- | -------------------------------------------- | -------------------------------------------------- |
+| `student.created`   | A student profile is successfully created.   | Include identifiers and operational metadata only. |
+| `student.updated`   | Approved student profile fields are changed. | Do not publish unnecessary personal details.       |
+| `student.suspended` | Student access or status is suspended.       | Include reason category only when appropriate.     |
+| `student.archived`  | A student profile is archived.               | Exclude sensitive identity data.                   |
 
 ## 7. Consumed Events
 
-| Event | Expected behavior |
-| --- | --- |
-| `organization.archived` | Prevent new activity and follow approved archival policy for related student profiles. |
-| `person.archived` | Prevent new activity and flag the related student profile for review. |
-| `membership.removed` | Recalculate whether the student profile remains operationally valid for the organization. |
+| Event                   | Expected behavior                                                                         |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| `organization.archived` | Prevent new activity and follow approved archival policy for related student profiles.    |
+| `person.archived`       | Prevent new activity and flag the related student profile for review.                     |
+| `membership.removed`    | Recalculate whether the student profile remains operationally valid for the organization. |
 
 Consumers are designed to avoid directly modifying data owned by other modules.
 
 ## 8. Configuration Options
 
-| Configuration key | Example default | Purpose |
-| --- | --- | --- |
-| `student_status_values` | `pending, active, suspended, archived` | Controls supported student lifecycle states. |
-| `student_profile_required_fields` | `student_reference` | Defines LMS-specific required fields. |
-| `student_reference_format` | `organization_sequence` | Controls organization-level student reference generation. |
-| `allow_multiple_student_profiles_per_person` | `false` | Prevents duplicate student profiles in the same organization. |
-| `student_archival_policy` | `soft_delete` | Defines archival behavior without destroying required records. |
+| Configuration key                            | Example default                        | Purpose                                                        |
+| -------------------------------------------- | -------------------------------------- | -------------------------------------------------------------- |
+| `student_status_values`                      | `pending, active, suspended, archived` | Controls supported student lifecycle states.                   |
+| `student_profile_required_fields`            | `student_reference`                    | Defines LMS-specific required fields.                          |
+| `student_reference_format`                   | `organization_sequence`                | Controls organization-level student reference generation.      |
+| `allow_multiple_student_profiles_per_person` | `false`                                | Prevents duplicate student profiles in the same organization.  |
+| `student_archival_policy`                    | `soft_delete`                          | Defines archival behavior without destroying required records. |
 
 Configuration cannot disable permission checks, tenant boundaries, audit requirements, or identity ownership rules.
 
@@ -130,19 +130,19 @@ Configuration cannot disable permission checks, tenant boundaries, audit require
 
 ### Owned tables
 
-| Table | Purpose |
-| --- | --- |
+| Table                  | Purpose                                          |
+| ---------------------- | ------------------------------------------------ |
 | `lms_student_profiles` | Stores LMS-specific student profile information. |
 
 ### Required relationships
 
-| Field | References | Rule |
-| --- | --- | --- |
-| `person_id` | `core_people.id` | Required. Identity remains owned by the People module. |
-| `organization_id` | `core_organizations.id` | Required. Defines tenant ownership. |
-| `created_by` | `core_users.id` | Required where the action is performed by an authenticated user. |
-| `updated_by` | `core_users.id` | Recorded when profile data changes. |
-| `suspended_by` | `core_users.id` | Recorded for suspension actions. |
+| Field             | References              | Rule                                                             |
+| ----------------- | ----------------------- | ---------------------------------------------------------------- |
+| `person_id`       | `core_people.id`        | Required. Identity remains owned by the People module.           |
+| `organization_id` | `core_organizations.id` | Required. Defines tenant ownership.                              |
+| `created_by`      | `core_users.id`         | Required where the action is performed by an authenticated user. |
+| `updated_by`      | `core_users.id`         | Recorded when profile data changes.                              |
+| `suspended_by`    | `core_users.id`         | Recorded for suspension actions.                                 |
 
 ### Example lifecycle fields
 
@@ -380,16 +380,16 @@ DELETE /api/lms/students/{id}
 
 ## 22. Module Registry Review
 
-| Registry field | Reviewed value |
-| --- | --- |
-| `module_name` | `LMS Students` |
-| `module_key` | `lms-students` |
-| `module_layer` | `business_domain` |
-| `module_version` | `1.0.0` |
-| `module_status` | `active` after formal approval |
-| `module_owner` | `NEWAX Engineering` |
-| `tenant_scope` | `organization_scoped` |
-| `database_ownership` | `lms_student_profiles` |
+| Registry field       | Reviewed value                 |
+| -------------------- | ------------------------------ |
+| `module_name`        | `LMS Students`                 |
+| `module_key`         | `lms-students`                 |
+| `module_layer`       | `business_domain`              |
+| `module_version`     | `1.0.0`                        |
+| `module_status`      | `active` after formal approval |
+| `module_owner`       | `NEWAX Engineering`            |
+| `tenant_scope`       | `organization_scoped`          |
+| `database_ownership` | `lms_student_profiles`         |
 
 - [x] Registry identity is correct.
 - [x] Dependencies are complete.
@@ -404,23 +404,23 @@ DELETE /api/lms/students/{id}
 
 ## 23. Final Approval Record
 
-| Field | Example value |
-| --- | --- |
-| Module name | LMS Students |
-| Module key | `lms-students` |
-| Version | `1.0.0` |
-| Layer | `business_domain` |
-| Previous status | `draft` |
-| Approved status | `active` |
-| Product approver | Example Product Approver |
-| Engineering approver | Example Engineering Approver |
-| Security reviewer | Example Security Reviewer |
-| Approval date | `2026-07-10` |
-| Reviewed release | `lms-students-v1.0.0` |
-| Known limitations | No bulk-import capability in version `1.0.0`. |
-| Accepted risks | No unresolved critical or high risks. |
-| Related ADRs | ADR 0002, ADR 0003, ADR 0005, ADR 0007, ADR 0008, ADR 0009, ADR 0010 |
-| Registry action | Update reviewed module entry from `draft` to `active`. |
+| Field                | Example value                                                        |
+| -------------------- | -------------------------------------------------------------------- |
+| Module name          | LMS Students                                                         |
+| Module key           | `lms-students`                                                       |
+| Version              | `1.0.0`                                                              |
+| Layer                | `business_domain`                                                    |
+| Previous status      | `draft`                                                              |
+| Approved status      | `active`                                                             |
+| Product approver     | Example Product Approver                                             |
+| Engineering approver | Example Engineering Approver                                         |
+| Security reviewer    | Example Security Reviewer                                            |
+| Approval date        | `2026-07-10`                                                         |
+| Reviewed release     | `lms-students-v1.0.0`                                                |
+| Known limitations    | No bulk-import capability in version `1.0.0`.                        |
+| Accepted risks       | No unresolved critical or high risks.                                |
+| Related ADRs         | ADR 0002, ADR 0003, ADR 0005, ADR 0007, ADR 0008, ADR 0009, ADR 0010 |
+| Registry action      | Update reviewed module entry from `draft` to `active`.               |
 
 ## 24. Final Decision
 

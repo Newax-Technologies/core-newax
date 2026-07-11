@@ -12,12 +12,12 @@ ABC Institute LMS
 
 ## Environment Summary
 
-| Environment | Purpose | Data Type | Access Level |
-| --- | --- | --- | --- |
-| `local` | Individual developer development and experimentation. | Local test data only. | Individual developer access. |
-| `development` | Internal integration and active development testing. | Demo or test data. | Internal development team access. |
-| `staging` | Release validation and client acceptance testing where appropriate. | Production-like test data or approved sanitized data. | Limited engineering and approved reviewer access. |
-| `production` | Real ABC Institute users and real operational activity. | Real client data. | Restricted production access only. |
+| Environment   | Purpose                                                             | Data Type                                             | Access Level                                      |
+| ------------- | ------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------- |
+| `local`       | Individual developer development and experimentation.               | Local test data only.                                 | Individual developer access.                      |
+| `development` | Internal integration and active development testing.                | Demo or test data.                                    | Internal development team access.                 |
+| `staging`     | Release validation and client acceptance testing where appropriate. | Production-like test data or approved sanitized data. | Limited engineering and approved reviewer access. |
+| `production`  | Real ABC Institute users and real operational activity.             | Real client data.                                     | Restricted production access only.                |
 
 ## Local
 

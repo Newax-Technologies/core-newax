@@ -426,15 +426,15 @@ Major framework and database upgrades require compatibility review and may requi
 
 The initial implementation should begin from these major versions:
 
-| Technology | Initial major baseline |
-| --- | --- |
-| Node.js | 24 LTS |
-| pnpm | 11 |
-| NestJS | 11 |
-| Next.js | 16 |
-| PostgreSQL | 18 |
-| Prisma ORM | 7 |
-| Vitest | 4 |
+| Technology | Initial major baseline                  |
+| ---------- | --------------------------------------- |
+| Node.js    | 24 LTS                                  |
+| pnpm       | 11                                      |
+| NestJS     | 11                                      |
+| Next.js    | 16                                      |
+| PostgreSQL | 18                                      |
+| Prisma ORM | 7                                       |
+| Vitest     | 4                                       |
 | Playwright | Current stable 1.x release at bootstrap |
 
 Rules:

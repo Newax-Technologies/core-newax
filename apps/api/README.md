@@ -42,11 +42,11 @@ The API loads configuration in this order:
 
 Use `.env.local` for developer-specific overrides. Both `.env` and `.env.local` are excluded from version control.
 
-| Variable | Default | Accepted values | Purpose |
-| --- | --- | --- | --- |
-| `NODE_ENV` | `development` | `development`, `test`, `production` | Runtime environment |
-| `HOST` | `0.0.0.0` | Any non-empty string | Network interface used by the HTTP server |
-| `PORT` | `3000` | Integer from `1` to `65535` | HTTP port used by the API |
+| Variable   | Default       | Accepted values                     | Purpose                                   |
+| ---------- | ------------- | ----------------------------------- | ----------------------------------------- |
+| `NODE_ENV` | `development` | `development`, `test`, `production` | Runtime environment                       |
+| `HOST`     | `0.0.0.0`     | Any non-empty string                | Network interface used by the HTTP server |
+| `PORT`     | `3000`        | Integer from `1` to `65535`         | HTTP port used by the API                 |
 
 Configuration is validated during startup. Invalid values stop the application before it begins accepting traffic.
 
@@ -75,18 +75,18 @@ Health responses are marked with `Cache-Control: no-store` so operational checks
 
 Run commands from the repository root with `pnpm --filter @newax/api <command>`.
 
-| Command | Purpose |
-| --- | --- |
-| `build` | Compile the NestJS application |
-| `dev` | Start the API in watch mode |
-| `start` | Run the compiled application |
-| `start:debug` | Start in debug watch mode |
-| `test` | Run the Vitest test suite once |
-| `test:watch` | Run tests in watch mode |
-| `test:coverage` | Run tests and generate coverage reports |
-| `typecheck` | Type-check application source and tests |
-| `typecheck:src` | Type-check production source only |
-| `typecheck:test` | Type-check test source only |
+| Command          | Purpose                                 |
+| ---------------- | --------------------------------------- |
+| `build`          | Compile the NestJS application          |
+| `dev`            | Start the API in watch mode             |
+| `start`          | Run the compiled application            |
+| `start:debug`    | Start in debug watch mode               |
+| `test`           | Run the Vitest test suite once          |
+| `test:watch`     | Run tests in watch mode                 |
+| `test:coverage`  | Run tests and generate coverage reports |
+| `typecheck`      | Type-check application source and tests |
+| `typecheck:src`  | Type-check production source only       |
+| `typecheck:test` | Type-check test source only             |
 
 ## Current structure
 

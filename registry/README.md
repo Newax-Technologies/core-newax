@@ -10,8 +10,8 @@ It supports NEWAX as **The Business Infrastructure Company** by keeping reusable
 
 ## Files
 
-| File | Purpose |
-| --- | --- |
+| File                                         | Purpose                                                         |
+| -------------------------------------------- | --------------------------------------------------------------- |
 | [module-registry.json](module-registry.json) | Operational record of tracked NEWAX modules and their metadata. |
 
 Related documentation:
