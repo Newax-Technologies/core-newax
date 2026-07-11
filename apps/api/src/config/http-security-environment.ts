@@ -116,7 +116,9 @@ function parseOrigins(
     .filter((origin, index, all) => all.indexOf(origin) === index);
 
   if (origins.length === 0 || origins.length > 20) {
-    throw new Error('HTTP_ALLOWED_ORIGINS must contain between 1 and 20 origins.');
+    throw new Error(
+      'HTTP_ALLOWED_ORIGINS must contain between 1 and 20 origins.',
+    );
   }
   if (
     nodeEnvironment === 'production' &&
@@ -139,6 +141,7 @@ function normalizeOrigin(value: string): string {
     (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') ||
     parsed.username.length > 0 ||
     parsed.password.length > 0 ||
+    parsed.hostname.includes('*') ||
     parsed.pathname !== '/' ||
     parsed.search.length > 0 ||
     parsed.hash.length > 0
@@ -198,7 +201,8 @@ function parseInteger(
     throw new Error(`${name} must be a string or number.`);
   }
   const normalized = typeof value === 'string' ? value.trim() : value;
-  const parsed = typeof normalized === 'number' ? normalized : Number(normalized);
+  const parsed =
+    typeof normalized === 'number' ? normalized : Number(normalized);
   if (
     !Number.isInteger(parsed) ||
     parsed < minimum ||
