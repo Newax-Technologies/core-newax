@@ -35,10 +35,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0009](0009-define-module-registry-and-dependency-rules.md)         | Accepted | Maintain a Module Registry and enforce architecture-layer dependency rules.                                                                     |
 | [ADR 0010](0010-define-authentication-and-user-identity-strategy.md)    | Accepted | Separate people, users, authentication, memberships, roles, permissions, and organization context.                                              |
 | [ADR 0011](0011-define-technology-stack-and-implementation-baseline.md) | Accepted | Use the TypeScript, Node.js, pnpm, NestJS, Next.js, PostgreSQL, Prisma, Vitest, Playwright, Docker, and GitHub Actions implementation baseline. |
+| [ADR 0012](0012-implement-central-registry-data-foundation.md)          | Accepted | Implement the first Prisma Central Registry foundation while keeping domain transactions outside the registry.                                  |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than eleven independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than twelve independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -58,6 +59,7 @@ The ADRs form a deliberate sequence rather than eleven independent opinions wand
 
 - ADR 0007 defines LMS database and data-ownership boundaries.
 - ADR 0009 defines module registration, lifecycle, and dependency rules.
+- ADR 0012 defines the first executable Central Registry persistence foundation and preserves domain transaction ownership.
 
 ### Implementation Baseline
 
@@ -69,10 +71,10 @@ The accepted architecture currently means:
 
 - NEWAX Core begins as a modular monolith.
 - Foundation Modules remain independent from business domains.
-- The Central Registry owns shared people and organization identity.
-- Business domains own only their domain-specific records.
-- Organizations provide tenant context.
-- Business authorization uses explicit permissions.
+- The Central Registry owns shared people, organization, user, membership, object, contact, address, file, and audit foundation data.
+- Business domains own their domain-specific master data and transactions.
+- Organizations provide the initial tenant context.
+- Business authorization uses explicit permissions grouped through roles.
 - Client customization remains separate from reusable core modules.
 - Module communication uses clear services, contracts, APIs, or events.
 - Modules use controlled versions and lifecycle states.
@@ -178,7 +180,7 @@ An ADR does not replace a module README, API documentation, testing evidence, se
 Filename example:
 
 ```text
-0012-define-repository-bootstrap-and-boundary-enforcement.md
+0013-define-repository-bootstrap-and-boundary-enforcement.md
 ```
 
 ## Review Triggers

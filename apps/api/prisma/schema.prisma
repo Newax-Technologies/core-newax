@@ -9,3 +9,547 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model CoreOrganization {
+  id                   String    @id @default(uuid()) @db.Uuid
+  parentOrganizationId String?   @map("parent_organization_id") @db.Uuid
+  legalName            String    @map("legal_name") @db.VarChar(255)
+  displayName          String    @map("display_name") @db.VarChar(255)
+  organizationType     String    @map("organization_type") @db.VarChar(64)
+  registrationNumber   String?   @map("registration_number") @db.VarChar(128)
+  taxNumber            String?   @map("tax_number") @db.VarChar(128)
+  status               String    @default("active") @db.VarChar(32)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  parentOrganization    CoreOrganization?              @relation("OrganizationHierarchy", fields: [parentOrganizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  childOrganizations    CoreOrganization[]             @relation("OrganizationHierarchy")
+  sourceRelationships   CoreOrganizationRelationship[] @relation("OrganizationRelationshipSource")
+  targetRelationships   CoreOrganizationRelationship[] @relation("OrganizationRelationshipTarget")
+  memberships           CoreMembership[]
+  roles                 CoreRole[]
+  organizationContacts  CoreOrganizationContactMethod[]
+  organizationAddresses CoreOrganizationAddress[]
+  ownedObjects           CoreObject[]                   @relation("ObjectOwningOrganization")
+  files                  CoreFile[]
+  auditLogs              CoreAuditLog[]
+  externalReferences     CoreExternalReference[]
+
+  @@index([parentOrganizationId])
+  @@index([organizationType, status])
+  @@index([displayName])
+  @@map("core_organizations")
+}
+
+model CoreOrganizationRelationship {
+  id                   String    @id @default(uuid()) @db.Uuid
+  sourceOrganizationId String    @map("source_organization_id") @db.Uuid
+  targetOrganizationId String    @map("target_organization_id") @db.Uuid
+  relationshipType     String    @map("relationship_type") @db.VarChar(64)
+  status               String    @default("active") @db.VarChar(32)
+  validFrom             DateTime? @map("valid_from") @db.Date
+  validUntil            DateTime? @map("valid_until") @db.Date
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  sourceOrganization CoreOrganization @relation("OrganizationRelationshipSource", fields: [sourceOrganizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  targetOrganization CoreOrganization @relation("OrganizationRelationshipTarget", fields: [targetOrganizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([sourceOrganizationId, relationshipType, status])
+  @@index([targetOrganizationId, relationshipType, status])
+  @@map("core_organization_relationships")
+}
+
+model CorePerson {
+  id            String    @id @default(uuid()) @db.Uuid
+  firstName     String    @map("first_name") @db.VarChar(128)
+  middleName    String?   @map("middle_name") @db.VarChar(128)
+  lastName      String    @map("last_name") @db.VarChar(128)
+  preferredName String?   @map("preferred_name") @db.VarChar(128)
+  dateOfBirth   DateTime? @map("date_of_birth") @db.Date
+  gender        String?   @db.VarChar(32)
+  status        String    @default("active") @db.VarChar(32)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  identifiers     CorePersonIdentifier[]
+  user            CoreUser?
+  memberships     CoreMembership[]
+  personContacts  CorePersonContactMethod[]
+  personAddresses CorePersonAddress[]
+
+  @@index([lastName, firstName])
+  @@index([status])
+  @@map("core_people")
+}
+
+model CorePersonIdentifier {
+  id                 String    @id @default(uuid()) @db.Uuid
+  personId           String    @map("person_id") @db.Uuid
+  identifierType     String    @map("identifier_type") @db.VarChar(64)
+  identifierValue    String    @map("identifier_value") @db.VarChar(255)
+  issuingAuthority   String?   @map("issuing_authority") @db.VarChar(255)
+  issuingCountryCode String?   @map("issuing_country_code") @db.Char(2)
+  validFrom          DateTime? @map("valid_from") @db.Date
+  validUntil         DateTime? @map("valid_until") @db.Date
+  isVerified         Boolean   @default(false) @map("is_verified")
+  verifiedAt         DateTime? @map("verified_at") @db.Timestamptz(6)
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  person CorePerson @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([personId, identifierType, identifierValue])
+  @@index([identifierType, identifierValue])
+  @@map("core_person_identifiers")
+}
+
+model CoreUser {
+  id          String    @id @default(uuid()) @db.Uuid
+  personId    String    @unique @map("person_id") @db.Uuid
+  status      String    @default("invited") @db.VarChar(32)
+  lastLoginAt DateTime? @map("last_login_at") @db.Timestamptz(6)
+  lockedUntil DateTime? @map("locked_until") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  person                   CorePerson             @relation(fields: [personId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  identities               CoreUserIdentity[]
+  credentials              CoreUserCredential[]
+  sessions                 CoreUserSession[]
+  rolePermissionsCreated   CoreRolePermission[]   @relation("RolePermissionCreatedBy")
+  membershipRolesAssigned  CoreMembershipRole[]   @relation("MembershipRoleAssignedBy")
+  membershipRolesRevoked   CoreMembershipRole[]   @relation("MembershipRoleRevokedBy")
+  objectAssignmentsCreated CoreObjectAssignment[] @relation("ObjectAssignmentCreatedBy")
+  filesCreated             CoreFile[]             @relation("FileCreatedBy")
+  auditLogs                CoreAuditLog[]         @relation("AuditActor")
+
+  @@index([status])
+  @@map("core_users")
+}
+
+model CoreUserIdentity {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  identityType    String    @map("identity_type") @db.VarChar(32)
+  identityValue   String    @map("identity_value") @db.VarChar(320)
+  normalizedValue String    @map("normalized_value") @db.VarChar(320)
+  isPrimary       Boolean   @default(false) @map("is_primary")
+  isVerified      Boolean   @default(false) @map("is_verified")
+  verifiedAt      DateTime? @map("verified_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user CoreUser @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([identityType, normalizedValue])
+  @@index([userId, isPrimary])
+  @@map("core_user_identities")
+}
+
+model CoreUserCredential {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  credentialType String    @map("credential_type") @db.VarChar(32)
+  secretHash     String    @map("secret_hash") @db.Text
+  status         String    @default("active") @db.VarChar(32)
+  expiresAt      DateTime? @map("expires_at") @db.Timestamptz(6)
+  lastUsedAt     DateTime? @map("last_used_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user CoreUser @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, credentialType, status])
+  @@map("core_user_credentials")
+}
+
+model CoreUserSession {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  sessionTokenHash String    @unique @map("session_token_hash") @db.VarChar(128)
+  status           String    @default("active") @db.VarChar(32)
+  ipAddress        String?   @map("ip_address") @db.VarChar(64)
+  userAgent        String?   @map("user_agent") @db.Text
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(6)
+  lastSeenAt       DateTime? @map("last_seen_at") @db.Timestamptz(6)
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user CoreUser @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, status, expiresAt])
+  @@map("core_user_sessions")
+}
+
+model CoreMembership {
+  id               String    @id @default(uuid()) @db.Uuid
+  personId         String    @map("person_id") @db.Uuid
+  organizationId   String    @map("organization_id") @db.Uuid
+  membershipType   String    @map("membership_type") @db.VarChar(64)
+  referenceNumber  String?   @map("reference_number") @db.VarChar(128)
+  jobTitle         String?   @map("job_title") @db.VarChar(128)
+  status           String    @default("active") @db.VarChar(32)
+  startDate        DateTime? @map("start_date") @db.Date
+  endDate          DateTime? @map("end_date") @db.Date
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  person            CorePerson             @relation(fields: [personId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  organization      CoreOrganization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  membershipRoles   CoreMembershipRole[]
+  objectAssignments CoreObjectAssignment[]
+
+  @@index([personId, status])
+  @@index([organizationId, membershipType, status])
+  @@map("core_memberships")
+}
+
+model CoreRole {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  code           String   @db.VarChar(128)
+  name           String   @db.VarChar(128)
+  description    String?  @db.Text
+  roleType       String   @map("role_type") @db.VarChar(32)
+  status         String   @default("active") @db.VarChar(32)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization    CoreOrganization?  @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  rolePermissions CoreRolePermission[]
+  membershipRoles CoreMembershipRole[]
+
+  @@unique([organizationId, code])
+  @@index([roleType, status])
+  @@map("core_roles")
+}
+
+model CorePermission {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique @db.VarChar(160)
+  moduleCode  String   @map("module_code") @db.VarChar(64)
+  resource    String   @db.VarChar(96)
+  action      String   @db.VarChar(64)
+  riskLevel   String   @default("standard") @map("risk_level") @db.VarChar(32)
+  description String?  @db.Text
+  status      String   @default("active") @db.VarChar(32)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  rolePermissions CoreRolePermission[]
+
+  @@index([moduleCode, resource, action])
+  @@index([status])
+  @@map("core_permissions")
+}
+
+model CoreRolePermission {
+  roleId          String   @map("role_id") @db.Uuid
+  permissionId    String   @map("permission_id") @db.Uuid
+  effect          String   @default("allow") @db.VarChar(16)
+  createdByUserId String?  @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  role          CoreRole       @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  permission    CorePermission @relation(fields: [permissionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdByUser CoreUser?      @relation("RolePermissionCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("core_role_permissions")
+}
+
+model CoreMembershipRole {
+  id               String    @id @default(uuid()) @db.Uuid
+  membershipId     String    @map("membership_id") @db.Uuid
+  roleId           String    @map("role_id") @db.Uuid
+  assignedByUserId String?   @map("assigned_by_user_id") @db.Uuid
+  revokedByUserId  String?   @map("revoked_by_user_id") @db.Uuid
+  validFrom        DateTime  @default(now()) @map("valid_from") @db.Timestamptz(6)
+  validUntil       DateTime? @map("valid_until") @db.Timestamptz(6)
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  membership     CoreMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role           CoreRole       @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  assignedByUser CoreUser?      @relation("MembershipRoleAssignedBy", fields: [assignedByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  revokedByUser  CoreUser?      @relation("MembershipRoleRevokedBy", fields: [revokedByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([membershipId, validUntil, revokedAt])
+  @@index([roleId])
+  @@map("core_membership_roles")
+}
+
+model CoreContactMethod {
+  id              String    @id @default(uuid()) @db.Uuid
+  contactType     String    @map("contact_type") @db.VarChar(32)
+  contactValue    String    @map("contact_value") @db.VarChar(320)
+  normalizedValue String    @map("normalized_value") @db.VarChar(320)
+  isVerified      Boolean   @default(false) @map("is_verified")
+  verifiedAt      DateTime? @map("verified_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  personContacts       CorePersonContactMethod[]
+  organizationContacts CoreOrganizationContactMethod[]
+
+  @@unique([contactType, normalizedValue])
+  @@map("core_contact_methods")
+}
+
+model CorePersonContactMethod {
+  id              String    @id @default(uuid()) @db.Uuid
+  personId        String    @map("person_id") @db.Uuid
+  contactMethodId String    @map("contact_method_id") @db.Uuid
+  label           String?   @db.VarChar(64)
+  isPrimary       Boolean   @default(false) @map("is_primary")
+  status          String    @default("active") @db.VarChar(32)
+  validFrom       DateTime? @map("valid_from") @db.Date
+  validUntil      DateTime? @map("valid_until") @db.Date
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  person        CorePerson        @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  contactMethod CoreContactMethod @relation(fields: [contactMethodId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([personId, contactMethodId, label])
+  @@index([personId, isPrimary, status])
+  @@map("core_person_contact_methods")
+}
+
+model CoreOrganizationContactMethod {
+  id              String    @id @default(uuid()) @db.Uuid
+  organizationId  String    @map("organization_id") @db.Uuid
+  contactMethodId String    @map("contact_method_id") @db.Uuid
+  label           String?   @db.VarChar(64)
+  isPrimary       Boolean   @default(false) @map("is_primary")
+  status          String    @default("active") @db.VarChar(32)
+  validFrom       DateTime? @map("valid_from") @db.Date
+  validUntil      DateTime? @map("valid_until") @db.Date
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization  CoreOrganization  @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  contactMethod CoreContactMethod @relation(fields: [contactMethodId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, contactMethodId, label])
+  @@index([organizationId, isPrimary, status])
+  @@map("core_organization_contact_methods")
+}
+
+model CoreAddress {
+  id          String   @id @default(uuid()) @db.Uuid
+  line1       String   @map("line_1") @db.VarChar(255)
+  line2       String?  @map("line_2") @db.VarChar(255)
+  locality    String?  @db.VarChar(128)
+  city        String   @db.VarChar(128)
+  district    String?  @db.VarChar(128)
+  province    String?  @db.VarChar(128)
+  postalCode  String?  @map("postal_code") @db.VarChar(32)
+  countryCode String   @map("country_code") @db.Char(2)
+  latitude    Decimal? @db.Decimal(9, 6)
+  longitude   Decimal? @db.Decimal(9, 6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  personAddresses       CorePersonAddress[]
+  organizationAddresses CoreOrganizationAddress[]
+  objectAddresses       CoreObjectAddress[]
+
+  @@index([countryCode, province, city])
+  @@map("core_addresses")
+}
+
+model CorePersonAddress {
+  id          String    @id @default(uuid()) @db.Uuid
+  personId    String    @map("person_id") @db.Uuid
+  addressId   String    @map("address_id") @db.Uuid
+  addressType String    @map("address_type") @db.VarChar(32)
+  label       String?   @db.VarChar(64)
+  isPrimary   Boolean   @default(false) @map("is_primary")
+  status      String    @default("active") @db.VarChar(32)
+  validFrom   DateTime? @map("valid_from") @db.Date
+  validUntil  DateTime? @map("valid_until") @db.Date
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  person  CorePerson  @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  address CoreAddress @relation(fields: [addressId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([personId, addressId, addressType])
+  @@index([personId, isPrimary, status])
+  @@map("core_person_addresses")
+}
+
+model CoreOrganizationAddress {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  addressId      String    @map("address_id") @db.Uuid
+  addressType    String    @map("address_type") @db.VarChar(32)
+  label          String?   @db.VarChar(64)
+  isPrimary      Boolean   @default(false) @map("is_primary")
+  status         String    @default("active") @db.VarChar(32)
+  validFrom      DateTime? @map("valid_from") @db.Date
+  validUntil     DateTime? @map("valid_until") @db.Date
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization CoreOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  address      CoreAddress      @relation(fields: [addressId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, addressId, addressType])
+  @@index([organizationId, isPrimary, status])
+  @@map("core_organization_addresses")
+}
+
+model CoreObjectType {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique @db.VarChar(96)
+  name        String   @db.VarChar(128)
+  category    String?  @db.VarChar(96)
+  description String?  @db.Text
+  status      String   @default("active") @db.VarChar(32)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  objects CoreObject[]
+
+  @@index([category, status])
+  @@map("core_object_types")
+}
+
+model CoreObject {
+  id                   String    @id @default(uuid()) @db.Uuid
+  objectTypeId         String    @map("object_type_id") @db.Uuid
+  owningOrganizationId String    @map("owning_organization_id") @db.Uuid
+  parentObjectId       String?   @map("parent_object_id") @db.Uuid
+  name                 String    @db.VarChar(255)
+  referenceCode        String?   @map("reference_code") @db.VarChar(128)
+  serialNumber         String?   @map("serial_number") @db.VarChar(128)
+  status               String    @default("active") @db.VarChar(32)
+  description          String?   @db.Text
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  objectType         CoreObjectType       @relation(fields: [objectTypeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  owningOrganization CoreOrganization     @relation("ObjectOwningOrganization", fields: [owningOrganizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  parentObject       CoreObject?          @relation("ObjectHierarchy", fields: [parentObjectId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  childObjects       CoreObject[]         @relation("ObjectHierarchy")
+  assignments        CoreObjectAssignment[]
+  objectAddresses    CoreObjectAddress[]
+
+  @@unique([owningOrganizationId, referenceCode])
+  @@index([objectTypeId, status])
+  @@index([parentObjectId])
+  @@map("core_objects")
+}
+
+model CoreObjectAssignment {
+  id               String    @id @default(uuid()) @db.Uuid
+  objectId         String    @map("object_id") @db.Uuid
+  membershipId     String    @map("membership_id") @db.Uuid
+  assignmentType   String    @map("assignment_type") @db.VarChar(64)
+  status           String    @default("active") @db.VarChar(32)
+  validFrom        DateTime  @default(now()) @map("valid_from") @db.Timestamptz(6)
+  validUntil       DateTime? @map("valid_until") @db.Timestamptz(6)
+  assignedByUserId String?   @map("assigned_by_user_id") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  object         CoreObject     @relation(fields: [objectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  membership     CoreMembership @relation(fields: [membershipId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assignedByUser CoreUser?      @relation("ObjectAssignmentCreatedBy", fields: [assignedByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([objectId, status, validUntil])
+  @@index([membershipId, status])
+  @@map("core_object_assignments")
+}
+
+model CoreObjectAddress {
+  id          String    @id @default(uuid()) @db.Uuid
+  objectId    String    @map("object_id") @db.Uuid
+  addressId   String    @map("address_id") @db.Uuid
+  addressType String    @map("address_type") @db.VarChar(32)
+  isPrimary   Boolean   @default(false) @map("is_primary")
+  status      String    @default("active") @db.VarChar(32)
+  validFrom   DateTime? @map("valid_from") @db.Date
+  validUntil  DateTime? @map("valid_until") @db.Date
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  object  CoreObject  @relation(fields: [objectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  address CoreAddress @relation(fields: [addressId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([objectId, addressId, addressType])
+  @@index([objectId, isPrimary, status])
+  @@map("core_object_addresses")
+}
+
+model CoreFile {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  storageProvider String   @map("storage_provider") @db.VarChar(64)
+  storageKey      String   @map("storage_key") @db.Text
+  fileName        String   @map("file_name") @db.VarChar(255)
+  mimeType        String   @map("mime_type") @db.VarChar(255)
+  fileSize        BigInt   @map("file_size")
+  checksum        String   @db.VarChar(128)
+  status          String   @default("active") @db.VarChar(32)
+  createdByUserId String?  @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization  CoreOrganization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdByUser CoreUser?        @relation("FileCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@unique([storageProvider, storageKey])
+  @@index([organizationId, status, createdAt])
+  @@map("core_files")
+}
+
+model CoreAuditLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  actorUserId    String?  @map("actor_user_id") @db.Uuid
+  moduleCode     String   @map("module_code") @db.VarChar(64)
+  action         String   @db.VarChar(160)
+  entityType     String   @map("entity_type") @db.VarChar(128)
+  entityId       String?  @map("entity_id") @db.VarChar(128)
+  outcome        String   @default("success") @db.VarChar(32)
+  sensitivity    String   @default("standard") @db.VarChar(32)
+  previousValues Json?    @map("previous_values")
+  newValues      Json?    @map("new_values")
+  metadata       Json?
+  correlationId  String?  @map("correlation_id") @db.Uuid
+  requestId      String?  @map("request_id") @db.VarChar(128)
+  ipAddress      String?  @map("ip_address") @db.VarChar(64)
+  userAgent      String?  @map("user_agent") @db.Text
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization CoreOrganization? @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  actorUser    CoreUser?         @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([moduleCode, action, createdAt])
+  @@index([entityType, entityId])
+  @@index([correlationId])
+  @@map("core_audit_logs")
+}
+
+model CoreExternalReference {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  domainCode     String   @map("domain_code") @db.VarChar(64)
+  entityType     String   @map("entity_type") @db.VarChar(128)
+  entityId       String   @map("entity_id") @db.VarChar(128)
+  externalSystem String   @map("external_system") @db.VarChar(128)
+  externalKey    String   @map("external_key") @db.VarChar(255)
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization CoreOrganization? @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@unique([organizationId, externalSystem, externalKey])
+  @@index([domainCode, entityType, entityId])
+  @@map("core_external_references")
+}
