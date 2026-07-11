@@ -1,7 +1,7 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.2",
+  "registry_version": "0.1.3",
   "registry_status": "draft",
   "last_updated": "2026-07-11",
   "owner": "NEWAX Engineering",
@@ -76,7 +76,7 @@
       "module_key": "memberships",
       "module_layer": "foundation",
       "module_version": "0.1.0",
-      "module_status": "planned",
+      "module_status": "draft",
       "module_owner": "NEWAX Engineering",
       "description": "Connects people to organizations and records membership status and organization context.",
       "dependencies": [
@@ -97,7 +97,7 @@
       ],
       "exposed_events": ["membership.created", "membership.updated", "membership.removed"],
       "consumed_events": ["person.archived", "organization.archived"],
-      "configuration_options": ["membership_status_values"],
+      "configuration_options": ["membership_status_values", "membership_type_values"],
       "database_ownership": ["core_memberships", "core_membership_roles"],
       "tenant_scope": "organization_scoped",
       "documentation_path": "packages/memberships/README.md",

@@ -4,10 +4,7 @@ export type {
   MembershipEventName,
   MembershipEventPublisher,
 } from './events/membership-event';
-export {
-  MembershipModuleError,
-  type MembershipErrorCode,
-} from './errors/membership-module-error';
+export { MembershipModuleError, type MembershipErrorCode } from './errors/membership-module-error';
 export {
   MEMBERSHIP_PERMISSIONS,
   type MembershipPermission,

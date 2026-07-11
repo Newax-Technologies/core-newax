@@ -1,9 +1,7 @@
 import type { MembershipRecord } from '../types/membership';
 
 export type MembershipEventName =
-  | 'membership.created'
-  | 'membership.updated'
-  | 'membership.removed';
+  'membership.created' | 'membership.updated' | 'membership.removed';
 
 export interface MembershipEvent {
   readonly name: MembershipEventName;

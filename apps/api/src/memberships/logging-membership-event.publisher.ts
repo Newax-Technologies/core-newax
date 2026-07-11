@@ -1,13 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type {
-  MembershipEvent,
-  MembershipEventPublisher,
-} from '@newax/memberships';
+import type { MembershipEvent, MembershipEventPublisher } from '@newax/memberships';
 
 @Injectable()
-export class LoggingMembershipEventPublisher
-  implements MembershipEventPublisher
-{
+export class LoggingMembershipEventPublisher implements MembershipEventPublisher {
   private readonly logger = new Logger(LoggingMembershipEventPublisher.name);
 
   async publish(event: MembershipEvent): Promise<void> {

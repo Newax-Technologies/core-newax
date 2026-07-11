@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { MembershipsRepository } from '../src/database/memberships-repository';
-import type {
-  MembershipEvent,
-  MembershipEventPublisher,
-} from '../src/events/membership-event';
+import type { MembershipEvent, MembershipEventPublisher } from '../src/events/membership-event';
 import { MEMBERSHIP_PERMISSIONS } from '../src/permissions/membership-permissions';
 import type { MembershipReferenceDirectory } from '../src/services/membership-reference-directory';
 import { MembershipsService } from '../src/services/memberships.service';
@@ -65,10 +62,7 @@ class FakeMembershipsRepository implements MembershipsRepository {
     return this.memberships.get(id) ?? null;
   }
 
-  async list(
-    organizationId: string,
-    _query: MembershipListQuery,
-  ): Promise<MembershipPage> {
+  async list(organizationId: string, _query: MembershipListQuery): Promise<MembershipPage> {
     return {
       items: [...this.memberships.values()].filter(
         (current) => current.organizationId === organizationId,
@@ -93,10 +87,7 @@ class FakeMembershipsRepository implements MembershipsRepository {
     return ended;
   }
 
-  async update(
-    id: string,
-    input: UpdateMembershipRecordInput,
-  ): Promise<MembershipRecord> {
+  async update(id: string, input: UpdateMembershipRecordInput): Promise<MembershipRecord> {
     const current = this.memberships.get(id);
     if (current === undefined) {
       throw new Error('Missing fake membership.');
@@ -105,9 +96,7 @@ class FakeMembershipsRepository implements MembershipsRepository {
     const updated: MembershipRecord = {
       ...current,
       referenceNumber:
-        'referenceNumber' in input
-          ? (input.referenceNumber ?? null)
-          : current.referenceNumber,
+        'referenceNumber' in input ? (input.referenceNumber ?? null) : current.referenceNumber,
       jobTitle: 'jobTitle' in input ? (input.jobTitle ?? null) : current.jobTitle,
       startDate: input.startDate ?? current.startDate,
       status: input.status ?? current.status,
@@ -122,9 +111,7 @@ class FakeReferenceDirectory implements MembershipReferenceDirectory {
   readonly people = new Map<string, MembershipReferenceRecord>();
   readonly organizations = new Map<string, MembershipReferenceRecord>();
 
-  async findOrganizationById(
-    id: string,
-  ): Promise<MembershipReferenceRecord | null> {
+  async findOrganizationById(id: string): Promise<MembershipReferenceRecord | null> {
     return this.organizations.get(id) ?? null;
   }
 
@@ -265,10 +252,7 @@ describe('MembershipsService', () => {
     const publisher = new RecordingMembershipEventPublisher();
     const service = new MembershipsService(repository, references, publisher);
 
-    const ended = await service.remove(
-      context(MEMBERSHIP_PERMISSIONS.remove),
-      record.id,
-    );
+    const ended = await service.remove(context(MEMBERSHIP_PERMISSIONS.remove), record.id);
 
     expect(ended.status).toBe('ended');
     expect(ended.endDate).not.toBeNull();

@@ -135,11 +135,9 @@ export class MembershipsService {
     const current = await this.requireScopedMembership(membershipId, organizationId);
 
     if (current.status === 'ended') {
-      throw new MembershipModuleError(
-        'MEMBERSHIP_ENDED',
-        'Ended memberships cannot be updated.',
-        { membershipId: current.id },
-      );
+      throw new MembershipModuleError('MEMBERSHIP_ENDED', 'Ended memberships cannot be updated.', {
+        membershipId: current.id,
+      });
     }
 
     const update: Mutable<UpdateMembershipRecordInput> = {};
@@ -180,10 +178,7 @@ export class MembershipsService {
     return membership;
   }
 
-  async remove(
-    context: MembershipRequestContext,
-    membershipId: string,
-  ): Promise<MembershipRecord> {
+  async remove(context: MembershipRequestContext, membershipId: string): Promise<MembershipRecord> {
     const organizationId = this.requireContext(context, MEMBERSHIP_PERMISSIONS.remove);
     await this.requireActiveOrganization(organizationId);
     const current = await this.requireScopedMembership(membershipId, organizationId);
@@ -243,11 +238,9 @@ export class MembershipsService {
     const person = await this.referenceDirectory.findPersonById(personId);
 
     if (person === null) {
-      throw new MembershipModuleError(
-        'MEMBERSHIP_PERSON_NOT_FOUND',
-        'The person does not exist.',
-        { personId },
-      );
+      throw new MembershipModuleError('MEMBERSHIP_PERSON_NOT_FOUND', 'The person does not exist.', {
+        personId,
+      });
     }
 
     if (person.status !== 'active') {
@@ -296,11 +289,7 @@ export class MembershipsService {
   }
 
   private normalizeMembershipType(value: string): string {
-    const normalized = this.requireText(
-      value,
-      'membershipType',
-      MAX_MEMBERSHIP_TYPE_LENGTH,
-    )
+    const normalized = this.requireText(value, 'membershipType', MAX_MEMBERSHIP_TYPE_LENGTH)
       .toLowerCase()
       .replace(/\s+/g, '_');
 
@@ -340,7 +329,8 @@ export class MembershipsService {
   }
 
   private normalizeStartDate(value: Date | null | undefined): Date {
-    const date = value === null || value === undefined ? this.todayDateOnly() : this.dateOnly(value);
+    const date =
+      value === null || value === undefined ? this.todayDateOnly() : this.dateOnly(value);
 
     if (date.getTime() > this.todayDateOnly().getTime()) {
       throw new MembershipModuleError(
@@ -361,9 +351,7 @@ export class MembershipsService {
       );
     }
 
-    return new Date(
-      Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()),
-    );
+    return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
   }
 
   private todayDateOnly(): Date {
@@ -374,11 +362,9 @@ export class MembershipsService {
     const normalized = value.trim();
 
     if (normalized.length === 0) {
-      throw new MembershipModuleError(
-        'MEMBERSHIP_INVALID_INPUT',
-        `${field} must not be empty.`,
-        { field },
-      );
+      throw new MembershipModuleError('MEMBERSHIP_INVALID_INPUT', `${field} must not be empty.`, {
+        field,
+      });
     }
 
     if (normalized.length > maxLength) {

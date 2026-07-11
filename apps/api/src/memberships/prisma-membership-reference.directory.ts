@@ -8,14 +8,10 @@ import type {
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
-export class PrismaMembershipReferenceDirectory
-  implements MembershipReferenceDirectory
-{
+export class PrismaMembershipReferenceDirectory implements MembershipReferenceDirectory {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  async findOrganizationById(
-    id: string,
-  ): Promise<MembershipReferenceRecord | null> {
+  async findOrganizationById(id: string): Promise<MembershipReferenceRecord | null> {
     const organization = await this.prisma.coreOrganization.findUnique({
       where: { id },
       select: { id: true, status: true },

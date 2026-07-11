@@ -32,16 +32,10 @@ export class PrismaMembershipsRepository implements MembershipsRepository {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async create(input: CreateMembershipRecordInput): Promise<CreateMembershipResult> {
-    const lockKey = [
-      input.organizationId,
-      input.personId,
-      input.membershipType,
-    ].join('|');
+    const lockKey = [input.organizationId, input.personId, input.membershipType].join('|');
 
     return this.prisma.$transaction(
-      async (
-        transaction: Prisma.TransactionClient,
-      ): Promise<CreateMembershipResult> => {
+      async (transaction: Prisma.TransactionClient): Promise<CreateMembershipResult> => {
         await transaction.$queryRaw`
           SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
         `;
@@ -86,10 +80,7 @@ export class PrismaMembershipsRepository implements MembershipsRepository {
     return record === null ? null : this.mapMembership(record);
   }
 
-  async list(
-    organizationId: string,
-    query: MembershipListQuery,
-  ): Promise<MembershipPage> {
+  async list(organizationId: string, query: MembershipListQuery): Promise<MembershipPage> {
     const limit = query.limit ?? 50;
     const where: Prisma.CoreMembershipWhereInput = { organizationId };
 
@@ -119,9 +110,7 @@ export class PrismaMembershipsRepository implements MembershipsRepository {
       where,
       orderBy: { id: 'asc' },
       take: limit + 1,
-      ...(query.afterId === undefined
-        ? {}
-        : { cursor: { id: query.afterId }, skip: 1 }),
+      ...(query.afterId === undefined ? {} : { cursor: { id: query.afterId }, skip: 1 }),
     });
 
     const hasMore = records.length > limit;
@@ -146,10 +135,7 @@ export class PrismaMembershipsRepository implements MembershipsRepository {
     return this.mapMembership(record);
   }
 
-  async update(
-    id: string,
-    input: UpdateMembershipRecordInput,
-  ): Promise<MembershipRecord> {
+  async update(id: string, input: UpdateMembershipRecordInput): Promise<MembershipRecord> {
     const data: Prisma.CoreMembershipUncheckedUpdateInput = {};
 
     if ('referenceNumber' in input) {
