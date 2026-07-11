@@ -47,6 +47,7 @@ export interface AuthenticationRepository {
     exceptSessionId?: string,
   ): Promise<number>;
   revokeSessionById(
+    userId: string,
     sessionId: string,
     occurredAt: Date,
   ): Promise<AuthenticationSessionRecord | null>;
