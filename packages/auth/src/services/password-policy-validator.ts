@@ -4,10 +4,17 @@ import type { AuthenticationPolicy } from '../types/authentication';
 export class PasswordPolicyValidator {
   constructor(private readonly policy: AuthenticationPolicy) {}
 
-  validate(password: string): void {
+  normalize(password: string): string {
+    return password.normalize('NFC');
+  }
+
+  validate(password: string): string {
+    const normalized = this.normalize(password);
+    const characterCount = [...normalized].length;
+
     if (
-      password.length < this.policy.passwordMinimumLength ||
-      password.length > this.policy.passwordMaximumLength
+      characterCount < this.policy.passwordMinimumLength ||
+      characterCount > this.policy.passwordMaximumLength
     ) {
       throw new AuthenticationError(
         'AUTHENTICATION_PASSWORD_POLICY_FAILED',
@@ -17,15 +24,6 @@ export class PasswordPolicyValidator {
       );
     }
 
-    const hasLetter = /[A-Za-z]/u.test(password);
-    const hasNumber = /\d/u.test(password);
-    const hasSymbol = /[^A-Za-z\d\s]/u.test(password);
-
-    if (!hasLetter || !hasNumber || !hasSymbol) {
-      throw new AuthenticationError(
-        'AUTHENTICATION_PASSWORD_POLICY_FAILED',
-        'Password must include a letter, a number, and a symbol.',
-      );
-    }
+    return normalized;
   }
 }
