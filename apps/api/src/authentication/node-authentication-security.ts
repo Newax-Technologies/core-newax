@@ -12,17 +12,30 @@ import type {
   AuthenticationIdentityType,
   IssuedSessionToken,
   LoginFingerprintService,
+  PasswordBlocklist,
   PasswordHasher,
   PasswordVerificationResult,
   SessionTokenService,
 } from '@newax/auth';
 
-const SCRYPT_COST = 16_384;
+const SCRYPT_COST = 32_768;
 const SCRYPT_BLOCK_SIZE = 8;
-const SCRYPT_PARALLELIZATION = 1;
+const SCRYPT_PARALLELIZATION = 3;
 const SCRYPT_KEY_LENGTH = 64;
-const SCRYPT_MAX_MEMORY = 64 * 1024 * 1024;
+const SCRYPT_MAX_MEMORY = 160 * 1024 * 1024;
+const SCRYPT_MAX_COST = 131_072;
+const SCRYPT_MAX_PARALLELIZATION = 10;
 const SCRYPT_PREFIX = 'scrypt';
+
+const BASELINE_BLOCKED_PASSWORDS = new Set([
+  '123456789012345',
+  'correcthorsebatterystaple',
+  'letmeinletmeinletmein',
+  'newax-newax-newax',
+  'newaxpasswordnewax',
+  'passwordpassword',
+  'qwertyqwertyqwerty',
+]);
 
 const deriveScryptKey = promisify(scrypt) as (
   password: string,
@@ -30,6 +43,12 @@ const deriveScryptKey = promisify(scrypt) as (
   keyLength: number,
   options: ScryptOptions,
 ) => Promise<Buffer>;
+
+export class BaselinePasswordBlocklist implements PasswordBlocklist {
+  async contains(password: string): Promise<boolean> {
+    return BASELINE_BLOCKED_PASSWORDS.has(password.normalize('NFC').toLowerCase());
+  }
+}
 
 export class NodePasswordHasher implements PasswordHasher {
   private readonly dummySalt = randomBytes(16);
@@ -109,8 +128,19 @@ export class NodePasswordHasher implements PasswordHasher {
     readonly salt: Buffer;
     readonly hash: Buffer;
   } | null {
-    const [prefix, costValue, blockSizeValue, parallelizationValue, saltValue, hashValue] =
-      secretHash.split('$');
+    const parts = secretHash.split('$');
+    if (parts.length !== 6) {
+      return null;
+    }
+
+    const [
+      prefix,
+      costValue,
+      blockSizeValue,
+      parallelizationValue,
+      saltValue,
+      hashValue,
+    ] = parts;
     if (
       prefix !== SCRYPT_PREFIX ||
       costValue === undefined ||
@@ -130,8 +160,11 @@ export class NodePasswordHasher implements PasswordHasher {
       !Number.isInteger(blockSize) ||
       !Number.isInteger(parallelization) ||
       cost < 2 ||
-      blockSize < 1 ||
-      parallelization < 1
+      cost > SCRYPT_MAX_COST ||
+      (cost & (cost - 1)) !== 0 ||
+      blockSize !== SCRYPT_BLOCK_SIZE ||
+      parallelization < 1 ||
+      parallelization > SCRYPT_MAX_PARALLELIZATION
     ) {
       return null;
     }
@@ -152,7 +185,9 @@ export class NodePasswordHasher implements PasswordHasher {
 abstract class HmacAuthenticationSecurity {
   constructor(private readonly pepper: string) {
     if (pepper.length < 32) {
-      throw new Error('Authentication token pepper must contain at least 32 characters.');
+      throw new Error(
+        'Authentication token pepper must contain at least 32 characters.',
+      );
     }
   }
 
