@@ -1,5 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { HttpAuditRecord, HttpSecurityAuditSink } from '@newax/http-security';
+import type {
+  HttpAuditRecord,
+  HttpSecurityAuditSink,
+} from '@newax/http-security';
 
 import { PrismaService } from '../database/prisma.service';
 import type { Prisma } from '../generated/prisma/client';
@@ -14,19 +17,19 @@ export class PrismaHttpSecurityAuditSink implements HttpSecurityAuditSink {
         organizationId: record.organizationId,
         actorUserId: record.actorUserId,
         moduleCode: 'http-security',
-        action: record.action,
+        action: record.action.slice(0, 160),
         entityType: 'http_route',
         entityId: record.routeKey.slice(0, 128),
         outcome: record.outcome,
         sensitivity: 'security',
         metadata: {
+          ...record.metadata,
           method: record.method,
           statusCode: record.statusCode,
-          ...record.metadata,
         } as Prisma.InputJsonValue,
-        requestId: record.requestId,
-        ipAddress: record.ipAddress,
-        userAgent: record.userAgent,
+        requestId: record.requestId.slice(0, 128),
+        ipAddress: record.ipAddress?.slice(0, 64) ?? null,
+        userAgent: record.userAgent?.slice(0, 1_024) ?? null,
         createdAt: record.occurredAt,
       },
     });
