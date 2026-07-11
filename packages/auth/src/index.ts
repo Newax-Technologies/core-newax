@@ -21,6 +21,7 @@ export type {
   PasswordHasher,
   SessionTokenService,
 } from './security/authentication-security';
+export type { PasswordBlocklist } from './security/password-blocklist';
 export type { AuthenticationUserDirectory } from './services/authentication-user-directory';
 export { AuthenticationService } from './services/authentication.service';
 export { PasswordPolicyValidator } from './services/password-policy-validator';
