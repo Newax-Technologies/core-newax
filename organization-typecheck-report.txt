@@ -1,0 +1,19 @@
+$ pnpm -r --if-present run typecheck
+Scope: 3 of 4 workspace projects
+apps/web typecheck$ tsc --noEmit
+packages/organizations typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
+packages/organizations typecheck: src/services/organizations.service.ts(82,23): error TS2540: Cannot assign to 'parentOrganizationId' because it is a read-only property.
+packages/organizations typecheck: src/services/organizations.service.ts(86,23): error TS2540: Cannot assign to 'status' because it is a read-only property.
+packages/organizations typecheck: src/services/organizations.service.ts(92,25): error TS2540: Cannot assign to 'search' because it is a read-only property.
+packages/organizations typecheck: src/services/organizations.service.ts(97,23): error TS2540: Cannot assign to 'afterId' because it is a read-only property.
+packages/organizations typecheck: src/services/organizations.service.ts(145,14): error TS2540: Cannot assign to 'parentOrganizationId' because it is a read-only property.
+packages/organizations typecheck: src/services/organizations.service.ts(149,14): error TS2540: Cannot assign to 'legalName' because it is a read-only property.
+packages/organizations typecheck: src/services/organizations.service.ts(153,14): error TS2540: Cannot assign to 'displayName' because it is a read-only property.
+packages/organizations typecheck: src/services/organizations.service.ts(157,14): error TS2540: Cannot assign to 'organizationType' because it is a read-only property.
+packages/organizations typecheck: src/services/organizations.service.ts(161,14): error TS2540: Cannot assign to 'registrationNumber' because it is a read-only property.
+packages/organizations typecheck: src/services/organizations.service.ts(165,14): error TS2540: Cannot assign to 'taxNumber' because it is a read-only property.
+packages/organizations typecheck: Failed
+/home/runner/work/core-newax/core-newax/packages/organizations:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @newax/organizations@0.1.0 typecheck: `tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit`
+Exit status 2
+[ELIFECYCLE] Command failed with exit code 2.
