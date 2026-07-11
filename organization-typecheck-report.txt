@@ -1,0 +1,24 @@
+$ pnpm -r --if-present run typecheck
+Scope: 3 of 4 workspace projects
+apps/web typecheck$ tsc --noEmit
+packages/organizations typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
+packages/organizations typecheck: Done
+apps/web typecheck: Done
+apps/api pretypecheck$ pnpm run db:generate
+apps/api pretypecheck: $ prisma generate
+apps/api pretypecheck: Loaded Prisma config from prisma.config.ts.
+apps/api pretypecheck: Prisma schema loaded from prisma/schema.prisma.
+apps/api pretypecheck: ✔ Generated Prisma Client (7.8.0) to ./src/generated/prisma in 346ms
+apps/api pretypecheck: Done
+apps/api typecheck$ pnpm run typecheck:src && pnpm run typecheck:test
+apps/api typecheck: $ tsc --project tsconfig.json --noEmit
+apps/api typecheck: src/organizations/logging-organization-event.publisher.ts(2,68): error TS2307: Cannot find module '@newax/organizations' or its corresponding type declarations.
+apps/api typecheck: src/organizations/organizations.module.ts(2,38): error TS2307: Cannot find module '@newax/organizations' or its corresponding type declarations.
+apps/api typecheck: src/organizations/prisma-organization.repository.ts(10,8): error TS2307: Cannot find module '@newax/organizations' or its corresponding type declarations.
+apps/api typecheck: src/organizations/prisma-organization.repository.ts(154,13): error TS7022: 'current' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+apps/api typecheck: [ELIFECYCLE] Command failed with exit code 2.
+apps/api typecheck: Failed
+/home/runner/work/core-newax/core-newax/apps/api:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @newax/api@0.0.0 typecheck: `pnpm run typecheck:src && pnpm run typecheck:test`
+Exit status 2
+[ELIFECYCLE] Command failed with exit code 2.
