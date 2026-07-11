@@ -1,0 +1,50 @@
+name: Format Request Context Final
+
+on:
+  push:
+    branches:
+      - agent/trusted-request-context
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: ${{ !contains(github.event.head_commit.message, '[skip context formatter]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/trusted-request-context
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Apply repository formatter
+        run: |
+          pnpm exec prettier --write \
+            packages/request-context/src/services/trusted-request-context.service.ts \
+            packages/request-context/tests/trusted-request-context.integrity.spec.ts
+
+      - name: Commit formatted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            packages/request-context/src/services/trusted-request-context.service.ts \
+            packages/request-context/tests/trusted-request-context.integrity.spec.ts
+
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+
+          git commit -m "Format final trusted request context hardening [skip context formatter]"
+          git push origin HEAD:agent/trusted-request-context
