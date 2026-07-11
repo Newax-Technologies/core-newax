@@ -94,7 +94,7 @@ Identity verification workflows remain deferred. Authentication must not mark an
 The Node adapter uses scrypt with:
 
 - A unique cryptographically random salt per credential.
-- An OWASP-aligned minimum profile of N=2^15, r=8, and p=3.
+- A profile of `N=2^17`, `r=8`, and `p=1`, matching the current OWASP recommendation when Argon2id is unavailable.
 - Versioned encoded parameters with bounded parser values.
 - Constant-time verification.
 - A dummy derivation path for missing identities and credentials.
