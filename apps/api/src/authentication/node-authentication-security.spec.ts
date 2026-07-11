@@ -7,8 +7,7 @@ import {
   NodeSessionTokenService,
 } from './node-authentication-security';
 
-const pepper =
-  'test-authentication-pepper-with-more-than-thirty-two-characters';
+const pepper = 'test-authentication-pepper-with-more-than-thirty-two-characters';
 
 describe('BaselinePasswordBlocklist', () => {
   it('rejects complete common and context-specific password values', async () => {
@@ -16,9 +15,7 @@ describe('BaselinePasswordBlocklist', () => {
 
     await expect(blocklist.contains('PasswordPassword')).resolves.toBe(true);
     await expect(blocklist.contains('newax-newax-newax')).resolves.toBe(true);
-    await expect(
-      blocklist.contains('a distinct passphrase for this account'),
-    ).resolves.toBe(false);
+    await expect(blocklist.contains('a distinct passphrase for this account')).resolves.toBe(false);
   });
 });
 
@@ -29,10 +26,7 @@ describe('NodePasswordHasher', () => {
 
     const secretHash = await hasher.hash(password);
     const verified = await hasher.verifyOrBurn(password, secretHash);
-    const rejected = await hasher.verifyOrBurn(
-      'Wrong-password-1!',
-      secretHash,
-    );
+    const rejected = await hasher.verifyOrBurn('Wrong-password-1!', secretHash);
 
     expect(secretHash).not.toContain(password);
     expect(verified).toEqual({ verified: true, needsRehash: false });
@@ -40,10 +34,7 @@ describe('NodePasswordHasher', () => {
   });
 
   it('performs a safe dummy verification for missing hashes', async () => {
-    const result = await new NodePasswordHasher().verifyOrBurn(
-      'Some-password-1!',
-      null,
-    );
+    const result = await new NodePasswordHasher().verifyOrBurn('Some-password-1!', null);
     expect(result).toEqual({ verified: false, needsRehash: false });
   });
 });
