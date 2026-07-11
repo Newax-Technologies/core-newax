@@ -1,0 +1,181 @@
+name: Prepare Access Control Module
+
+on:
+  push:
+    branches:
+      - agent/access-control-services
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prepare-access-control-module
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: ${{ !contains(github.event.head_commit.message, '[skip access prepare]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/access-control-services
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Correct lifecycle boundaries
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+          const path = 'packages/access-control/src/services/access-control.service.ts';
+          let source = fs.readFileSync(path, 'utf8');
+
+          source = source.replace(
+            '    await this.requireActiveMembership(assignment.membershipId, organizationId);',
+            '    await this.requireScopedMembership(assignment.membershipId, organizationId);',
+          );
+
+          source = source.replace(
+            "    const organizationId = this.requireOrganizationId(context);\n    if (\n      role === null ||\n      (role.roleType === 'organization' && role.organizationId !== organizationId)\n    ) {",
+            "    const organizationId =\n      context.organizationId === null\n        ? null\n        : this.requireText(context.organizationId, 'organizationId', 128);\n    if (\n      role === null ||\n      (role.roleType === 'organization' &&\n        (organizationId === null || role.organizationId !== organizationId))\n    ) {",
+          );
+
+          source = source.replace(
+            "  private async requireActiveMembership(\n    membershipId: string,\n    organizationId: string,\n  ) {\n    const membership = await this.referenceDirectory.findMembershipById(\n      this.requireText(membershipId, 'membershipId', 128),\n    );\n    if (membership === null || membership.organizationId !== organizationId) {\n      throw new AccessControlError('ACCESS_MEMBERSHIP_NOT_FOUND', 'The membership does not exist.');\n    }\n    if (membership.status !== 'active') {\n      throw new AccessControlError(\n        'ACCESS_MEMBERSHIP_UNAVAILABLE',\n        'Only active memberships may receive or revoke role assignments.',\n        { status: membership.status },\n      );\n    }\n    return membership;\n  }",
+            "  private async requireActiveMembership(\n    membershipId: string,\n    organizationId: string,\n  ) {\n    const membership = await this.requireScopedMembership(membershipId, organizationId);\n    if (membership.status !== 'active') {\n      throw new AccessControlError(\n        'ACCESS_MEMBERSHIP_UNAVAILABLE',\n        'Only active memberships may receive role assignments.',\n        { status: membership.status },\n      );\n    }\n    return membership;\n  }\n\n  private async requireScopedMembership(\n    membershipId: string,\n    organizationId: string,\n  ) {\n    const membership = await this.referenceDirectory.findMembershipById(\n      this.requireText(membershipId, 'membershipId', 128),\n    );\n    if (membership === null || membership.organizationId !== organizationId) {\n      throw new AccessControlError(\n        'ACCESS_MEMBERSHIP_NOT_FOUND',\n        'The membership does not exist in this organization.',\n      );\n    }\n    return membership;\n  }",
+          );
+
+          fs.writeFileSync(path, source);
+          EOF
+
+      - name: Update workspace lockfile
+        run: pnpm install --lockfile-only
+
+      - name: Consolidate module registry and ADR index
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+
+          const registryPath = 'registry/module-registry.json';
+          const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+          const rolesIndex = registry.modules.findIndex((module) => module.module_key === 'roles');
+          const permissionsIndex = registry.modules.findIndex(
+            (module) => module.module_key === 'permissions',
+          );
+
+          if (rolesIndex < 0 || permissionsIndex < 0) {
+            throw new Error('Planned Roles or Permissions registry entry was not found.');
+          }
+
+          const insertAt = Math.min(rolesIndex, permissionsIndex);
+          registry.modules = registry.modules.filter(
+            (module) => module.module_key !== 'roles' && module.module_key !== 'permissions',
+          );
+          registry.modules.splice(insertAt, 0, {
+            module_name: 'Access Control',
+            module_key: 'access-control',
+            module_layer: 'foundation',
+            module_version: '0.1.0',
+            module_status: 'draft',
+            module_owner: 'NEWAX Engineering',
+            description:
+              'Defines permission-driven authorization, role templates, organization roles, membership-role assignments, and effective permission evaluation.',
+            dependencies: [
+              { module_key: 'organizations', version: '>=0.1.0' },
+              { module_key: 'memberships', version: '>=0.1.0' },
+            ],
+            required_permissions: [
+              'access_control.permissions.view',
+              'access_control.permissions.manage',
+              'access_control.roles.view',
+              'access_control.roles.create',
+              'access_control.roles.update',
+              'access_control.roles.archive',
+              'access_control.roles.permissions.manage',
+              'access_control.assignments.view',
+              'access_control.assignments.manage',
+              'access_control.templates.manage',
+            ],
+            exposed_events: [
+              'permission.registered',
+              'permission.updated',
+              'role.created',
+              'role.updated',
+              'role.archived',
+              'role.permission_changed',
+              'role.assigned',
+              'role.removed',
+            ],
+            consumed_events: ['membership.removed', 'organization.archived'],
+            configuration_options: [
+              'permission_naming_convention',
+              'role_assignment_policy',
+              'deny_precedence_policy',
+            ],
+            database_ownership: [
+              'core_permissions',
+              'core_roles',
+              'core_role_permissions',
+              'core_membership_roles',
+            ],
+            tenant_scope: 'organization_scoped_with_global_templates',
+            documentation_path: 'packages/access-control/README.md',
+            changelog_path: 'packages/access-control/CHANGELOG.md',
+            compatibility_notes:
+              'Replaces the planned Roles and Permissions entries before activation. Business logic must authorize through stable permission codes, never role names.',
+          });
+          registry.registry_version = '0.1.4';
+          registry.last_updated = '2026-07-11';
+          fs.writeFileSync(registryPath, `${JSON.stringify(registry, null, 2)}\n`);
+
+          const indexPath = 'docs/decisions/README.md';
+          let index = fs.readFileSync(indexPath, 'utf8');
+          const adr14 =
+            '| [ADR 0014](0014-build-memberships-registry-service-foundation.md)       | Accepted | Build the organization-scoped Memberships Registry service foundation connecting people to organizations.                                       |';
+          const adr15 =
+            '| [ADR 0015](0015-consolidate-roles-and-permissions-into-access-control.md) | Accepted | Consolidate roles, permissions, membership-role assignments, templates, and evaluation into one Access Control bounded context.               |';
+          if (!index.includes(adr14)) throw new Error('ADR 0014 index row was not found.');
+          index = index.replace(adr14, `${adr14}\n${adr15}`);
+          index = index.replace('rather than fourteen independent opinions', 'rather than fifteen independent opinions');
+          index = index.replace(
+            '- ADR 0014 defines organization-scoped memberships and non-destructive membership lifecycle rules.',
+            '- ADR 0014 defines organization-scoped memberships and non-destructive membership lifecycle rules.\n- ADR 0015 consolidates role, permission, assignment, template, and evaluation rules into Access Control.',
+          );
+          index = index.replace(
+            '0015-define-repository-bootstrap-and-boundary-enforcement.md',
+            '0016-define-repository-bootstrap-and-boundary-enforcement.md',
+          );
+          fs.writeFileSync(indexPath, index);
+          EOF
+
+      - name: Format changed files
+        run: |
+          pnpm exec prettier --write \
+            apps/api/package.json \
+            apps/api/src/app.module.ts \
+            apps/api/src/access-control \
+            docs/decisions/README.md \
+            docs/decisions/0015-consolidate-roles-and-permissions-into-access-control.md \
+            packages/access-control \
+            registry/module-registry.json
+
+      - name: Commit prepared files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml registry/module-registry.json apps/api packages/access-control docs/decisions
+
+          if git diff --cached --quiet; then
+            echo "Access control files are already prepared."
+            exit 0
+          fi
+
+          git commit -m "Prepare access control workspace [skip access prepare]"
+          git push origin HEAD:agent/access-control-services
