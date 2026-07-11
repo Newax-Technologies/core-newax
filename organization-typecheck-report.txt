@@ -1,0 +1,13 @@
+$ pnpm -r --if-present run typecheck
+Scope: 3 of 4 workspace projects
+apps/web typecheck$ tsc --noEmit
+packages/organizations typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
+packages/organizations typecheck: src/services/organizations.service.ts(106,33): error TS2379: Argument of type '{ parentOrganizationId?: string | null; status?: OrganizationStatus | undefined; search?: string; limit: number; afterId?: string; }' is not assignable to parameter of type 'OrganizationListQuery' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+packages/organizations typecheck:   Types of property 'status' are incompatible.
+packages/organizations typecheck:     Type 'OrganizationStatus | undefined' is not assignable to type 'OrganizationStatus'.
+packages/organizations typecheck:       Type 'undefined' is not assignable to type 'OrganizationStatus'.
+packages/organizations typecheck: Failed
+/home/runner/work/core-newax/core-newax/packages/organizations:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @newax/organizations@0.1.0 typecheck: `tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit`
+Exit status 2
+[ELIFECYCLE] Command failed with exit code 2.
