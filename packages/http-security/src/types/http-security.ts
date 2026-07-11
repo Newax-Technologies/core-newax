@@ -11,7 +11,7 @@ export type HttpSecurityMethod =
 export interface HttpSecurityPolicy {
   readonly allowedOrigins: readonly string[];
   readonly requireHttps: boolean;
-  readonly trustProxyHops: number;
+  readonly trustedProxyCidrs: readonly string[];
   readonly bodyLimitBytes: number;
   readonly rateLimitWindowMilliseconds: number;
   readonly rateLimitMaximumRequests: number;
@@ -29,6 +29,7 @@ export interface HttpSecurityRequest {
   readonly referer: string | null;
   readonly fetchSite: string | null;
   readonly contentType: string | null;
+  readonly hasBody: boolean;
   readonly ipAddress: string | null;
   readonly userAgent: string | null;
 }
