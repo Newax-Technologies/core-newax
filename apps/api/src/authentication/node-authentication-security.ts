@@ -1,10 +1,4 @@
-import {
-  createHmac,
-  randomBytes,
-  scrypt,
-  timingSafeEqual,
-  type ScryptOptions,
-} from 'node:crypto';
+import { createHmac, randomBytes, scrypt, timingSafeEqual, type ScryptOptions } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import type {
