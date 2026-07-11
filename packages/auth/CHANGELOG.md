@@ -7,7 +7,8 @@ All notable changes to the NEWAX Authentication module are documented here.
 ### Added
 
 - Verified-identity password enrollment for invited accounts.
-- Scrypt password hashing with unique salts and versioned parameters.
+- Scrypt password hashing with unique salts, versioned parameters, and an OWASP-aligned minimum work-factor profile.
+- Fifteen-character single-factor minimum, Unicode NFC normalization, no forced composition rules, and whole-password blocklist checks.
 - Generic password login failures with dummy verification work.
 - Failed-attempt persistence and temporary account locking.
 - Opaque session token issuance with keyed hashes at rest.

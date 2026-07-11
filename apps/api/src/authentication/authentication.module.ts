@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  AuthenticationService,
-  validateAuthenticationPolicy,
-} from '@newax/auth';
+import { AuthenticationService, validateAuthenticationPolicy } from '@newax/auth';
 
 import type { ApplicationEnvironment } from '../config/environment';
 import { DatabaseModule } from '../database/database.module';
@@ -34,9 +31,7 @@ import { UsersAuthenticationDirectory } from './users-authentication.directory';
       useFactory: (
         configuration: ConfigService<ApplicationEnvironment, true>,
       ): NodeSessionTokenService =>
-        new NodeSessionTokenService(
-          configuration.get('AUTH_TOKEN_PEPPER', { infer: true }),
-        ),
+        new NodeSessionTokenService(configuration.get('AUTH_TOKEN_PEPPER', { infer: true })),
     },
     {
       provide: NodeLoginFingerprintService,
@@ -44,9 +39,7 @@ import { UsersAuthenticationDirectory } from './users-authentication.directory';
       useFactory: (
         configuration: ConfigService<ApplicationEnvironment, true>,
       ): NodeLoginFingerprintService =>
-        new NodeLoginFingerprintService(
-          configuration.get('AUTH_TOKEN_PEPPER', { infer: true }),
-        ),
+        new NodeLoginFingerprintService(configuration.get('AUTH_TOKEN_PEPPER', { infer: true })),
     },
     {
       provide: AuthenticationService,
@@ -82,33 +75,25 @@ import { UsersAuthenticationDirectory } from './users-authentication.directory';
           clock,
           eventPublisher,
           validateAuthenticationPolicy({
-            passwordMinimumLength: configuration.get(
-              'AUTH_PASSWORD_MINIMUM_LENGTH',
-              { infer: true },
-            ),
-            passwordMaximumLength: configuration.get(
-              'AUTH_PASSWORD_MAXIMUM_LENGTH',
-              { infer: true },
-            ),
-            sessionTtlMinutes: configuration.get(
-              'AUTH_SESSION_TTL_MINUTES',
-              { infer: true },
-            ),
-            failedAttemptWindowMinutes: configuration.get(
-              'AUTH_FAILED_ATTEMPT_WINDOW_MINUTES',
-              { infer: true },
-            ),
-            maximumFailedAttempts: configuration.get(
-              'AUTH_MAXIMUM_FAILED_ATTEMPTS',
-              { infer: true },
-            ),
+            passwordMinimumLength: configuration.get('AUTH_PASSWORD_MINIMUM_LENGTH', {
+              infer: true,
+            }),
+            passwordMaximumLength: configuration.get('AUTH_PASSWORD_MAXIMUM_LENGTH', {
+              infer: true,
+            }),
+            sessionTtlMinutes: configuration.get('AUTH_SESSION_TTL_MINUTES', { infer: true }),
+            failedAttemptWindowMinutes: configuration.get('AUTH_FAILED_ATTEMPT_WINDOW_MINUTES', {
+              infer: true,
+            }),
+            maximumFailedAttempts: configuration.get('AUTH_MAXIMUM_FAILED_ATTEMPTS', {
+              infer: true,
+            }),
             accountLockMinutes: configuration.get('AUTH_ACCOUNT_LOCK_MINUTES', {
               infer: true,
             }),
-            sessionTouchIntervalMinutes: configuration.get(
-              'AUTH_SESSION_TOUCH_INTERVAL_MINUTES',
-              { infer: true },
-            ),
+            sessionTouchIntervalMinutes: configuration.get('AUTH_SESSION_TOUCH_INTERVAL_MINUTES', {
+              infer: true,
+            }),
           }),
         ),
     },

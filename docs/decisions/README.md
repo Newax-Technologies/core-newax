@@ -40,10 +40,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0014](0014-build-memberships-registry-service-foundation.md)         | Accepted | Build the organization-scoped Memberships Registry service foundation connecting people to organizations.                                       |
 | [ADR 0015](0015-consolidate-roles-and-permissions-into-access-control.md) | Accepted | Consolidate roles, permissions, membership-role assignments, templates, and evaluation into one Access Control bounded context.                 |
 | [ADR 0016](0016-build-users-registry-service-foundation.md)               | Accepted | Build the global Users Registry service foundation while preserving organization-scoped access through memberships and permissions.             |
+| [ADR 0017](0017-build-authentication-service-foundation.md)               | Accepted | Build credential verification, failed-attempt protection, and revocable sessions without merging Authentication into Users.                     |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than sixteen independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than seventeen independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -68,6 +69,7 @@ The ADRs form a deliberate sequence rather than sixteen independent opinions wan
 - ADR 0014 defines organization-scoped memberships and non-destructive membership lifecycle rules.
 - ADR 0015 consolidates role, permission, assignment, template, and evaluation rules into Access Control.
 - ADR 0016 defines global user accounts, organization-scoped creation, and platform-scoped account lifecycle rules.
+- ADR 0017 defines password verification, failed-attempt protection, and secure account sessions.
 
 ### Implementation Baseline
 
@@ -188,7 +190,7 @@ An ADR does not replace a module README, API documentation, testing evidence, se
 Filename example:
 
 ```text
-0017-define-repository-bootstrap-and-boundary-enforcement.md
+0018-define-repository-bootstrap-and-boundary-enforcement.md
 ```
 
 ## Review Triggers

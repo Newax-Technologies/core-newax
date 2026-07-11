@@ -3,10 +3,7 @@ export type {
   AuthenticationEvent,
   AuthenticationEventPublisher,
 } from './events/authentication-event';
-export {
-  AuthenticationError,
-  type AuthenticationErrorCode,
-} from './errors/authentication-error';
+export { AuthenticationError, type AuthenticationErrorCode } from './errors/authentication-error';
 export {
   AUTHENTICATION_PERMISSIONS,
   type AuthenticationPermission,

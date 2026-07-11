@@ -6,10 +6,7 @@ import type {
 
 export interface PasswordHasher {
   hash(password: string): Promise<string>;
-  verifyOrBurn(
-    password: string,
-    secretHash: string | null,
-  ): Promise<PasswordVerificationResult>;
+  verifyOrBurn(password: string, secretHash: string | null): Promise<PasswordVerificationResult>;
 }
 
 export interface SessionTokenService {
@@ -18,10 +15,7 @@ export interface SessionTokenService {
 }
 
 export interface LoginFingerprintService {
-  fingerprint(
-    identityType: AuthenticationIdentityType,
-    identityValue: string,
-  ): string;
+  fingerprint(identityType: AuthenticationIdentityType, identityValue: string): string;
 }
 
 export interface AuthenticationClock {

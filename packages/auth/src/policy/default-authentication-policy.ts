@@ -10,12 +10,8 @@ export const DEFAULT_AUTHENTICATION_POLICY: AuthenticationPolicy = {
   sessionTouchIntervalMinutes: 5,
 };
 
-export function validateAuthenticationPolicy(
-  policy: AuthenticationPolicy,
-): AuthenticationPolicy {
-  const positiveIntegers: ReadonlyArray<
-    readonly [keyof AuthenticationPolicy, number]
-  > = [
+export function validateAuthenticationPolicy(policy: AuthenticationPolicy): AuthenticationPolicy {
+  const positiveIntegers: ReadonlyArray<readonly [keyof AuthenticationPolicy, number]> = [
     ['passwordMinimumLength', policy.passwordMinimumLength],
     ['passwordMaximumLength', policy.passwordMaximumLength],
     ['sessionTtlMinutes', policy.sessionTtlMinutes],

@@ -98,21 +98,14 @@ export class AuthenticationService {
       occurredAt,
     });
     if (created === null) {
-      const racedCredential = await this.repository.findPasswordCredential(
-        identity.account.userId,
-      );
+      const racedCredential = await this.repository.findPasswordCredential(identity.account.userId);
       if (racedCredential === null) {
         throw new AuthenticationError(
           'AUTHENTICATION_PASSWORD_ALREADY_CONFIGURED',
           'A password credential is already configured.',
         );
       }
-      await this.recoverEnrollment(
-        identity.account.userId,
-        password,
-        racedCredential,
-        occurredAt,
-      );
+      await this.recoverEnrollment(identity.account.userId, password, racedCredential, occurredAt);
       return;
     }
 
@@ -120,11 +113,7 @@ export class AuthenticationService {
   }
 
   async login(input: PasswordLoginInput): Promise<PasswordLoginResult> {
-    const identityValue = this.requireText(
-      input.identityValue,
-      'identityValue',
-      320,
-    );
+    const identityValue = this.requireText(input.identityValue, 'identityValue', 320);
     const password = this.passwordPolicyValidator.normalize(input.password);
     this.requirePasswordShape(password);
     const metadata = this.normalizeMetadata(input);
@@ -133,16 +122,11 @@ export class AuthenticationService {
       input.identityType,
       identityValue,
     );
-    const identity = await this.userDirectory.resolveIdentity(
-      input.identityType,
-      identityValue,
-    );
+    const identity = await this.userDirectory.resolveIdentity(input.identityType, identityValue);
     const credential =
       identity === null
         ? null
-        : await this.repository.findPasswordCredential(
-            identity.account.userId,
-          );
+        : await this.repository.findPasswordCredential(identity.account.userId);
     const usableCredential = this.usableCredential(credential, occurredAt);
     const passwordVerification = await this.passwordHasher.verifyOrBurn(
       password,
@@ -215,16 +199,9 @@ export class AuthenticationService {
 
     if (passwordVerification.needsRehash) {
       const replacementHash = await this.passwordHasher.hash(password);
-      await this.repository.replacePasswordCredential(
-        account.userId,
-        replacementHash,
-        occurredAt,
-      );
+      await this.repository.replacePasswordCredential(account.userId, replacementHash, occurredAt);
     } else {
-      await this.repository.markCredentialUsed(
-        usableCredential.id,
-        occurredAt,
-      );
+      await this.repository.markCredentialUsed(usableCredential.id, occurredAt);
     }
 
     if (account.lockedUntil !== null) {
@@ -235,10 +212,7 @@ export class AuthenticationService {
       occurredAt,
     );
     const issuedToken = this.sessionTokenService.issue();
-    const expiresAt = this.addMinutes(
-      occurredAt,
-      this.policy.sessionTtlMinutes,
-    );
+    const expiresAt = this.addMinutes(occurredAt, this.policy.sessionTtlMinutes);
     const session = await this.repository.createSession({
       userId: account.userId,
       sessionTokenHash: issuedToken.tokenHash,
@@ -279,9 +253,7 @@ export class AuthenticationService {
 
   async changePassword(input: PasswordChangeInput): Promise<void> {
     const userId = this.requireText(input.userId, 'userId', 128);
-    const currentPassword = this.passwordPolicyValidator.normalize(
-      input.currentPassword,
-    );
+    const currentPassword = this.passwordPolicyValidator.normalize(input.currentPassword);
     this.requirePasswordShape(currentPassword);
     const newPassword = await this.validateNewPassword(input.newPassword);
     const account = await this.userDirectory.findAccountById(userId);
@@ -316,11 +288,7 @@ export class AuthenticationService {
     }
 
     const replacementHash = await this.passwordHasher.hash(newPassword);
-    await this.repository.replacePasswordCredential(
-      userId,
-      replacementHash,
-      occurredAt,
-    );
+    await this.repository.replacePasswordCredential(userId, replacementHash, occurredAt);
     await this.repository.revokeAllSessions(userId, occurredAt);
     await this.eventPublisher.publish({
       name: 'authentication.password_changed',
@@ -336,20 +304,14 @@ export class AuthenticationService {
     }
 
     const sessionTokenHash = this.sessionTokenService.hash(normalizedToken);
-    const session = await this.repository.findSessionByTokenHash(
-      sessionTokenHash,
-    );
+    const session = await this.repository.findSessionByTokenHash(sessionTokenHash);
     if (session === null || session.status !== 'active') {
       return null;
     }
 
     const occurredAt = this.clock.now();
     if (session.expiresAt <= occurredAt) {
-      await this.repository.setSessionStatus(
-        session.id,
-        'expired',
-        occurredAt,
-      );
+      await this.repository.setSessionStatus(session.id, 'expired', occurredAt);
       return null;
     }
 
@@ -359,11 +321,7 @@ export class AuthenticationService {
       account.status !== 'active' ||
       (account.lockedUntil !== null && account.lockedUntil > occurredAt)
     ) {
-      await this.repository.setSessionStatus(
-        session.id,
-        'revoked',
-        occurredAt,
-      );
+      await this.repository.setSessionStatus(session.id, 'revoked', occurredAt);
       return null;
     }
 
@@ -404,10 +362,7 @@ export class AuthenticationService {
     userId: string,
     query: AuthenticationSessionListQuery = {},
   ): Promise<AuthenticationSessionPage> {
-    this.requirePlatformPermission(
-      context,
-      AUTHENTICATION_PERMISSIONS.sessionsView,
-    );
+    this.requirePlatformPermission(context, AUTHENTICATION_PERMISSIONS.sessionsView);
     const normalized: Mutable<AuthenticationSessionListQuery> = {
       limit: this.normalizeLimit(query.limit),
     };
@@ -417,10 +372,7 @@ export class AuthenticationService {
     if (query.afterId !== undefined) {
       normalized.afterId = this.requireText(query.afterId, 'afterId', 128);
     }
-    return this.repository.listSessions(
-      this.requireText(userId, 'userId', 128),
-      normalized,
-    );
+    return this.repository.listSessions(this.requireText(userId, 'userId', 128), normalized);
   }
 
   async revokeUserSession(
@@ -428,10 +380,7 @@ export class AuthenticationService {
     userId: string,
     sessionId: string,
   ): Promise<void> {
-    this.requirePlatformPermission(
-      context,
-      AUTHENTICATION_PERMISSIONS.sessionsRevoke,
-    );
+    this.requirePlatformPermission(context, AUTHENTICATION_PERMISSIONS.sessionsRevoke);
     const occurredAt = this.clock.now();
     const session = await this.repository.revokeSessionById(
       this.requireText(userId, 'userId', 128),
@@ -444,21 +393,14 @@ export class AuthenticationService {
         'The session does not exist for this user.',
       );
     }
-    await this.publishSessionRevoked(
-      session,
-      occurredAt,
-      context.actorUserId,
-    );
+    await this.publishSessionRevoked(session, occurredAt, context.actorUserId);
   }
 
   async revokeAllUserSessions(
     context: AuthenticationAdminContext,
     userId: string,
   ): Promise<number> {
-    this.requirePlatformPermission(
-      context,
-      AUTHENTICATION_PERMISSIONS.sessionsRevoke,
-    );
+    this.requirePlatformPermission(context, AUTHENTICATION_PERMISSIONS.sessionsRevoke);
     return this.repository.revokeAllSessions(
       this.requireText(userId, 'userId', 128),
       this.clock.now(),
@@ -485,10 +427,7 @@ export class AuthenticationService {
     await this.activateEnrolledAccount(userId, occurredAt);
   }
 
-  private async activateEnrolledAccount(
-    userId: string,
-    occurredAt: Date,
-  ): Promise<void> {
+  private async activateEnrolledAccount(userId: string, occurredAt: Date): Promise<void> {
     await this.userDirectory.activateInvitedUser(userId);
     await this.eventPublisher.publish({
       name: 'authentication.password_enrolled',
@@ -551,10 +490,7 @@ export class AuthenticationService {
       return;
     }
 
-    const failureWindowStart = this.addMinutes(
-      occurredAt,
-      -this.policy.failedAttemptWindowMinutes,
-    );
+    const failureWindowStart = this.addMinutes(occurredAt, -this.policy.failedAttemptWindowMinutes);
     const recentFailures = await this.repository.countRecentFailures(
       userId,
       identityFingerprint,
@@ -564,10 +500,7 @@ export class AuthenticationService {
       return;
     }
 
-    const lockedUntil = this.addMinutes(
-      occurredAt,
-      this.policy.accountLockMinutes,
-    );
+    const lockedUntil = this.addMinutes(occurredAt, this.policy.accountLockMinutes);
     await this.userDirectory.setLockedUntil(userId, lockedUntil);
     await this.repository.revokeAllSessions(userId, occurredAt);
     await this.eventPublisher.publish({
@@ -598,10 +531,7 @@ export class AuthenticationService {
   ): void {
     const actorUserId = context.actorUserId.trim();
     if (actorUserId.length === 0) {
-      throw new AuthenticationError(
-        'AUTHENTICATION_INVALID_INPUT',
-        'actorUserId is required.',
-      );
+      throw new AuthenticationError('AUTHENTICATION_INVALID_INPUT', 'actorUserId is required.');
     }
     if (!context.permissionCodes.has(permission)) {
       throw new AuthenticationError(
@@ -618,9 +548,10 @@ export class AuthenticationService {
     }
   }
 
-  private normalizeMetadata(
-    metadata: AuthenticationRequestMetadata,
-  ): { readonly ipAddress: string | null; readonly userAgent: string | null } {
+  private normalizeMetadata(metadata: AuthenticationRequestMetadata): {
+    readonly ipAddress: string | null;
+    readonly userAgent: string | null;
+  } {
     return {
       ipAddress:
         metadata.ipAddress === undefined
@@ -635,10 +566,7 @@ export class AuthenticationService {
 
   private requirePasswordShape(password: string): void {
     const characterCount = [...password].length;
-    if (
-      characterCount === 0 ||
-      characterCount > this.policy.passwordMaximumLength
-    ) {
+    if (characterCount === 0 || characterCount > this.policy.passwordMaximumLength) {
       throw this.authenticationFailed();
     }
   }
@@ -661,11 +589,7 @@ export class AuthenticationService {
     return limit;
   }
 
-  private requireText(
-    value: string,
-    field: string,
-    maxLength: number,
-  ): string {
+  private requireText(value: string, field: string, maxLength: number): string {
     const normalized = value.trim();
     if (normalized.length === 0 || normalized.length > maxLength) {
       throw new AuthenticationError(

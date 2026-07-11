@@ -41,9 +41,7 @@ interface SessionDatabaseRecord {
 }
 
 @Injectable()
-export class PrismaAuthenticationRepository
-  implements AuthenticationRepository
-{
+export class PrismaAuthenticationRepository implements AuthenticationRepository {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async countRecentFailures(
@@ -55,9 +53,7 @@ export class PrismaAuthenticationRepository
       where: {
         outcome: 'failed_invalid_secret',
         occurredAt: { gte: since },
-        ...(userId === null
-          ? { userId: null, identityFingerprint }
-          : { userId }),
+        ...(userId === null ? { userId: null, identityFingerprint } : { userId }),
       },
     });
   }
@@ -66,13 +62,8 @@ export class PrismaAuthenticationRepository
     input: CreatePasswordCredentialInput,
   ): Promise<PasswordCredentialRecord | null> {
     return this.prisma.$transaction(
-      async (
-        transaction: Prisma.TransactionClient,
-      ): Promise<PasswordCredentialRecord | null> => {
-        await this.acquireLock(
-          transaction,
-          `password-credential:${input.userId}`,
-        );
+      async (transaction: Prisma.TransactionClient): Promise<PasswordCredentialRecord | null> => {
+        await this.acquireLock(transaction, `password-credential:${input.userId}`);
         const existing = await transaction.coreUserCredential.findUnique({
           where: {
             userId_credentialType: {
@@ -118,9 +109,7 @@ export class PrismaAuthenticationRepository
     return this.mapSession(created);
   }
 
-  async findPasswordCredential(
-    userId: string,
-  ): Promise<PasswordCredentialRecord | null> {
+  async findPasswordCredential(userId: string): Promise<PasswordCredentialRecord | null> {
     const record = await this.prisma.coreUserCredential.findUnique({
       where: {
         userId_credentialType: {
@@ -153,9 +142,7 @@ export class PrismaAuthenticationRepository
       },
       orderBy: { id: 'asc' },
       take: limit + 1,
-      ...(query.afterId === undefined
-        ? {}
-        : { cursor: { id: query.afterId }, skip: 1 }),
+      ...(query.afterId === undefined ? {} : { cursor: { id: query.afterId }, skip: 1 }),
     });
     const hasMore = records.length > limit;
     const page = hasMore ? records.slice(0, limit) : records;
@@ -166,10 +153,7 @@ export class PrismaAuthenticationRepository
     };
   }
 
-  async markCredentialUsed(
-    credentialId: string,
-    occurredAt: Date,
-  ): Promise<void> {
+  async markCredentialUsed(credentialId: string, occurredAt: Date): Promise<void> {
     await this.prisma.coreUserCredential.update({
       where: { id: credentialId },
       data: { lastUsedAt: occurredAt },
@@ -195,9 +179,7 @@ export class PrismaAuthenticationRepository
     occurredAt: Date,
   ): Promise<PasswordCredentialRecord> {
     const record = await this.prisma.$transaction(
-      async (
-        transaction: Prisma.TransactionClient,
-      ): Promise<CredentialDatabaseRecord> => {
+      async (transaction: Prisma.TransactionClient): Promise<CredentialDatabaseRecord> => {
         await this.acquireLock(transaction, `password-credential:${userId}`);
         return transaction.coreUserCredential.upsert({
           where: {
@@ -236,9 +218,7 @@ export class PrismaAuthenticationRepository
       where: {
         userId,
         status: 'active',
-        ...(exceptSessionId === undefined
-          ? {}
-          : { id: { not: exceptSessionId } }),
+        ...(exceptSessionId === undefined ? {} : { id: { not: exceptSessionId } }),
       },
       data: {
         status: 'revoked',
@@ -329,18 +309,13 @@ export class PrismaAuthenticationRepository
     return this.mapSession(updated);
   }
 
-  private async acquireLock(
-    transaction: Prisma.TransactionClient,
-    lockKey: string,
-  ): Promise<void> {
+  private async acquireLock(transaction: Prisma.TransactionClient, lockKey: string): Promise<void> {
     await transaction.$queryRaw`
       SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
     `;
   }
 
-  private mapCredential(
-    record: CredentialDatabaseRecord,
-  ): PasswordCredentialRecord {
+  private mapCredential(record: CredentialDatabaseRecord): PasswordCredentialRecord {
     return {
       id: record.id,
       userId: record.userId,
@@ -368,12 +343,7 @@ export class PrismaAuthenticationRepository
   }
 
   private mapCredentialStatus(value: string): CredentialStatus {
-    if (
-      value === 'active' ||
-      value === 'disabled' ||
-      value === 'revoked' ||
-      value === 'expired'
-    ) {
+    if (value === 'active' || value === 'disabled' || value === 'revoked' || value === 'expired') {
       return value;
     }
     throw new Error(`Unsupported credential status: ${value}`);

@@ -34,7 +34,7 @@ import type {
 
 const now = new Date('2026-07-11T00:00:00.000Z');
 const policy: AuthenticationPolicy = {
-  passwordMinimumLength: 12,
+  passwordMinimumLength: 15,
   passwordMaximumLength: 128,
   sessionTtlMinutes: 480,
   failedAttemptWindowMinutes: 15,
@@ -67,9 +67,7 @@ function identity(
   };
 }
 
-function credential(
-  overrides: Partial<PasswordCredentialRecord> = {},
-): PasswordCredentialRecord {
+function credential(overrides: Partial<PasswordCredentialRecord> = {}): PasswordCredentialRecord {
   return {
     id: '00000000-0000-4000-8000-000000000300',
     userId: '00000000-0000-4000-8000-000000000100',
@@ -153,9 +151,7 @@ class FakeRepository implements AuthenticationRepository {
     return created;
   }
 
-  async findPasswordCredential(
-    userId: string,
-  ): Promise<PasswordCredentialRecord | null> {
+  async findPasswordCredential(userId: string): Promise<PasswordCredentialRecord | null> {
     return this.credentials.get(userId) ?? null;
   }
 
@@ -171,17 +167,12 @@ class FakeRepository implements AuthenticationRepository {
     _query: AuthenticationSessionListQuery,
   ): Promise<AuthenticationSessionPage> {
     return {
-      items: [...this.sessions.values()].filter(
-        (current) => current.userId === userId,
-      ),
+      items: [...this.sessions.values()].filter((current) => current.userId === userId),
       nextCursor: null,
     };
   }
 
-  async markCredentialUsed(
-    credentialId: string,
-    occurredAt: Date,
-  ): Promise<void> {
+  async markCredentialUsed(credentialId: string, occurredAt: Date): Promise<void> {
     for (const [userId, current] of this.credentials) {
       if (current.id === credentialId) {
         this.credentials.set(userId, { ...current, lastUsedAt: occurredAt });
@@ -311,9 +302,7 @@ class FakeUserDirectory implements AuthenticationUserDirectory {
     return updated;
   }
 
-  async findAccountById(
-    userId: string,
-  ): Promise<AuthenticationAccountRecord | null> {
+  async findAccountById(userId: string): Promise<AuthenticationAccountRecord | null> {
     return this.accounts.get(userId) ?? null;
   }
 
@@ -371,6 +360,14 @@ class FakePasswordHasher implements PasswordHasher {
   }
 }
 
+class FakePasswordBlocklist {
+  readonly blocked = new Set<string>();
+
+  async contains(password: string): Promise<boolean> {
+    return this.blocked.has(password);
+  }
+}
+
 class FakeSessionTokenService implements SessionTokenService {
   hash(token: string): string {
     return `token-hash:${token}`;
@@ -385,10 +382,7 @@ class FakeSessionTokenService implements SessionTokenService {
 }
 
 class FakeFingerprintService implements LoginFingerprintService {
-  fingerprint(
-    identityType: AuthenticationIdentityType,
-    identityValue: string,
-  ): string {
+  fingerprint(identityType: AuthenticationIdentityType, identityValue: string): string {
     return `fingerprint:${identityType}:${identityValue.toLowerCase()}`;
   }
 }
@@ -422,6 +416,7 @@ function createService(
       repository,
       directory,
       new FakePasswordHasher(),
+      new FakePasswordBlocklist(),
       new FakeSessionTokenService(),
       new FakeFingerprintService(),
       new FixedClock(),
@@ -455,15 +450,9 @@ describe('AuthenticationService', () => {
       password: 'Correct-password-1!',
     });
 
-    expect(repository.credentials.get(invitedAccount.userId)?.status).toBe(
-      'active',
-    );
-    expect(directory.accounts.get(invitedAccount.userId)?.status).toBe(
-      'active',
-    );
-    expect(publisher.events[0]?.name).toBe(
-      'authentication.password_enrolled',
-    );
+    expect(repository.credentials.get(invitedAccount.userId)?.status).toBe('active');
+    expect(directory.accounts.get(invitedAccount.userId)?.status).toBe('active');
+    expect(publisher.events[0]?.name).toBe('authentication.password_enrolled');
   });
 
   it('returns a session token after successful verified login', async () => {
@@ -483,9 +472,7 @@ describe('AuthenticationService', () => {
     expect(result.sessionToken).toBe('plain-session-token');
     expect(result.session.status).toBe('active');
     expect(repository.attempts.at(-1)?.outcome).toBe('succeeded');
-    expect(publisher.events.map((event) => event.name)).toContain(
-      'authentication.login_succeeded',
-    );
+    expect(publisher.events.map((event) => event.name)).toContain('authentication.login_succeeded');
   });
 
   it('locks a known account after the configured failed-attempt threshold', async () => {
@@ -507,13 +494,9 @@ describe('AuthenticationService', () => {
       ).rejects.toMatchObject({ code: 'AUTHENTICATION_FAILED' });
     }
 
-    expect(
-      directory.accounts.get(activeAccount.userId)?.lockedUntil,
-    ).not.toBeNull();
+    expect(directory.accounts.get(activeAccount.userId)?.lockedUntil).not.toBeNull();
     expect(repository.revokedSessionCount).toBe(1);
-    expect(publisher.events.map((event) => event.name)).toContain(
-      'authentication.account_locked',
-    );
+    expect(publisher.events.map((event) => event.name)).toContain('authentication.account_locked');
   });
 
   it('does not reveal whether an unknown identity exists', async () => {
@@ -529,9 +512,7 @@ describe('AuthenticationService', () => {
       code: 'AUTHENTICATION_FAILED',
       message: 'Authentication could not be completed.',
     });
-    expect(repository.attempts[0]?.outcome).toBe(
-      'failed_unknown_identity',
-    );
+    expect(repository.attempts[0]?.outcome).toBe('failed_unknown_identity');
   });
 
   it('invalidates sessions when the account is no longer active', async () => {
@@ -540,10 +521,7 @@ describe('AuthenticationService', () => {
     directory.accounts.set(suspendedAccount.userId, suspendedAccount);
     const activeSession = session();
     repository.sessions.set(activeSession.id, activeSession);
-    repository.sessionHashes.set(
-      'token-hash:plain-session-token',
-      activeSession.id,
-    );
+    repository.sessionHashes.set('token-hash:plain-session-token', activeSession.id);
 
     const result = await service.validateSession('plain-session-token');
 

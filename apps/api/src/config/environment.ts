@@ -1,9 +1,8 @@
 const DEFAULT_HOST = '0.0.0.0';
 const DEFAULT_PORT = 3000;
 const DEFAULT_NODE_ENV = 'development';
-const DEFAULT_AUTH_TOKEN_PEPPER =
-  'development-only-auth-token-pepper-change-before-production';
-const DEFAULT_AUTH_PASSWORD_MINIMUM_LENGTH = 12;
+const DEFAULT_AUTH_TOKEN_PEPPER = 'development-only-auth-token-pepper-change-before-production';
+const DEFAULT_AUTH_PASSWORD_MINIMUM_LENGTH = 15;
 const DEFAULT_AUTH_PASSWORD_MAXIMUM_LENGTH = 128;
 const DEFAULT_AUTH_SESSION_TTL_MINUTES = 480;
 const DEFAULT_AUTH_FAILED_ATTEMPT_WINDOW_MINUTES = 15;
@@ -75,10 +74,7 @@ function parsePort(value: unknown): number {
   }
 
   const normalizedValue = typeof value === 'string' ? value.trim() : value;
-  const port =
-    typeof normalizedValue === 'number'
-      ? normalizedValue
-      : Number(normalizedValue);
+  const port = typeof normalizedValue === 'number' ? normalizedValue : Number(normalizedValue);
 
   if (!Number.isInteger(port) || port < 1 || port > 65_535) {
     throw new Error('PORT must be an integer between 1 and 65535.');
@@ -110,22 +106,14 @@ function parseDatabaseUrl(value: unknown): string | undefined {
     throw new Error('DATABASE_URL must be a valid PostgreSQL connection URL.');
   }
 
-  if (
-    parsedUrl.protocol !== 'postgresql:' &&
-    parsedUrl.protocol !== 'postgres:'
-  ) {
-    throw new Error(
-      'DATABASE_URL must use the postgresql:// or postgres:// protocol.',
-    );
+  if (parsedUrl.protocol !== 'postgresql:' && parsedUrl.protocol !== 'postgres:') {
+    throw new Error('DATABASE_URL must use the postgresql:// or postgres:// protocol.');
   }
 
   return databaseUrl;
 }
 
-function parseAuthenticationPepper(
-  value: unknown,
-  nodeEnvironment: NodeEnvironment,
-): string {
+function parseAuthenticationPepper(value: unknown, nodeEnvironment: NodeEnvironment): string {
   if (value === undefined) {
     if (nodeEnvironment === 'production') {
       throw new Error('AUTH_TOKEN_PEPPER is required in production.');
@@ -157,14 +145,9 @@ function parsePositiveInteger(
     throw new Error(`${name} must be a string or number.`);
   }
   const normalizedValue = typeof value === 'string' ? value.trim() : value;
-  const parsed =
-    typeof normalizedValue === 'number'
-      ? normalizedValue
-      : Number(normalizedValue);
+  const parsed = typeof normalizedValue === 'number' ? normalizedValue : Number(normalizedValue);
   if (!Number.isInteger(parsed) || parsed < 1 || parsed > maximumValue) {
-    throw new Error(
-      `${name} must be an integer between 1 and ${String(maximumValue)}.`,
-    );
+    throw new Error(`${name} must be an integer between 1 and ${String(maximumValue)}.`);
   }
   return parsed;
 }
@@ -198,10 +181,7 @@ export function validateEnvironment(
     HOST: parseHost(configuration.HOST),
     PORT: parsePort(configuration.PORT),
     ...(databaseUrl === undefined ? {} : { DATABASE_URL: databaseUrl }),
-    AUTH_TOKEN_PEPPER: parseAuthenticationPepper(
-      configuration.AUTH_TOKEN_PEPPER,
-      nodeEnvironment,
-    ),
+    AUTH_TOKEN_PEPPER: parseAuthenticationPepper(configuration.AUTH_TOKEN_PEPPER, nodeEnvironment),
     AUTH_PASSWORD_MINIMUM_LENGTH: passwordMinimumLength,
     AUTH_PASSWORD_MAXIMUM_LENGTH: passwordMaximumLength,
     AUTH_SESSION_TTL_MINUTES: parsePositiveInteger(

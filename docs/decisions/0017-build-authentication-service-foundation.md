@@ -80,7 +80,7 @@ Initial password enrollment requires:
 - An existing login identity.
 - Verified identity state.
 - An invited account.
-- A policy-compliant password.
+- A policy-compliant password that is not present on the configured whole-password blocklist.
 - No existing password credential.
 
 Credential creation and duplicate prevention are serialized with a PostgreSQL transaction-scoped advisory lock.
@@ -94,12 +94,13 @@ Identity verification workflows remain deferred. Authentication must not mark an
 The Node adapter uses scrypt with:
 
 - A unique cryptographically random salt per credential.
-- Versioned encoded parameters.
+- An OWASP-aligned minimum profile of N=2^15, r=8, and p=3.
+- Versioned encoded parameters with bounded parser values.
 - Constant-time verification.
 - A dummy derivation path for missing identities and credentials.
 - Automatic rehashing after successful login when parameters change.
 
-Plain-text passwords and password hashes must never appear in logs, events, responses, or audit metadata.
+Plain-text passwords and password hashes must never appear in logs, events, responses, or audit metadata. Single-factor passwords require at least 15 Unicode code points, accept spaces and Unicode, use NFC normalization, and must not be subject to forced character-type composition rules. New passwords are compared as complete values against a blocklist of common, expected, or compromised passwords.
 
 ### 5.4 Login attempts and locking
 
@@ -186,6 +187,7 @@ Public login and session endpoints remain deferred until the following are defin
 - Login attempts add a retention and privacy obligation.
 - Account locking can be abused for denial of service without later IP and risk controls.
 - Password authentication remains only one factor.
+- The baseline blocklist must be replaced or supplemented with a production-scale compromised-password corpus before public endpoints are enabled.
 - Public endpoints require another security-reviewed slice.
 - Scrypt parameters require periodic security review.
 

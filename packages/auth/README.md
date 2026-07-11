@@ -88,7 +88,7 @@ A successful password check does not grant organization access. It produces an a
 
 The Node adapter uses:
 
-- Scrypt password derivation.
+- Scrypt password derivation using an OWASP-aligned minimum work-factor profile.
 - A unique random salt for every password credential.
 - Constant-time comparison.
 - A dummy derivation path when an identity or credential does not exist.
@@ -100,12 +100,14 @@ Plain-text passwords and password hashes are never returned through public contr
 Default password policy:
 
 ```text
-Minimum length: 12
+Minimum length: 15 for single-factor password authentication
 Maximum length: 128
-Requires: letter, number, symbol
+Unicode passwords are normalized with NFC
+No forced character-type composition rules
+Whole-password blocklist comparison is required
 ```
 
-Password policy is configurable through validated application environment values.
+Password length policy is configurable through validated application environment values. The application adapter enforces a baseline blocklist; a production-scale compromised-password corpus remains required before public password endpoints are enabled.
 
 ## Initial password enrollment
 

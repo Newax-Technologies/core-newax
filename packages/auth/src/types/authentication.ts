@@ -1,10 +1,6 @@
 export type AuthenticationIdentityType = 'email' | 'username' | 'phone';
 export type AuthenticationAccountStatus =
-  | 'invited'
-  | 'active'
-  | 'suspended'
-  | 'disabled'
-  | 'archived';
+  'invited' | 'active' | 'suspended' | 'disabled' | 'archived';
 export type CredentialStatus = 'active' | 'disabled' | 'revoked' | 'expired';
 export type SessionStatus = 'active' | 'revoked' | 'expired';
 export type AuthenticationAttemptOutcome =

@@ -1,10 +1,4 @@
-import {
-  createHmac,
-  randomBytes,
-  scrypt,
-  timingSafeEqual,
-  type ScryptOptions,
-} from 'node:crypto';
+import { createHmac, randomBytes, scrypt, timingSafeEqual, type ScryptOptions } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import type {
@@ -133,14 +127,7 @@ export class NodePasswordHasher implements PasswordHasher {
       return null;
     }
 
-    const [
-      prefix,
-      costValue,
-      blockSizeValue,
-      parallelizationValue,
-      saltValue,
-      hashValue,
-    ] = parts;
+    const [prefix, costValue, blockSizeValue, parallelizationValue, saltValue, hashValue] = parts;
     if (
       prefix !== SCRYPT_PREFIX ||
       costValue === undefined ||
@@ -185,9 +172,7 @@ export class NodePasswordHasher implements PasswordHasher {
 abstract class HmacAuthenticationSecurity {
   constructor(private readonly pepper: string) {
     if (pepper.length < 32) {
-      throw new Error(
-        'Authentication token pepper must contain at least 32 characters.',
-      );
+      throw new Error('Authentication token pepper must contain at least 32 characters.');
     }
   }
 
@@ -218,10 +203,7 @@ export class NodeLoginFingerprintService
   extends HmacAuthenticationSecurity
   implements LoginFingerprintService
 {
-  fingerprint(
-    identityType: AuthenticationIdentityType,
-    identityValue: string,
-  ): string {
+  fingerprint(identityType: AuthenticationIdentityType, identityValue: string): string {
     return this.digest(
       'newax-auth-login-fingerprint-v1',
       `${identityType}:${identityValue.trim().toLowerCase()}`,

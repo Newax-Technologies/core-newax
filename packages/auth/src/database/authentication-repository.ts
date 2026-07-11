@@ -18,34 +18,21 @@ export interface AuthenticationRepository {
   createPasswordCredential(
     input: CreatePasswordCredentialInput,
   ): Promise<PasswordCredentialRecord | null>;
-  createSession(
-    input: CreateAuthenticationSessionInput,
-  ): Promise<AuthenticationSessionRecord>;
-  findPasswordCredential(
-    userId: string,
-  ): Promise<PasswordCredentialRecord | null>;
-  findSessionByTokenHash(
-    sessionTokenHash: string,
-  ): Promise<AuthenticationSessionRecord | null>;
+  createSession(input: CreateAuthenticationSessionInput): Promise<AuthenticationSessionRecord>;
+  findPasswordCredential(userId: string): Promise<PasswordCredentialRecord | null>;
+  findSessionByTokenHash(sessionTokenHash: string): Promise<AuthenticationSessionRecord | null>;
   listSessions(
     userId: string,
     query: AuthenticationSessionListQuery,
   ): Promise<AuthenticationSessionPage>;
-  markCredentialUsed(
-    credentialId: string,
-    occurredAt: Date,
-  ): Promise<void>;
+  markCredentialUsed(credentialId: string, occurredAt: Date): Promise<void>;
   recordAttempt(input: RecordAuthenticationAttemptInput): Promise<void>;
   replacePasswordCredential(
     userId: string,
     secretHash: string,
     occurredAt: Date,
   ): Promise<PasswordCredentialRecord>;
-  revokeAllSessions(
-    userId: string,
-    occurredAt: Date,
-    exceptSessionId?: string,
-  ): Promise<number>;
+  revokeAllSessions(userId: string, occurredAt: Date, exceptSessionId?: string): Promise<number>;
   revokeSessionById(
     userId: string,
     sessionId: string,
@@ -60,8 +47,5 @@ export interface AuthenticationRepository {
     status: SessionStatus,
     occurredAt: Date,
   ): Promise<AuthenticationSessionRecord | null>;
-  touchSession(
-    sessionId: string,
-    occurredAt: Date,
-  ): Promise<AuthenticationSessionRecord | null>;
+  touchSession(sessionId: string, occurredAt: Date): Promise<AuthenticationSessionRecord | null>;
 }

@@ -23,10 +23,7 @@ describe('NodePasswordHasher', () => {
   });
 
   it('performs a safe dummy verification for missing hashes', async () => {
-    const result = await new NodePasswordHasher().verifyOrBurn(
-      'Some-password-1!',
-      null,
-    );
+    const result = await new NodePasswordHasher().verifyOrBurn('Some-password-1!', null);
     expect(result).toEqual({ verified: false, needsRehash: false });
   });
 });

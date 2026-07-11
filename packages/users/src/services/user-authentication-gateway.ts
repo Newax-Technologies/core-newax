@@ -1,10 +1,6 @@
 import type { UsersRepository } from '../database/users-repository';
 import { UserModuleError } from '../errors/user-module-error';
-import type {
-  AuthenticationUserRecord,
-  UserIdentityType,
-  UserRecord,
-} from '../types/user';
+import type { AuthenticationUserRecord, UserIdentityType, UserRecord } from '../types/user';
 import { type UserIdentityNormalizer } from './user-identity-normalizer';
 
 export class UserAuthenticationGateway {
@@ -25,10 +21,7 @@ export class UserAuthenticationGateway {
     identityType: UserIdentityType,
     identityValue: string,
   ): Promise<AuthenticationUserRecord | null> {
-    const identity = this.identityNormalizer.normalize(
-      identityType,
-      identityValue,
-    );
+    const identity = this.identityNormalizer.normalize(identityType, identityValue);
     return this.repository.findByNormalizedIdentity(
       identity.identityType,
       identity.normalizedValue,
@@ -50,10 +43,7 @@ export class UserAuthenticationGateway {
     return this.repository.setStatus(user.id, 'active');
   }
 
-  async recordSuccessfulLogin(
-    userId: string,
-    occurredAt: Date,
-  ): Promise<UserRecord> {
+  async recordSuccessfulLogin(userId: string, occurredAt: Date): Promise<UserRecord> {
     const user = await this.requireUser(userId);
     if (user.status !== 'active') {
       throw new UserModuleError(
@@ -67,18 +57,12 @@ export class UserAuthenticationGateway {
       this.requireDate(occurredAt, 'occurredAt'),
     );
     if (updated === null) {
-      throw new UserModuleError(
-        'USER_ACCOUNT_NOT_FOUND',
-        'The user account no longer exists.',
-      );
+      throw new UserModuleError('USER_ACCOUNT_NOT_FOUND', 'The user account no longer exists.');
     }
     return updated;
   }
 
-  async setLockedUntil(
-    userId: string,
-    lockedUntil: Date | null,
-  ): Promise<UserRecord> {
+  async setLockedUntil(userId: string, lockedUntil: Date | null): Promise<UserRecord> {
     const user = await this.requireUser(userId);
     if (user.status === 'archived') {
       throw new UserModuleError(
@@ -88,15 +72,10 @@ export class UserAuthenticationGateway {
     }
     const updated = await this.repository.setLockedUntil(
       user.id,
-      lockedUntil === null
-        ? null
-        : this.requireDate(lockedUntil, 'lockedUntil'),
+      lockedUntil === null ? null : this.requireDate(lockedUntil, 'lockedUntil'),
     );
     if (updated === null) {
-      throw new UserModuleError(
-        'USER_ACCOUNT_NOT_FOUND',
-        'The user account no longer exists.',
-      );
+      throw new UserModuleError('USER_ACCOUNT_NOT_FOUND', 'The user account no longer exists.');
     }
     return updated;
   }
@@ -104,21 +83,14 @@ export class UserAuthenticationGateway {
   private async requireUser(userId: string): Promise<UserRecord> {
     const user = await this.findAccountById(userId);
     if (user === null) {
-      throw new UserModuleError(
-        'USER_ACCOUNT_NOT_FOUND',
-        'The user account does not exist.',
-      );
+      throw new UserModuleError('USER_ACCOUNT_NOT_FOUND', 'The user account does not exist.');
     }
     return user;
   }
 
   private requireDate(value: Date, field: string): Date {
     if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
-      throw new UserModuleError(
-        'USER_INVALID_INPUT',
-        `${field} must be a valid date.`,
-        { field },
-      );
+      throw new UserModuleError('USER_INVALID_INPUT', `${field} must be a valid date.`, { field });
     }
     return new Date(value.getTime());
   }
