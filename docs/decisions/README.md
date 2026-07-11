@@ -41,10 +41,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0015](0015-consolidate-roles-and-permissions-into-access-control.md) | Accepted | Consolidate roles, permissions, membership-role assignments, templates, and evaluation into one Access Control bounded context.                 |
 | [ADR 0016](0016-build-users-registry-service-foundation.md)               | Accepted | Build the global Users Registry service foundation while preserving organization-scoped access through memberships and permissions.             |
 | [ADR 0017](0017-build-authentication-service-foundation.md)               | Accepted | Build credential verification, failed-attempt protection, and revocable sessions without merging Authentication into Users.                     |
+| [ADR 0018](0018-build-trusted-request-context-foundation.md)              | Accepted | Resolve tenant-safe execution context from authenticated sessions, active memberships, organizations, and effective permissions.                |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than seventeen independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than eighteen independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -70,6 +71,7 @@ The ADRs form a deliberate sequence rather than seventeen independent opinions w
 - ADR 0015 consolidates role, permission, assignment, template, and evaluation rules into Access Control.
 - ADR 0016 defines global user accounts, organization-scoped creation, and platform-scoped account lifecycle rules.
 - ADR 0017 defines password verification, failed-attempt protection, and secure account sessions.
+- ADR 0018 defines trusted account and organization execution context without accepting client-declared authority.
 
 ### Implementation Baseline
 
@@ -190,7 +192,7 @@ An ADR does not replace a module README, API documentation, testing evidence, se
 Filename example:
 
 ```text
-0018-define-repository-bootstrap-and-boundary-enforcement.md
+0019-define-repository-bootstrap-and-boundary-enforcement.md
 ```
 
 ## Review Triggers
