@@ -10,6 +10,7 @@ import { DatabaseModule } from '../database/database.module';
 import { UsersModule } from '../users/users.module';
 import { LoggingAuthenticationEventPublisher } from './logging-authentication-event.publisher';
 import {
+  BaselinePasswordBlocklist,
   NodeLoginFingerprintService,
   NodePasswordHasher,
   NodeSessionTokenService,
@@ -25,6 +26,7 @@ import { UsersAuthenticationDirectory } from './users-authentication.directory';
     UsersAuthenticationDirectory,
     LoggingAuthenticationEventPublisher,
     NodePasswordHasher,
+    BaselinePasswordBlocklist,
     SystemAuthenticationClock,
     {
       provide: NodeSessionTokenService,
@@ -52,6 +54,7 @@ import { UsersAuthenticationDirectory } from './users-authentication.directory';
         PrismaAuthenticationRepository,
         UsersAuthenticationDirectory,
         NodePasswordHasher,
+        BaselinePasswordBlocklist,
         NodeSessionTokenService,
         NodeLoginFingerprintService,
         SystemAuthenticationClock,
@@ -62,6 +65,7 @@ import { UsersAuthenticationDirectory } from './users-authentication.directory';
         repository: PrismaAuthenticationRepository,
         userDirectory: UsersAuthenticationDirectory,
         passwordHasher: NodePasswordHasher,
+        passwordBlocklist: BaselinePasswordBlocklist,
         sessionTokenService: NodeSessionTokenService,
         loginFingerprintService: NodeLoginFingerprintService,
         clock: SystemAuthenticationClock,
@@ -72,6 +76,7 @@ import { UsersAuthenticationDirectory } from './users-authentication.directory';
           repository,
           userDirectory,
           passwordHasher,
+          passwordBlocklist,
           sessionTokenService,
           loginFingerprintService,
           clock,
