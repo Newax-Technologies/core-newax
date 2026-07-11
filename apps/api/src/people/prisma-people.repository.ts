@@ -84,44 +84,48 @@ export class PrismaPeopleRepository implements PeopleRepository {
       input.identifierValue,
     ].join('|');
 
-    return this.prisma.$transaction(async (transaction: Prisma.TransactionClient) => {
-      await transaction.$queryRaw`
-        SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
-      `;
+    return this.prisma.$transaction(
+      async (
+        transaction: Prisma.TransactionClient,
+      ): Promise<CreatePersonIdentifierResult> => {
+        await transaction.$queryRaw`
+          SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
+        `;
 
-      const existing = await transaction.corePersonIdentifier.findFirst({
-        where: {
+        const existing = await transaction.corePersonIdentifier.findFirst({
+          where: {
+            identifierType: input.identifierType,
+            identifierValue: input.identifierValue,
+            issuingAuthority: input.issuingAuthority,
+            issuingCountryCode: input.issuingCountryCode,
+          },
+          select: { personId: true },
+        });
+
+        if (existing !== null) {
+          return {
+            status: 'conflict',
+            existingPersonId: existing.personId,
+          };
+        }
+
+        const data: Prisma.CorePersonIdentifierUncheckedCreateInput = {
+          personId: input.personId,
           identifierType: input.identifierType,
           identifierValue: input.identifierValue,
           issuingAuthority: input.issuingAuthority,
           issuingCountryCode: input.issuingCountryCode,
-        },
-        select: { personId: true },
-      });
-
-      if (existing !== null) {
-        return {
-          status: 'conflict',
-          existingPersonId: existing.personId,
+          validFrom: input.validFrom,
+          validUntil: input.validUntil,
         };
-      }
 
-      const data: Prisma.CorePersonIdentifierUncheckedCreateInput = {
-        personId: input.personId,
-        identifierType: input.identifierType,
-        identifierValue: input.identifierValue,
-        issuingAuthority: input.issuingAuthority,
-        issuingCountryCode: input.issuingCountryCode,
-        validFrom: input.validFrom,
-        validUntil: input.validUntil,
-      };
-
-      const record = await transaction.corePersonIdentifier.create({ data });
-      return {
-        status: 'created',
-        identifier: this.mapIdentifier(record),
-      };
-    });
+        const record = await transaction.corePersonIdentifier.create({ data });
+        return {
+          status: 'created',
+          identifier: this.mapIdentifier(record),
+        };
+      },
+    );
   }
 
   async findById(id: string): Promise<PersonRecord | null> {
