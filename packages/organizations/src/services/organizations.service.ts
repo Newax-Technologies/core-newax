@@ -76,13 +76,7 @@ export class OrganizationsService {
       );
     }
 
-    const normalizedQuery: {
-      parentOrganizationId?: string | null;
-      status?: OrganizationListQuery['status'];
-      search?: string;
-      limit: number;
-      afterId?: string;
-    } = { limit };
+    const normalizedQuery: OrganizationListQuery = { limit };
 
     if ('parentOrganizationId' in query) {
       normalizedQuery.parentOrganizationId = query.parentOrganizationId ?? null;
@@ -122,14 +116,7 @@ export class OrganizationsService {
       );
     }
 
-    const update: {
-      parentOrganizationId?: string | null;
-      legalName?: string;
-      displayName?: string;
-      organizationType?: string;
-      registrationNumber?: string | null;
-      taxNumber?: string | null;
-    } = {};
+    const update: UpdateOrganizationRecordInput = {};
 
     if ('parentOrganizationId' in input) {
       const parentOrganizationId = input.parentOrganizationId ?? null;
@@ -185,10 +172,7 @@ export class OrganizationsService {
       );
     }
 
-    const organization = await this.repository.update(
-      organizationId,
-      update as UpdateOrganizationRecordInput,
-    );
+    const organization = await this.repository.update(organizationId, update);
 
     await this.eventPublisher.publish({
       name: 'organization.updated',
