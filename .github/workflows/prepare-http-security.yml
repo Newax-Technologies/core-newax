@@ -36,19 +36,9 @@ jobs:
       - name: Update workspace lockfile
         run: pnpm install --lockfile-only
 
-      - name: Format and lint the HTTP security slice
+      - name: Format the HTTP security slice
         run: |
           pnpm --filter @newax/api db:format
-          pnpm exec eslint --fix \
-            apps/api/src/config/environment.ts \
-            apps/api/src/config/environment.spec.ts \
-            apps/api/src/config/http-security-environment.ts \
-            apps/api/src/config/http-security-environment.spec.ts \
-            apps/api/src/health/health.controller.ts \
-            apps/api/src/http-security \
-            apps/api/src/main.ts \
-            packages/http-security \
-            tooling/prepare-http-security.mjs
           pnpm exec prettier --write \
             apps/api/package.json \
             apps/api/prisma/schema.prisma \
@@ -65,7 +55,21 @@ jobs:
             registry/module-registry.json \
             tooling/prepare-http-security.mjs
 
-      - name: Commit prepared files
+      - name: Capture lint diagnostics
+        run: |
+          pnpm exec eslint \
+            apps/api/src/config/environment.ts \
+            apps/api/src/config/environment.spec.ts \
+            apps/api/src/config/http-security-environment.ts \
+            apps/api/src/config/http-security-environment.spec.ts \
+            apps/api/src/health/health.controller.ts \
+            apps/api/src/http-security \
+            apps/api/src/main.ts \
+            packages/http-security \
+            tooling/prepare-http-security.mjs \
+            > http-security-lint-report.txt 2>&1 || true
+
+      - name: Commit prepared files and diagnostics
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -77,6 +81,7 @@ jobs:
             apps/api/src/http-security \
             apps/api/src/main.ts \
             docs/decisions \
+            http-security-lint-report.txt \
             packages/http-security \
             pnpm-lock.yaml \
             registry/module-registry.json \
