@@ -26,6 +26,10 @@ interface OrganizationDatabaseRecord {
   readonly deletedAt: Date | null;
 }
 
+interface OrganizationParentLookup {
+  readonly parentOrganizationId: string | null;
+}
+
 @Injectable()
 export class PrismaOrganizationRepository implements OrganizationRepository {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
@@ -112,7 +116,10 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     };
   }
 
-  async update(id: string, input: UpdateOrganizationRecordInput): Promise<OrganizationRecord> {
+  async update(
+    id: string,
+    input: UpdateOrganizationRecordInput,
+  ): Promise<OrganizationRecord> {
     const data: Prisma.CoreOrganizationUncheckedUpdateInput = {};
 
     if ('parentOrganizationId' in input) {
@@ -143,7 +150,10 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     return this.mapRecord(record);
   }
 
-  async wouldCreateCycle(organizationId: string, candidateParentId: string): Promise<boolean> {
+  async wouldCreateCycle(
+    organizationId: string,
+    candidateParentId: string,
+  ): Promise<boolean> {
     let currentId: string | null = candidateParentId;
 
     for (let depth = 0; depth < 100 && currentId !== null; depth += 1) {
@@ -151,10 +161,11 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
         return true;
       }
 
-      const current = await this.prisma.coreOrganization.findUnique({
-        where: { id: currentId },
-        select: { parentOrganizationId: true },
-      });
+      const current: OrganizationParentLookup | null =
+        await this.prisma.coreOrganization.findUnique({
+          where: { id: currentId },
+          select: { parentOrganizationId: true },
+        });
 
       if (current === null) {
         return false;
