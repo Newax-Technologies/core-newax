@@ -224,9 +224,15 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
       membership: { organizationId },
     };
 
-    if (query.membershipId !== undefined) where.membershipId = query.membershipId;
-    if (query.roleId !== undefined) where.roleId = query.roleId;
-    if (query.includeRevoked !== true) where.revokedAt = null;
+    if (query.membershipId !== undefined) {
+      where.membershipId = query.membershipId;
+    }
+    if (query.roleId !== undefined) {
+      where.roleId = query.roleId;
+    }
+    if (query.includeRevoked !== true) {
+      where.revokedAt = null;
+    }
 
     const records = await this.prisma.coreMembershipRole.findMany({
       where,
@@ -247,7 +253,9 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
   async listPermissions(query: PermissionListQuery): Promise<PermissionPage> {
     const limit = query.limit ?? 50;
     const where: Prisma.CorePermissionWhereInput = {};
-    if (query.moduleCode !== undefined) where.moduleCode = query.moduleCode;
+    if (query.moduleCode !== undefined) {
+      where.moduleCode = query.moduleCode;
+    }
     where.status = query.status ?? 'active';
     if (query.search !== undefined) {
       where.OR = [
@@ -394,8 +402,12 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
 
   async updateRole(id: string, input: UpdateRoleRecordInput): Promise<RoleRecord> {
     const data: Prisma.CoreRoleUncheckedUpdateInput = {};
-    if (input.name !== undefined) data.name = input.name;
-    if ('description' in input) data.description = input.description ?? null;
+    if (input.name !== undefined) {
+      data.name = input.name;
+    }
+    if ('description' in input) {
+      data.description = input.description ?? null;
+    }
     const record = await this.prisma.coreRole.update({ where: { id }, data });
     return this.mapRole(record);
   }
@@ -472,12 +484,16 @@ export class PrismaAccessControlRepository implements AccessControlRepository {
   }
 
   private mapRoleType(value: string): RoleType {
-    if (value === 'system' || value === 'template' || value === 'organization') return value;
+    if (value === 'system' || value === 'template' || value === 'organization') {
+      return value;
+    }
     throw new Error(`Unsupported role type: ${value}`);
   }
 
   private mapRoleStatus(value: string): RoleStatus {
-    if (value === 'active' || value === 'archived') return value;
+    if (value === 'active' || value === 'archived') {
+      return value;
+    }
     throw new Error(`Unsupported role status: ${value}`);
   }
 }

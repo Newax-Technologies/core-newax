@@ -100,7 +100,9 @@ class FakeAccessControlRepository implements AccessControlRepository {
 
   async archiveRole(id: string): Promise<RoleRecord> {
     const current = this.roles.get(id);
-    if (current === undefined) throw new Error('Missing fake role.');
+    if (current === undefined) {
+      throw new Error('Missing fake role.');
+    }
     const archived = { ...current, status: 'archived' as const };
     this.roles.set(id, archived);
     return archived;
@@ -180,7 +182,9 @@ class FakeAccessControlRepository implements AccessControlRepository {
     revokedAt: Date,
   ): Promise<MembershipRoleAssignmentRecord> {
     const current = this.assignments.get(id);
-    if (current === undefined) throw new Error('Missing fake assignment.');
+    if (current === undefined) {
+      throw new Error('Missing fake assignment.');
+    }
     const revoked = { ...current, revokedByUserId, revokedAt };
     this.assignments.set(id, revoked);
     return revoked;
@@ -199,7 +203,9 @@ class FakeAccessControlRepository implements AccessControlRepository {
 
   async updateRole(id: string, input: UpdateRoleRecordInput): Promise<RoleRecord> {
     const current = this.roles.get(id);
-    if (current === undefined) throw new Error('Missing fake role.');
+    if (current === undefined) {
+      throw new Error('Missing fake role.');
+    }
     const updated = {
       ...current,
       name: input.name ?? current.name,

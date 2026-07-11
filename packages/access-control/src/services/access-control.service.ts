@@ -171,8 +171,12 @@ export class AccessControlService {
     const normalized: Mutable<RoleListQuery> = {
       limit: this.normalizeLimit(query.limit),
     };
-    if (query.roleType !== undefined) normalized.roleType = query.roleType;
-    if (query.status !== undefined) normalized.status = query.status;
+    if (query.roleType !== undefined) {
+      normalized.roleType = query.roleType;
+    }
+    if (query.status !== undefined) {
+      normalized.status = query.status;
+    }
     if (query.search !== undefined && query.search.trim().length > 0) {
       normalized.search = this.requireText(query.search, 'search', 255);
     }
@@ -194,7 +198,9 @@ export class AccessControlService {
       ACCESS_CONTROL_PERMISSIONS.rolesUpdate,
     );
     const update: Mutable<UpdateRoleRecordInput> = {};
-    if (input.name !== undefined) update.name = this.requireText(input.name, 'name', 128);
+    if (input.name !== undefined) {
+      update.name = this.requireText(input.name, 'name', 128);
+    }
     if ('description' in input) {
       update.description = this.normalizeNullableText(input.description, 'description', 2000);
     }
@@ -213,7 +219,9 @@ export class AccessControlService {
       roleId,
       ACCESS_CONTROL_PERMISSIONS.rolesArchive,
     );
-    if (role.status === 'archived') return role;
+    if (role.status === 'archived') {
+      return role;
+    }
     const archived = await this.repository.archiveRole(role.id);
     await this.publishRole('role.archived', context.actorUserId, archived);
     return archived;
@@ -329,7 +337,9 @@ export class AccessControlService {
       );
     }
     await this.requireScopedMembership(assignment.membershipId, organizationId);
-    if (assignment.revokedAt !== null) return assignment;
+    if (assignment.revokedAt !== null) {
+      return assignment;
+    }
 
     const revoked = await this.repository.revokeAssignment(
       assignment.id,
@@ -361,7 +371,9 @@ export class AccessControlService {
     if (query.roleId !== undefined) {
       normalized.roleId = this.requireText(query.roleId, 'roleId', 128);
     }
-    if (query.includeRevoked !== undefined) normalized.includeRevoked = query.includeRevoked;
+    if (query.includeRevoked !== undefined) {
+      normalized.includeRevoked = query.includeRevoked;
+    }
     if (query.afterId !== undefined) {
       normalized.afterId = this.requireText(query.afterId, 'afterId', 128);
     }
@@ -636,7 +648,9 @@ export class AccessControlService {
     field: string,
     maxLength: number,
   ): string | null {
-    if (value == null || value.trim().length === 0) return null;
+    if (value == null || value.trim().length === 0) {
+      return null;
+    }
     return this.requireText(value, field, maxLength);
   }
 }
