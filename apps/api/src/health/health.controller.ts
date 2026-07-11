@@ -5,8 +5,6 @@ import { PublicEndpoint } from '../http-security/http-security.decorators';
 interface HealthResponse {
   readonly status: 'ok';
   readonly service: 'newax-api';
-  readonly timestamp: string;
-  readonly uptimeSeconds: number;
 }
 
 @Controller('health')
@@ -18,8 +16,6 @@ export class HealthController {
     return {
       status: 'ok',
       service: 'newax-api',
-      timestamp: new Date().toISOString(),
-      uptimeSeconds: Math.floor(process.uptime()),
     };
   }
 }
