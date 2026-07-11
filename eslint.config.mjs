@@ -5,7 +5,7 @@ import tseslint from 'typescript-eslint';
 
 const sourceFiles = ['**/*.{js,mjs,cjs,jsx,ts,tsx}'];
 
-export default [
+const config = [
   {
     ignores: [
       '**/node_modules/**',
@@ -91,3 +91,5 @@ export default [
     },
   },
 ];
+
+export default config;
