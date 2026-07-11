@@ -1,7 +1,7 @@
 import type { UsersRepository } from '../database/users-repository';
 import { UserModuleError } from '../errors/user-module-error';
 import type { AuthenticationUserRecord, UserIdentityType, UserRecord } from '../types/user';
-import { UserIdentityNormalizer } from './user-identity-normalizer';
+import { type UserIdentityNormalizer } from './user-identity-normalizer';
 
 export class UserAuthenticationGateway {
   constructor(

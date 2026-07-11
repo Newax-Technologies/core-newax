@@ -10,9 +10,8 @@ import type {
   UserPage,
   UserRecord,
   UserRequestContext,
-  UserStatus,
 } from '../types/user';
-import { UserIdentityNormalizer } from './user-identity-normalizer';
+import { type UserIdentityNormalizer } from './user-identity-normalizer';
 import type { UserReferenceDirectory } from './user-reference-directory';
 
 const DEFAULT_PAGE_SIZE = 50;
