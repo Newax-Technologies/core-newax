@@ -4,6 +4,7 @@ import type {
   ResolveAccountContextInput,
   ResolveOrganizationContextInput,
   TrustedAccountRequestContext,
+  TrustedMembershipRecord,
   TrustedOrganizationRequestContext,
   TrustedSessionRecord,
 } from '../types/request-context';
@@ -17,6 +18,10 @@ import type {
 
 const MAX_SESSION_TOKEN_LENGTH = 512;
 const MAX_IDENTIFIER_LENGTH = 128;
+const MAX_PERMISSION_CODE_LENGTH = 160;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const PERMISSION_CODE_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/u;
 
 export class TrustedRequestContextService {
   constructor(
@@ -41,6 +46,9 @@ export class TrustedRequestContextService {
       throw this.authenticationRequired();
     }
     this.assertSessionIntegrity(session);
+    if (session.expiresAt <= this.requireDate(this.clock.now(), 'resolvedAt')) {
+      throw this.authenticationRequired();
+    }
 
     return Object.freeze({
       scope: 'account',
@@ -56,8 +64,16 @@ export class TrustedRequestContextService {
     input: ResolveOrganizationContextInput,
   ): Promise<TrustedOrganizationRequestContext> {
     const accountContext = await this.resolveAccountContext(input);
-    const membershipId = this.requireIdentifier(input.membershipId, 'membershipId');
-    const membership = await this.membershipDirectory.findMembershipById(membershipId);
+    const membershipId = this.normalizeMembershipId(input.membershipId);
+    const membership = await this.membershipDirectory.findMembershipById(
+      membershipId,
+    );
+
+    if (membership !== null && membership.id !== membershipId) {
+      throw this.integrityFailure(
+        'The membership directory returned a different membership identifier.',
+      );
+    }
 
     if (
       membership === null ||
@@ -65,25 +81,36 @@ export class TrustedRequestContextService {
       membership.membershipStatus !== 'active' ||
       membership.organizationStatus !== 'active'
     ) {
-      throw new RequestContextError(
-        'REQUEST_CONTEXT_MEMBERSHIP_UNAVAILABLE',
-        'The selected membership is unavailable for this authenticated account.',
-      );
+      throw this.membershipUnavailable();
     }
+    this.assertMembershipIntegrity(membership);
 
     const evaluatedAt = this.requireDate(this.clock.now(), 'evaluatedAt');
-    const evaluation = await this.permissionEvaluator.evaluate(membership.id, evaluatedAt);
+    const evaluation = await this.permissionEvaluator.evaluate(
+      membership.id,
+      evaluatedAt,
+    );
 
     if (
       evaluation.membershipId !== membership.id ||
       evaluation.organizationId !== membership.organizationId
     ) {
-      throw new RequestContextError(
-        'REQUEST_CONTEXT_INTEGRITY_FAILURE',
+      throw this.integrityFailure(
         'Permission evaluation did not match the trusted membership boundary.',
       );
     }
-    this.requireDate(evaluation.evaluatedAt, 'permissionEvaluation.evaluatedAt');
+    this.requireDate(
+      evaluation.evaluatedAt,
+      'permissionEvaluation.evaluatedAt',
+    );
+    if (!Array.isArray(evaluation.effectivePermissionCodes)) {
+      throw this.integrityFailure(
+        'Permission evaluation did not return a valid permission collection.',
+      );
+    }
+    const permissionCodes = evaluation.effectivePermissionCodes.map(
+      (permissionCode) => this.requirePermissionCode(permissionCode),
+    );
 
     return Object.freeze({
       scope: 'organization',
@@ -94,48 +121,94 @@ export class TrustedRequestContextService {
       sessionExpiresAt: new Date(accountContext.sessionExpiresAt.getTime()),
       membershipId: membership.id,
       organizationId: membership.organizationId,
-      permissionCodes: new ImmutablePermissionSet(evaluation.effectivePermissionCodes),
+      permissionCodes: new ImmutablePermissionSet(permissionCodes),
       evaluatedAt: new Date(evaluation.evaluatedAt.getTime()),
     });
   }
 
   private assertSessionIntegrity(session: TrustedSessionRecord): void {
-    this.requireIdentifier(session.userId, 'session.userId');
-    this.requireIdentifier(session.personId, 'session.personId');
-    this.requireIdentifier(session.sessionId, 'session.sessionId');
+    this.requireTrustedUuid(session.userId, 'session.userId');
+    this.requireTrustedUuid(session.personId, 'session.personId');
+    this.requireTrustedUuid(session.sessionId, 'session.sessionId');
     this.requireDate(session.expiresAt, 'session.expiresAt');
   }
 
+  private assertMembershipIntegrity(membership: TrustedMembershipRecord): void {
+    this.requireTrustedUuid(membership.id, 'membership.id');
+    this.requireTrustedUuid(membership.personId, 'membership.personId');
+    this.requireTrustedUuid(
+      membership.organizationId,
+      'membership.organizationId',
+    );
+  }
+
   private normalizeSessionToken(token: string): string | null {
-    if (token.length === 0 || token.length > MAX_SESSION_TOKEN_LENGTH || token.trim() !== token) {
+    if (
+      token.length === 0 ||
+      token.length > MAX_SESSION_TOKEN_LENGTH ||
+      token.trim() !== token
+    ) {
       return null;
     }
     return token;
   }
 
+  private normalizeMembershipId(value: string): string {
+    const normalized = value.trim().toLowerCase();
+    if (!UUID_PATTERN.test(normalized)) {
+      throw this.membershipUnavailable();
+    }
+    return normalized;
+  }
+
   private resolveRequestId(requestId: string | undefined): string {
-    return this.requireIdentifier(requestId ?? this.requestIdFactory.issue(), 'requestId');
+    return this.requireIdentifier(
+      requestId ?? this.requestIdFactory.issue(),
+      'requestId',
+    );
   }
 
   private requireIdentifier(value: string, field: string): string {
     const normalized = value.trim();
-    if (normalized.length === 0 || normalized.length > MAX_IDENTIFIER_LENGTH) {
+    if (
+      normalized.length === 0 ||
+      normalized.length > MAX_IDENTIFIER_LENGTH
+    ) {
       throw new RequestContextError(
         'REQUEST_CONTEXT_INVALID_INPUT',
-        `${field} must contain between 1 and ${String(MAX_IDENTIFIER_LENGTH)} characters.`,
+        `${field} must contain between 1 and ${String(
+          MAX_IDENTIFIER_LENGTH,
+        )} characters.`,
         { field },
       );
     }
     return normalized;
   }
 
+  private requirePermissionCode(value: string): string {
+    if (
+      value.length === 0 ||
+      value.length > MAX_PERMISSION_CODE_LENGTH ||
+      value.trim() !== value ||
+      !PERMISSION_CODE_PATTERN.test(value)
+    ) {
+      throw this.integrityFailure(
+        'Permission evaluation returned an invalid permission code.',
+      );
+    }
+    return value;
+  }
+
+  private requireTrustedUuid(value: string, field: string): string {
+    if (!UUID_PATTERN.test(value)) {
+      throw this.integrityFailure(`${field} must be a valid UUID.`);
+    }
+    return value;
+  }
+
   private requireDate(value: Date, field: string): Date {
     if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
-      throw new RequestContextError(
-        'REQUEST_CONTEXT_INTEGRITY_FAILURE',
-        `${field} must be a valid date.`,
-        { field },
-      );
+      throw this.integrityFailure(`${field} must be a valid date.`);
     }
     return value;
   }
@@ -144,6 +217,20 @@ export class TrustedRequestContextService {
     return new RequestContextError(
       'REQUEST_CONTEXT_AUTHENTICATION_REQUIRED',
       'A valid authenticated session is required.',
+    );
+  }
+
+  private membershipUnavailable(): RequestContextError {
+    return new RequestContextError(
+      'REQUEST_CONTEXT_MEMBERSHIP_UNAVAILABLE',
+      'The selected membership is unavailable for this authenticated account.',
+    );
+  }
+
+  private integrityFailure(message: string): RequestContextError {
+    return new RequestContextError(
+      'REQUEST_CONTEXT_INTEGRITY_FAILURE',
+      message,
     );
   }
 }
