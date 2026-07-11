@@ -40,10 +40,9 @@ jobs:
 
       - name: Format changed files
         run: |
-          pnpm exec prisma format --schema apps/api/prisma/schema.prisma
+          pnpm --filter @newax/api db:format
           pnpm exec prettier --write \
             apps/api/package.json \
-            apps/api/prisma/schema.prisma \
             apps/api/src/app.module.ts \
             apps/api/src/authentication \
             apps/api/src/config/environment.ts \
