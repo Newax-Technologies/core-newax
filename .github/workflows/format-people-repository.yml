@@ -1,0 +1,39 @@
+name: Format People Repository
+
+on:
+  push:
+    branches:
+      - agent/people-registry-services
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: ${{ !contains(github.event.head_commit.message, '[skip people format]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/people-registry-services
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec prettier --write apps/api/src/people/prisma-people.repository.ts
+
+      - name: Commit formatted repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/api/src/people/prisma-people.repository.ts
+          git commit -m "Format people repository [skip people format]"
+          git push origin HEAD:agent/people-registry-services
