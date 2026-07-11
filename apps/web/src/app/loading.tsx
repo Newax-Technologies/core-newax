@@ -1,10 +1,12 @@
+import Link from 'next/link';
+
 export default function LoadingPage() {
   return (
     <main className="site-shell" aria-busy="true">
       <header className="site-header">
-        <a className="brand" href="/" aria-label="Return to NEWAX home">
+        <Link className="brand" href="/" aria-label="Return to NEWAX home">
           NEWAX
-        </a>
+        </Link>
         <p>The Business Infrastructure Company.</p>
       </header>
 
