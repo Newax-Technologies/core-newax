@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type { CSSProperties } from 'react';
 
 interface GlobalErrorPageProperties {
@@ -85,9 +86,9 @@ export default function GlobalErrorPage({ error, unstable_retry }: GlobalErrorPa
         <title>Application Error | NEWAX</title>
         <main style={shellStyle}>
           <header style={headerStyle}>
-            <a href="/" style={brandStyle} aria-label="Return to NEWAX home">
+            <Link href="/" style={brandStyle} aria-label="Return to NEWAX home">
               NEWAX
-            </a>
+            </Link>
             <p style={{ margin: 0, color: '#52616e' }}>The Business Infrastructure Company.</p>
           </header>
 
