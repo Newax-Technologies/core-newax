@@ -1,12 +1,15 @@
 import { HttpSecurityError } from '../errors/http-security-error';
-import type { HttpSecurityCrypto } from './http-security-ports';
 import type {
   CsrfValidationInput,
   IssuedCsrfToken,
 } from '../types/http-security';
+import type { HttpSecurityCrypto } from './http-security-ports';
 
 const TOKEN_DOMAIN = 'newax-http-csrf-v1';
 const TOKEN_PART_PATTERN = /^[A-Za-z0-9_-]+$/u;
+const SESSION_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const MAX_TOKEN_LENGTH = 256;
 
 export class SignedCsrfTokenService {
   constructor(private readonly crypto: HttpSecurityCrypto) {}
@@ -27,6 +30,8 @@ export class SignedCsrfTokenService {
     if (
       input.cookieToken === null ||
       input.headerToken === null ||
+      input.cookieToken.length > MAX_TOKEN_LENGTH ||
+      input.headerToken.length > MAX_TOKEN_LENGTH ||
       !this.crypto.equals(input.cookieToken, input.headerToken)
     ) {
       throw this.rejected();
@@ -64,12 +69,12 @@ export class SignedCsrfTokenService {
   }
 
   private requireSessionId(sessionId: string): string {
-    const normalized = sessionId.trim();
-    if (normalized.length === 0 || normalized.length > 128) {
+    const normalized = sessionId.trim().toLowerCase();
+    if (!SESSION_ID_PATTERN.test(normalized)) {
       throw new HttpSecurityError(
         'HTTP_SECURITY_INVALID_INPUT',
-        'sessionId must contain between 1 and 128 characters.',
-        400,
+        'sessionId must be a valid UUID.',
+        500,
       );
     }
     return normalized;
