@@ -46,6 +46,16 @@ describe('validateHttpSecurityEnvironment', () => {
     ).toThrow('HTTP_TRUSTED_PROXY_CIDRS must identify the production TLS proxy network.');
   });
 
+  it('keeps HSTS subdomain coverage opt-in in production', () => {
+    expect(
+      validateHttpSecurityEnvironment(productionBase, 'production'),
+    ).toMatchObject({
+      HTTP_REQUIRE_HTTPS: true,
+      HTTP_HSTS_INCLUDE_SUBDOMAINS: false,
+      HTTP_HSTS_PRELOAD: false,
+    });
+  });
+
   it('requires explicit HTTPS origins and a CSRF secret in production', () => {
     expect(() =>
       validateHttpSecurityEnvironment(
