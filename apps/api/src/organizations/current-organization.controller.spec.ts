@@ -5,10 +5,7 @@ import type {
   CurrentOrganizationRequestContext,
   OrganizationsService,
 } from '@newax/organizations';
-import {
-  ContextAuthorizer,
-  type TrustedOrganizationRequestContext,
-} from '@newax/request-context';
+import { ContextAuthorizer, type TrustedOrganizationRequestContext } from '@newax/request-context';
 
 import type { HttpSecurityRequestAdapter } from '../http-security/http-security-request';
 import { CurrentOrganizationController } from './current-organization.controller';
@@ -53,9 +50,7 @@ class FakeOrganizationsService {
   }
 }
 
-function request(
-  context?: TrustedOrganizationRequestContext,
-): HttpSecurityRequestAdapter {
+function request(context?: TrustedOrganizationRequestContext): HttpSecurityRequestAdapter {
   return {
     method: 'GET',
     headers: {},

@@ -18,9 +18,7 @@ const ACTOR_USER_ID = '00000000-0000-4000-8000-000000000099';
 const CREATED_AT = new Date('2026-07-01T00:00:00.000Z');
 const UPDATED_AT = new Date('2026-07-10T00:00:00.000Z');
 
-function organization(
-  overrides: Partial<OrganizationRecord> = {},
-): OrganizationRecord {
+function organization(overrides: Partial<OrganizationRecord> = {}): OrganizationRecord {
   return {
     id: ORGANIZATION_ID,
     parentOrganizationId: null,
@@ -50,9 +48,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
     throw new Error('Not implemented in this test.');
   }
 
-  async create(
-    _input: CreateOrganizationRecordInput,
-  ): Promise<OrganizationRecord> {
+  async create(_input: CreateOrganizationRecordInput): Promise<OrganizationRecord> {
     throw new Error('Not implemented in this test.');
   }
 
@@ -64,10 +60,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
     throw new Error('Not implemented in this test.');
   }
 
-  async update(
-    _id: string,
-    _input: UpdateOrganizationRecordInput,
-  ): Promise<OrganizationRecord> {
+  async update(_id: string, _input: UpdateOrganizationRecordInput): Promise<OrganizationRecord> {
     throw new Error('Not implemented in this test.');
   }
 
@@ -80,9 +73,7 @@ class NoopEventPublisher implements OrganizationEventPublisher {
   async publish(): Promise<void> {}
 }
 
-function context(
-  ...permissionCodes: readonly string[]
-): CurrentOrganizationRequestContext {
+function context(...permissionCodes: readonly string[]): CurrentOrganizationRequestContext {
   return {
     actorUserId: ACTOR_USER_ID,
     organizationId: ORGANIZATION_ID,
@@ -93,14 +84,9 @@ function context(
 describe('OrganizationsService.getCurrent', () => {
   it('returns a bounded active organization profile from trusted context', async () => {
     const repository = new FakeOrganizationRepository();
-    const service = new OrganizationsService(
-      repository,
-      new NoopEventPublisher(),
-    );
+    const service = new OrganizationsService(repository, new NoopEventPublisher());
 
-    const result = await service.getCurrent(
-      context(ORGANIZATION_PERMISSIONS.view),
-    );
+    const result = await service.getCurrent(context(ORGANIZATION_PERMISSIONS.view));
 
     expect(repository.requestedId).toBe(ORGANIZATION_ID);
     expect(result).toEqual({
@@ -121,10 +107,7 @@ describe('OrganizationsService.getCurrent', () => {
 
   it('normalizes the trusted organization identifier before lookup', async () => {
     const repository = new FakeOrganizationRepository();
-    const service = new OrganizationsService(
-      repository,
-      new NoopEventPublisher(),
-    );
+    const service = new OrganizationsService(repository, new NoopEventPublisher());
 
     await service.getCurrent({
       ...context(ORGANIZATION_PERMISSIONS.view),
@@ -152,10 +135,7 @@ describe('OrganizationsService.getCurrent', () => {
     ]) {
       const repository = new FakeOrganizationRepository();
       repository.record = record;
-      const service = new OrganizationsService(
-        repository,
-        new NoopEventPublisher(),
-      );
+      const service = new OrganizationsService(repository, new NoopEventPublisher());
 
       await expect(
         service.getCurrent(context(ORGANIZATION_PERMISSIONS.view)),
@@ -168,14 +148,11 @@ describe('OrganizationsService.getCurrent', () => {
     repository.record = organization({
       id: '00000000-0000-4000-8000-000000000002',
     });
-    const service = new OrganizationsService(
-      repository,
-      new NoopEventPublisher(),
-    );
+    const service = new OrganizationsService(repository, new NoopEventPublisher());
 
-    await expect(
-      service.getCurrent(context(ORGANIZATION_PERMISSIONS.view)),
-    ).rejects.toMatchObject({ code: 'ORGANIZATION_INTEGRITY_FAILURE' });
+    await expect(service.getCurrent(context(ORGANIZATION_PERMISSIONS.view))).rejects.toMatchObject({
+      code: 'ORGANIZATION_INTEGRITY_FAILURE',
+    });
   });
 
   it('rejects invalid organization timestamps', async () => {
@@ -184,13 +161,10 @@ describe('OrganizationsService.getCurrent', () => {
       createdAt: UPDATED_AT,
       updatedAt: CREATED_AT,
     });
-    const service = new OrganizationsService(
-      repository,
-      new NoopEventPublisher(),
-    );
+    const service = new OrganizationsService(repository, new NoopEventPublisher());
 
-    await expect(
-      service.getCurrent(context(ORGANIZATION_PERMISSIONS.view)),
-    ).rejects.toMatchObject({ code: 'ORGANIZATION_INTEGRITY_FAILURE' });
+    await expect(service.getCurrent(context(ORGANIZATION_PERMISSIONS.view))).rejects.toMatchObject({
+      code: 'ORGANIZATION_INTEGRITY_FAILURE',
+    });
   });
 });

@@ -19,8 +19,7 @@ import { PrismaOrganizationRepository } from './prisma-organization.repository';
       useFactory: (
         repository: PrismaOrganizationRepository,
         eventPublisher: LoggingOrganizationEventPublisher,
-      ): OrganizationsService =>
-        new OrganizationsService(repository, eventPublisher),
+      ): OrganizationsService => new OrganizationsService(repository, eventPublisher),
     },
   ],
   exports: [OrganizationsService],

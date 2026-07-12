@@ -1,13 +1,7 @@
 import { Controller, Get, Header, Inject, Query, Req } from '@nestjs/common';
 import { HttpSecurityError } from '@newax/http-security';
-import {
-  ORGANIZATION_PERMISSIONS,
-  OrganizationsService,
-} from '@newax/organizations';
-import {
-  ContextAuthorizer,
-  type TrustedOrganizationRequestContext,
-} from '@newax/request-context';
+import { ORGANIZATION_PERMISSIONS, OrganizationsService } from '@newax/organizations';
+import { ContextAuthorizer, type TrustedOrganizationRequestContext } from '@newax/request-context';
 
 import {
   OrganizationContextEndpoint,

@@ -19,8 +19,7 @@ import type {
 
 const DEFAULT_PAGE_SIZE = 50;
 const MAX_PAGE_SIZE = 100;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 type Mutable<T> = {
   -readonly [Key in keyof T]: T[Key];
@@ -73,10 +72,7 @@ export class OrganizationsService {
     context: CurrentOrganizationRequestContext,
   ): Promise<CurrentOrganizationProfile> {
     this.requirePermission(context, ORGANIZATION_PERMISSIONS.view);
-    const organizationId = this.requireUuid(
-      context.organizationId,
-      'organizationId',
-    );
+    const organizationId = this.requireUuid(context.organizationId, 'organizationId');
     const organization = await this.repository.findById(organizationId);
 
     if (
@@ -90,10 +86,7 @@ export class OrganizationsService {
       );
     }
 
-    const persistedId = this.requireUuid(
-      organization.id,
-      'organization.id',
-    );
+    const persistedId = this.requireUuid(organization.id, 'organization.id');
     if (persistedId !== organizationId) {
       throw new OrganizationModuleError(
         'ORGANIZATION_INTEGRITY_FAILURE',
@@ -101,14 +94,8 @@ export class OrganizationsService {
       );
     }
 
-    const createdAt = this.requireDate(
-      organization.createdAt,
-      'organization.createdAt',
-    );
-    const updatedAt = this.requireDate(
-      organization.updatedAt,
-      'organization.updatedAt',
-    );
+    const createdAt = this.requireDate(organization.createdAt, 'organization.createdAt');
+    const updatedAt = this.requireDate(organization.updatedAt, 'organization.updatedAt');
     if (updatedAt.getTime() < createdAt.getTime()) {
       throw new OrganizationModuleError(
         'ORGANIZATION_INTEGRITY_FAILURE',
@@ -118,11 +105,7 @@ export class OrganizationsService {
 
     return Object.freeze({
       id: persistedId,
-      legalName: this.requireStoredText(
-        organization.legalName,
-        'organization.legalName',
-        255,
-      ),
+      legalName: this.requireStoredText(organization.legalName, 'organization.legalName', 255),
       displayName: this.requireStoredText(
         organization.displayName,
         'organization.displayName',
@@ -157,8 +140,7 @@ export class OrganizationsService {
     const normalizedQuery: Mutable<OrganizationListQuery> = { limit };
 
     if ('parentOrganizationId' in query) {
-      normalizedQuery.parentOrganizationId =
-        query.parentOrganizationId ?? null;
+      normalizedQuery.parentOrganizationId = query.parentOrganizationId ?? null;
     }
 
     if (query.status !== undefined) {
@@ -173,10 +155,7 @@ export class OrganizationsService {
     }
 
     if (query.afterId !== undefined) {
-      normalizedQuery.afterId = this.requireText(
-        query.afterId,
-        'afterId',
-      );
+      normalizedQuery.afterId = this.requireText(query.afterId, 'afterId');
     }
 
     return this.repository.list(normalizedQuery);
@@ -215,10 +194,7 @@ export class OrganizationsService {
 
       if (
         parentOrganizationId !== null &&
-        (await this.repository.wouldCreateCycle(
-          organizationId,
-          parentOrganizationId,
-        ))
+        (await this.repository.wouldCreateCycle(organizationId, parentOrganizationId))
       ) {
         throw new OrganizationModuleError(
           'ORGANIZATION_HIERARCHY_CYCLE',
@@ -235,23 +211,15 @@ export class OrganizationsService {
     }
 
     if (input.displayName !== undefined) {
-      update.displayName = this.requireText(
-        input.displayName,
-        'displayName',
-      );
+      update.displayName = this.requireText(input.displayName, 'displayName');
     }
 
     if (input.organizationType !== undefined) {
-      update.organizationType = this.requireText(
-        input.organizationType,
-        'organizationType',
-      );
+      update.organizationType = this.requireText(input.organizationType, 'organizationType');
     }
 
     if ('registrationNumber' in input) {
-      update.registrationNumber = this.normalizeNullableText(
-        input.registrationNumber,
-      );
+      update.registrationNumber = this.normalizeNullableText(input.registrationNumber);
     }
 
     if ('taxNumber' in input) {
@@ -265,10 +233,7 @@ export class OrganizationsService {
       );
     }
 
-    const organization = await this.repository.update(
-      organizationId,
-      update,
-    );
+    const organization = await this.repository.update(organizationId, update);
 
     await this.eventPublisher.publish({
       name: 'organization.updated',
@@ -300,10 +265,7 @@ export class OrganizationsService {
       );
     }
 
-    const organization = await this.repository.archive(
-      organizationId,
-      new Date(),
-    );
+    const organization = await this.repository.archive(organizationId, new Date());
 
     await this.eventPublisher.publish({
       name: 'organization.archived',
@@ -336,9 +298,7 @@ export class OrganizationsService {
     }
   }
 
-  private async requireOrganization(
-    organizationId: string,
-  ): Promise<OrganizationRecord> {
+  private async requireOrganization(organizationId: string): Promise<OrganizationRecord> {
     const id = this.requireText(organizationId, 'organizationId');
     const organization = await this.repository.findById(id);
 
@@ -353,9 +313,7 @@ export class OrganizationsService {
     return organization;
   }
 
-  private async validateParent(
-    parentOrganizationId: string | null,
-  ): Promise<void> {
+  private async validateParent(parentOrganizationId: string | null): Promise<void> {
     if (parentOrganizationId === null) {
       return;
     }
@@ -393,21 +351,14 @@ export class OrganizationsService {
     return normalized;
   }
 
-  private requireStoredText(
-    value: string,
-    field: string,
-    maximumLength: number,
-  ): string {
+  private requireStoredText(value: string, field: string, maximumLength: number): string {
     if (
       typeof value !== 'string' ||
       value.length === 0 ||
       value.length > maximumLength ||
       value.trim() !== value
     ) {
-      throw new OrganizationModuleError(
-        'ORGANIZATION_INTEGRITY_FAILURE',
-        `${field} is invalid.`,
-      );
+      throw new OrganizationModuleError('ORGANIZATION_INTEGRITY_FAILURE', `${field} is invalid.`);
     }
     return value;
   }
@@ -436,9 +387,7 @@ export class OrganizationsService {
     return normalized;
   }
 
-  private normalizeNullableText(
-    value: string | null | undefined,
-  ): string | null {
+  private normalizeNullableText(value: string | null | undefined): string | null {
     if (value === null || value === undefined) {
       return null;
     }
