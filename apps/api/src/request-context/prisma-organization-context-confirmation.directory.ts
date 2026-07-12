@@ -23,9 +23,7 @@ interface OrganizationContextDatabaseRecord {
 }
 
 @Injectable()
-export class PrismaOrganizationContextConfirmationDirectory
-  implements OrganizationContextConfirmationDirectory
-{
+export class PrismaOrganizationContextConfirmationDirectory implements OrganizationContextConfirmationDirectory {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async findConfirmationRecord(
@@ -78,9 +76,7 @@ export class PrismaOrganizationContextConfirmationDirectory
       organizationId: record.organizationId,
       organizationDisplayName: record.organization.displayName,
       organizationType: record.organization.organizationType,
-      organizationStatus: this.mapOrganizationStatus(
-        record.organization.status,
-      ),
+      organizationStatus: this.mapOrganizationStatus(record.organization.status),
       membershipType: record.membershipType,
       membershipStatus: this.mapMembershipStatus(record.status),
       jobTitle: record.jobTitle,

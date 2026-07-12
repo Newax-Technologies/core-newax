@@ -75,16 +75,11 @@ export class OrganizationContextConfirmationService {
       );
     }
 
-    if (
-      validated.membershipStatus !== 'active' ||
-      validated.organizationStatus !== 'active'
-    ) {
+    if (validated.membershipStatus !== 'active' || validated.organizationStatus !== 'active') {
       throw this.membershipUnavailable();
     }
 
-    const capabilities = Object.freeze(
-      this.summarizeCapabilities(context.permissionCodes),
-    );
+    const capabilities = Object.freeze(this.summarizeCapabilities(context.permissionCodes));
 
     return Object.freeze({
       membershipId: validated.membershipId,
@@ -99,9 +94,7 @@ export class OrganizationContextConfirmationService {
     });
   }
 
-  private assertOrganizationContext(
-    context: TrustedOrganizationRequestContext,
-  ): {
+  private assertOrganizationContext(context: TrustedOrganizationRequestContext): {
     readonly personId: string;
     readonly membershipId: string;
     readonly organizationId: string;
@@ -117,37 +110,21 @@ export class OrganizationContextConfirmationService {
     this.requireUuid(context.userId, 'context.userId');
     const personId = this.requireUuid(context.personId, 'context.personId');
     this.requireUuid(context.sessionId, 'context.sessionId');
-    const membershipId = this.requireUuid(
-      context.membershipId,
-      'context.membershipId',
-    );
-    const organizationId = this.requireUuid(
-      context.organizationId,
-      'context.organizationId',
-    );
+    const membershipId = this.requireUuid(context.membershipId, 'context.membershipId');
+    const organizationId = this.requireUuid(context.organizationId, 'context.organizationId');
     this.requireText(context.requestId, 'context.requestId', 128);
-    const sessionExpiresAt = this.requireDate(
-      context.sessionExpiresAt,
-      'context.sessionExpiresAt',
-    );
-    const evaluatedAt = this.requireDate(
-      context.evaluatedAt,
-      'context.evaluatedAt',
-    );
+    const sessionExpiresAt = this.requireDate(context.sessionExpiresAt, 'context.sessionExpiresAt');
+    const evaluatedAt = this.requireDate(context.evaluatedAt, 'context.evaluatedAt');
 
     if (evaluatedAt.getTime() > sessionExpiresAt.getTime()) {
-      throw this.integrityFailure(
-        'Permission evaluation cannot occur after session expiry.',
-      );
+      throw this.integrityFailure('Permission evaluation cannot occur after session expiry.');
     }
     if (
       context.permissionCodes === null ||
       typeof context.permissionCodes !== 'object' ||
       typeof context.permissionCodes.has !== 'function'
     ) {
-      throw this.integrityFailure(
-        'Organization context did not contain a valid permission set.',
-      );
+      throw this.integrityFailure('Organization context did not contain a valid permission set.');
     }
 
     return {
@@ -163,15 +140,9 @@ export class OrganizationContextConfirmationService {
     record: OrganizationContextConfirmationRecord,
   ): OrganizationContextConfirmationRecord {
     return {
-      membershipId: this.requireUuid(
-        record.membershipId,
-        'confirmation.membershipId',
-      ),
+      membershipId: this.requireUuid(record.membershipId, 'confirmation.membershipId'),
       personId: this.requireUuid(record.personId, 'confirmation.personId'),
-      organizationId: this.requireUuid(
-        record.organizationId,
-        'confirmation.organizationId',
-      ),
+      organizationId: this.requireUuid(record.organizationId, 'confirmation.organizationId'),
       organizationDisplayName: this.requireText(
         record.organizationDisplayName,
         'confirmation.organizationDisplayName',
@@ -182,22 +153,10 @@ export class OrganizationContextConfirmationService {
         'confirmation.organizationType',
         64,
       ),
-      organizationStatus: this.requireOrganizationStatus(
-        record.organizationStatus,
-      ),
-      membershipType: this.requireText(
-        record.membershipType,
-        'confirmation.membershipType',
-        64,
-      ),
-      membershipStatus: this.requireMembershipStatus(
-        record.membershipStatus,
-      ),
-      jobTitle: this.requireNullableText(
-        record.jobTitle,
-        'confirmation.jobTitle',
-        128,
-      ),
+      organizationStatus: this.requireOrganizationStatus(record.organizationStatus),
+      membershipType: this.requireText(record.membershipType, 'confirmation.membershipType', 64),
+      membershipStatus: this.requireMembershipStatus(record.membershipStatus),
+      jobTitle: this.requireNullableText(record.jobTitle, 'confirmation.jobTitle', 128),
     };
   }
 
@@ -206,34 +165,19 @@ export class OrganizationContextConfirmationService {
   ): OrganizationContextCapabilitySummary {
     return {
       organizationView: permissions.has('organizations.view'),
-      organizationManage: this.hasAny(
-        permissions,
-        ORGANIZATION_MANAGE_PERMISSIONS,
-      ),
+      organizationManage: this.hasAny(permissions, ORGANIZATION_MANAGE_PERMISSIONS),
       peopleView: permissions.has('people.view'),
       peopleManage: this.hasAny(permissions, PEOPLE_MANAGE_PERMISSIONS),
       membershipsView: permissions.has('memberships.view'),
-      membershipsManage: this.hasAny(
-        permissions,
-        MEMBERSHIP_MANAGE_PERMISSIONS,
-      ),
+      membershipsManage: this.hasAny(permissions, MEMBERSHIP_MANAGE_PERMISSIONS),
       usersView: this.hasAny(permissions, USER_VIEW_PERMISSIONS),
       usersManage: this.hasAny(permissions, USER_MANAGE_PERMISSIONS),
-      accessControlView: this.hasAny(
-        permissions,
-        ACCESS_CONTROL_VIEW_PERMISSIONS,
-      ),
-      accessControlManage: this.hasAny(
-        permissions,
-        ACCESS_CONTROL_MANAGE_PERMISSIONS,
-      ),
+      accessControlView: this.hasAny(permissions, ACCESS_CONTROL_VIEW_PERMISSIONS),
+      accessControlManage: this.hasAny(permissions, ACCESS_CONTROL_MANAGE_PERMISSIONS),
     };
   }
 
-  private hasAny(
-    permissions: ReadonlySet<string>,
-    required: readonly string[],
-  ): boolean {
+  private hasAny(permissions: ReadonlySet<string>, required: readonly string[]): boolean {
     return required.some((permission) => permissions.has(permission));
   }
 
@@ -241,20 +185,14 @@ export class OrganizationContextConfirmationService {
     if (value === 'active' || value === 'suspended' || value === 'ended') {
       return value;
     }
-    throw this.integrityFailure(
-      'confirmation.membershipStatus is invalid.',
-    );
+    throw this.integrityFailure('confirmation.membershipStatus is invalid.');
   }
 
-  private requireOrganizationStatus(
-    value: string,
-  ): TrustedOrganizationStatus {
+  private requireOrganizationStatus(value: string): TrustedOrganizationStatus {
     if (value === 'active' || value === 'suspended' || value === 'archived') {
       return value;
     }
-    throw this.integrityFailure(
-      'confirmation.organizationStatus is invalid.',
-    );
+    throw this.integrityFailure('confirmation.organizationStatus is invalid.');
   }
 
   private requireUuid(value: string, field: string): string {
@@ -264,11 +202,7 @@ export class OrganizationContextConfirmationService {
     return value.toLowerCase();
   }
 
-  private requireText(
-    value: string,
-    field: string,
-    maximumLength: number,
-  ): string {
+  private requireText(value: string, field: string, maximumLength: number): string {
     if (
       typeof value !== 'string' ||
       value.length === 0 ||
@@ -285,9 +219,7 @@ export class OrganizationContextConfirmationService {
     field: string,
     maximumLength: number,
   ): string | null {
-    return value === null
-      ? null
-      : this.requireText(value, field, maximumLength);
+    return value === null ? null : this.requireText(value, field, maximumLength);
   }
 
   private requireDate(value: Date, field: string): Date {

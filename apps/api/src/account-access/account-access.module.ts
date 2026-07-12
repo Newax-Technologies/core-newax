@@ -6,9 +6,6 @@ import { OrganizationContextController } from './organization-context.controller
 
 @Module({
   imports: [RequestContextModule],
-  controllers: [
-    AccountMembershipsController,
-    OrganizationContextController,
-  ],
+  controllers: [AccountMembershipsController, OrganizationContextController],
 })
 export class AccountAccessModule {}

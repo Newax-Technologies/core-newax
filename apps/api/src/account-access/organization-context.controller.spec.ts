@@ -60,9 +60,7 @@ class FakeConfirmationService {
   }
 }
 
-function request(
-  context?: TrustedOrganizationRequestContext,
-): HttpSecurityRequestAdapter {
+function request(context?: TrustedOrganizationRequestContext): HttpSecurityRequestAdapter {
   return {
     method: 'GET',
     headers: {},

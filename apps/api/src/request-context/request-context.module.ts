@@ -37,8 +37,7 @@ import { PrismaTrustedMembershipDirectory } from './prisma-trusted-membership.di
       inject: [PrismaAccountMembershipDiscoveryDirectory],
       useFactory: (
         directory: PrismaAccountMembershipDiscoveryDirectory,
-      ): AccountMembershipDiscoveryService =>
-        new AccountMembershipDiscoveryService(directory),
+      ): AccountMembershipDiscoveryService => new AccountMembershipDiscoveryService(directory),
     },
     {
       provide: OrganizationContextConfirmationService,

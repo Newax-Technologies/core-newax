@@ -53,9 +53,7 @@ function record(
 class FakeDirectory implements OrganizationContextConfirmationDirectory {
   membershipId: string | null = null;
 
-  constructor(
-    private readonly result: OrganizationContextConfirmationRecord | null,
-  ) {}
+  constructor(private readonly result: OrganizationContextConfirmationRecord | null) {}
 
   async findConfirmationRecord(
     membershipId: string,
@@ -121,9 +119,7 @@ describe('OrganizationContextConfirmationService', () => {
 
   it('fails closed when confirmation no longer exists or becomes inactive', async () => {
     await expect(
-      new OrganizationContextConfirmationService(
-        new FakeDirectory(null),
-      ).confirm(CONTEXT),
+      new OrganizationContextConfirmationService(new FakeDirectory(null)).confirm(CONTEXT),
     ).rejects.toMatchObject({
       code: 'REQUEST_CONTEXT_MEMBERSHIP_UNAVAILABLE',
     });
@@ -139,9 +135,7 @@ describe('OrganizationContextConfirmationService', () => {
 
   it('rejects records outside the trusted person or organization boundary', async () => {
     const service = new OrganizationContextConfirmationService(
-      new FakeDirectory(
-        record({ personId: '00000000-0000-4000-8000-000000000099' }),
-      ),
+      new FakeDirectory(record({ personId: '00000000-0000-4000-8000-000000000099' })),
     );
 
     await expect(service.confirm(CONTEXT)).rejects.toMatchObject({

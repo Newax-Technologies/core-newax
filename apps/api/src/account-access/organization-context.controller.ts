@@ -72,8 +72,7 @@ export class OrganizationContextController {
           job_title: result.jobTitle,
         },
         session_expires_at: result.sessionExpiresAt.toISOString(),
-        permissions_evaluated_at:
-          result.permissionsEvaluatedAt.toISOString(),
+        permissions_evaluated_at: result.permissionsEvaluatedAt.toISOString(),
         capabilities: {
           organization_view: result.capabilities.organizationView,
           organization_manage: result.capabilities.organizationManage,
