@@ -43,10 +43,6 @@ async function bootstrap(): Promise<void> {
     limit: bodyLimitBytes,
     strict: true,
   });
-  app.useBodyParser('urlencoded', false, {
-    limit: bodyLimitBytes,
-    extended: false,
-  });
 
   app.enableCors({
     origin: (
