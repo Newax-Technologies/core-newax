@@ -1,3 +1,5 @@
+import { URL } from 'node:url';
+
 import { HttpSecurityError } from '../errors/http-security-error';
 import type { HttpSecurityMethod, HttpSecurityRequest } from '../types/http-security';
 
