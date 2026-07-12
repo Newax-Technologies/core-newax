@@ -37,10 +37,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0011](0011-define-technology-stack-and-implementation-baseline.md) | Accepted | Use the TypeScript, Node.js, pnpm, NestJS, Next.js, PostgreSQL, Prisma, Vitest, Playwright, Docker, and GitHub Actions implementation baseline. |
 | [ADR 0012](0012-implement-central-registry-data-foundation.md)          | Accepted | Implement the first Prisma Central Registry foundation while keeping domain transactions outside the registry.                                  |
 | [ADR 0013](0013-build-people-registry-service-foundation.md)            | Accepted | Build the reusable People Registry service foundation with permission-controlled identity and identifier operations.                            |
+| [ADR 0014](0014-build-memberships-registry-service-foundation.md)       | Accepted | Build the organization-scoped Memberships Registry service foundation connecting people to organizations.                                       |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than thirteen independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than fourteen independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -62,6 +63,7 @@ The ADRs form a deliberate sequence rather than thirteen independent opinions wa
 - ADR 0009 defines module registration, lifecycle, and dependency rules.
 - ADR 0012 defines the first executable Central Registry persistence foundation and preserves domain transaction ownership.
 - ADR 0013 defines the first reusable People Registry service and identifier-protection rules.
+- ADR 0014 defines organization-scoped memberships and non-destructive membership lifecycle rules.
 
 ### Implementation Baseline
 
@@ -182,7 +184,7 @@ An ADR does not replace a module README, API documentation, testing evidence, se
 Filename example:
 
 ```text
-0014-define-repository-bootstrap-and-boundary-enforcement.md
+0015-define-repository-bootstrap-and-boundary-enforcement.md
 ```
 
 ## Review Triggers
