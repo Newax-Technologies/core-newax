@@ -1,4 +1,5 @@
 import type {
+  AccountMembershipDirectoryPage,
   TrustedMembershipRecord,
   TrustedPermissionEvaluation,
   TrustedSessionRecord,
@@ -10,6 +11,14 @@ export interface TrustedSessionValidator {
 
 export interface TrustedMembershipDirectory {
   findMembershipById(membershipId: string): Promise<TrustedMembershipRecord | null>;
+}
+
+export interface AccountMembershipDirectory {
+  listAvailableMemberships(
+    personId: string,
+    offset: number,
+    limit: number,
+  ): Promise<AccountMembershipDirectoryPage>;
 }
 
 export interface TrustedPermissionEvaluator {
