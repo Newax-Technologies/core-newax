@@ -175,6 +175,28 @@ describe('AuthenticationHttpController', () => {
     );
   });
 
+  it('rejects logout bodies before revoking the cookie session', async () => {
+    const authentication = new FakeAuthenticationService();
+    const controller = createController(authentication);
+
+    await expect(
+      controller.logout(
+        request({
+          method: 'POST',
+          newaxHasBody: true,
+          headers: {
+            cookie: '__Host-newax_session=opaque-session-token; __Host-newax_csrf=csrf-token',
+          },
+        }),
+        new FakeResponse(),
+      ),
+    ).rejects.toMatchObject({
+      code: 'HTTP_SECURITY_INVALID_INPUT',
+      statusCode: 400,
+    });
+    expect(authentication.logoutToken).toBeNull();
+  });
+
   it('revokes the cookie session and clears both browser cookies', async () => {
     const authentication = new FakeAuthenticationService();
     const controller = createController(authentication);
