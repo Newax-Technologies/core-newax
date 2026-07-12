@@ -1,0 +1,74 @@
+name: Format Organization Context Confirmation
+
+on:
+  push:
+    branches:
+      - agent/organization-context-confirmation
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: ${{ !contains(github.event.head_commit.message, '[skip organization context formatter]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/organization-context-confirmation
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Apply repository formatter
+        run: |
+          pnpm exec prettier --write \
+            apps/api/src/account-access/account-access.module.ts \
+            apps/api/src/account-access/organization-context.controller.ts \
+            apps/api/src/account-access/organization-context.controller.spec.ts \
+            apps/api/src/request-context/prisma-organization-context-confirmation.directory.ts \
+            apps/api/src/request-context/request-context.module.ts \
+            docs/decisions/0022-build-organization-context-confirmation.md \
+            docs/decisions/README.md \
+            packages/request-context/CHANGELOG.md \
+            packages/request-context/README.md \
+            packages/request-context/src/index.ts \
+            packages/request-context/src/services/organization-context-confirmation.service.ts \
+            packages/request-context/src/services/request-context-ports.ts \
+            packages/request-context/src/types/request-context.ts \
+            packages/request-context/tests/organization-context-confirmation.service.spec.ts
+
+      - name: Commit formatted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            apps/api/src/account-access/account-access.module.ts \
+            apps/api/src/account-access/organization-context.controller.ts \
+            apps/api/src/account-access/organization-context.controller.spec.ts \
+            apps/api/src/request-context/prisma-organization-context-confirmation.directory.ts \
+            apps/api/src/request-context/request-context.module.ts \
+            docs/decisions/0022-build-organization-context-confirmation.md \
+            docs/decisions/README.md \
+            packages/request-context/CHANGELOG.md \
+            packages/request-context/README.md \
+            packages/request-context/src/index.ts \
+            packages/request-context/src/services/organization-context-confirmation.service.ts \
+            packages/request-context/src/services/request-context-ports.ts \
+            packages/request-context/src/types/request-context.ts \
+            packages/request-context/tests/organization-context-confirmation.service.spec.ts
+
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+
+          git commit -m "Format organization context confirmation [skip organization context formatter]"
+          git push origin HEAD:agent/organization-context-confirmation
