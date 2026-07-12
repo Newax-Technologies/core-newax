@@ -2,18 +2,22 @@ import {
   type ArgumentsHost,
   Catch,
   HttpException,
+  Inject,
   Injectable,
   Logger,
   type ExceptionFilter,
 } from '@nestjs/common';
-import { HttpSecurityError, type HttpSecurityMethod } from '@newax/http-security';
+import {
+  HttpSecurityError,
+  type HttpSecurityMethod,
+} from '@newax/http-security';
 
 import type {
   HttpSecurityRequestAdapter,
   HttpSecurityResponseAdapter,
 } from './http-security-request';
-import { type SystemHttpSecurityClock } from './node-http-security.infrastructure';
-import { type PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
+import { SystemHttpSecurityClock } from './node-http-security.infrastructure';
+import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
 
 interface CodedError {
   readonly code: string;
@@ -37,7 +41,9 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpSecurityExceptionFilter.name);
 
   constructor(
+    @Inject(PrismaHttpSecurityAuditSink)
     private readonly auditSink: PrismaHttpSecurityAuditSink,
+    @Inject(SystemHttpSecurityClock)
     private readonly clock: SystemHttpSecurityClock,
   ) {}
 
@@ -57,7 +63,8 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
       await this.auditSink.record({
         requestId: requestId.slice(0, 128),
         actorUserId: context?.userId ?? null,
-        organizationId: context?.scope === 'organization' ? context.organizationId : null,
+        organizationId:
+          context?.scope === 'organization' ? context.organizationId : null,
         action: 'http.request.rejected',
         outcome: mapped.statusCode >= 500 ? 'failed' : 'denied',
         routeKey: (request.newaxRouteKey ?? 'unknown').slice(0, 128),
@@ -72,7 +79,8 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
       this.logger.error({
         event: 'http.audit.write_failed',
         requestId,
-        errorType: auditError instanceof Error ? auditError.name : 'UnknownError',
+        errorType:
+          auditError instanceof Error ? auditError.name : 'UnknownError',
       });
     }
 
@@ -96,7 +104,11 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
 
   private mapError(exception: unknown): MappedHttpError {
     if (exception instanceof HttpSecurityError) {
-      return this.mapped(exception.statusCode, exception.code, this.retryAfter(exception.details));
+      return this.mapped(
+        exception.statusCode,
+        exception.code,
+        this.retryAfter(exception.details),
+      );
     }
 
     const coded = this.asCodedError(exception);
@@ -143,7 +155,10 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
   }
 
   private statusForCode(code: string): number {
-    if (code.endsWith('_AUTHENTICATION_REQUIRED') || code === 'AUTHENTICATION_FAILED') {
+    if (
+      code.endsWith('_AUTHENTICATION_REQUIRED') ||
+      code === 'AUTHENTICATION_FAILED'
+    ) {
       return 401;
     }
     if (
@@ -159,7 +174,10 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
     if (code.includes('_CONFLICT') || code.includes('_ALREADY_')) {
       return 409;
     }
-    if (code.endsWith('_INVALID_INPUT') || code.endsWith('_POLICY_FAILED')) {
+    if (
+      code.endsWith('_INVALID_INPUT') ||
+      code.endsWith('_POLICY_FAILED')
+    ) {
       return 400;
     }
     if (code.endsWith('_UNAVAILABLE')) {
@@ -169,7 +187,9 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
   }
 
   private normalizeStatusCode(statusCode: number): number {
-    return Number.isInteger(statusCode) && statusCode >= 400 && statusCode <= 599
+    return Number.isInteger(statusCode) &&
+      statusCode >= 400 &&
+      statusCode <= 599
       ? statusCode
       : 500;
   }
@@ -236,9 +256,15 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
     return 'The request could not be completed.';
   }
 
-  private retryAfter(details: Readonly<Record<string, unknown>>): number | null {
+  private retryAfter(
+    details: Readonly<Record<string, unknown>>,
+  ): number | null {
     const value = details.retryAfterSeconds;
-    return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : null;
+    return typeof value === 'number' &&
+      Number.isInteger(value) &&
+      value > 0
+      ? value
+      : null;
   }
 
   private normalizeMethod(value: string): HttpSecurityMethod {
@@ -261,7 +287,9 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
     return value === undefined ? null : value.slice(0, 64);
   }
 
-  private singleHeader(value: string | readonly string[] | undefined): string | null {
+  private singleHeader(
+    value: string | readonly string[] | undefined,
+  ): string | null {
     return typeof value === 'string' ? value.slice(0, 1_024) : null;
   }
 }
