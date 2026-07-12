@@ -5,6 +5,8 @@ import { PEOPLE_PERMISSIONS, type PeoplePermission } from '../permissions/people
 import type {
   AddPersonIdentifierInput,
   CreatePersonInput,
+  CurrentPersonProfile,
+  CurrentPersonRequestContext,
   PersonIdentifierRecord,
   PersonListQuery,
   PersonPage,
@@ -18,6 +20,9 @@ const DEFAULT_PAGE_SIZE = 50;
 const MAX_PAGE_SIZE = 100;
 const MAX_NAME_LENGTH = 128;
 const MAX_IDENTIFIER_LENGTH = 255;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+
+const PERSON_STATUSES = new Set(['active', 'suspended', 'archived']);
 
 type Mutable<T> = {
   -readonly [Key in keyof T]: T[Key];
@@ -59,6 +64,62 @@ export class PeopleService {
   async getById(context: PeopleRequestContext, personId: string): Promise<PersonRecord> {
     this.requirePermission(context, PEOPLE_PERMISSIONS.view);
     return this.requirePerson(personId);
+  }
+
+  async getCurrent(context: CurrentPersonRequestContext): Promise<CurrentPersonProfile> {
+    this.requireTrustedUuid(context.actorUserId, 'context.actorUserId');
+    const personId = this.requireTrustedUuid(context.personId, 'context.personId');
+    const person = await this.repository.findById(personId);
+
+    if (person === null) {
+      throw new PeopleModuleError('PERSON_NOT_FOUND', 'The current person profile is unavailable.');
+    }
+
+    if (!PERSON_STATUSES.has(person.status)) {
+      throw new PeopleModuleError(
+        'PERSON_INTEGRITY_FAILURE',
+        'The person repository returned an invalid status.',
+      );
+    }
+
+    if (
+      person.deletedAt !== null &&
+      (!(person.deletedAt instanceof Date) || Number.isNaN(person.deletedAt.getTime()))
+    ) {
+      throw new PeopleModuleError(
+        'PERSON_INTEGRITY_FAILURE',
+        'The person repository returned invalid deletion metadata.',
+      );
+    }
+
+    if (person.status !== 'active' || person.deletedAt !== null) {
+      throw new PeopleModuleError('PERSON_NOT_FOUND', 'The current person profile is unavailable.');
+    }
+
+    const persistedId = this.requireTrustedUuid(person.id, 'person.id');
+    if (persistedId !== personId) {
+      throw new PeopleModuleError(
+        'PERSON_INTEGRITY_FAILURE',
+        'The person repository returned a record outside the trusted person boundary.',
+      );
+    }
+
+    return Object.freeze({
+      id: persistedId,
+      firstName: this.requireStoredText(person.firstName, 'person.firstName', MAX_NAME_LENGTH),
+      middleName: this.requireStoredNullableText(
+        person.middleName,
+        'person.middleName',
+        MAX_NAME_LENGTH,
+      ),
+      lastName: this.requireStoredText(person.lastName, 'person.lastName', MAX_NAME_LENGTH),
+      preferredName: this.requireStoredNullableText(
+        person.preferredName,
+        'person.preferredName',
+        MAX_NAME_LENGTH,
+      ),
+      status: 'active',
+    });
   }
 
   async list(context: PeopleRequestContext, query: PersonListQuery = {}): Promise<PersonPage> {
@@ -393,6 +454,41 @@ export class PeopleService {
     }
 
     return normalized;
+  }
+
+  private requireTrustedUuid(value: unknown, field: string): string {
+    if (typeof value !== 'string') {
+      throw new PeopleModuleError('PERSON_INTEGRITY_FAILURE', `${field} must be a valid UUID.`);
+    }
+
+    const normalized = value.trim().toLowerCase();
+    if (!UUID_PATTERN.test(normalized)) {
+      throw new PeopleModuleError('PERSON_INTEGRITY_FAILURE', `${field} must be a valid UUID.`);
+    }
+    return normalized;
+  }
+
+  private requireStoredText(value: unknown, field: string, maxLength: number): string {
+    if (
+      typeof value !== 'string' ||
+      value.length === 0 ||
+      value.length > maxLength ||
+      value.trim() !== value
+    ) {
+      throw new PeopleModuleError('PERSON_INTEGRITY_FAILURE', `${field} is invalid.`);
+    }
+    return value;
+  }
+
+  private requireStoredNullableText(
+    value: unknown,
+    field: string,
+    maxLength: number,
+  ): string | null {
+    if (value === null) {
+      return null;
+    }
+    return this.requireStoredText(value, field, maxLength);
   }
 
   private requireText(value: string, field: string, maxLength: number): string {

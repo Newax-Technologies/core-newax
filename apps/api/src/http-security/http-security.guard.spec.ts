@@ -200,3 +200,29 @@ describe('HttpSecurityGuard public authentication mutation policy', () => {
     });
   });
 });
+
+describe('HttpSecurityGuard account endpoint authentication', () => {
+  it('rejects an unauthenticated current-person request', async () => {
+    const guard = createGuard(
+      new Map<string, unknown>([[HTTP_CONTEXT_MODE_KEY, 'account']]),
+      new RecordingRateLimiter(),
+    );
+    const currentRequest: HttpSecurityRequestAdapter = {
+      ...request(),
+      method: 'GET',
+      path: '/api/core/people/current',
+      headers: {
+        origin: 'https://app.newax.test',
+        'sec-fetch-site': 'same-origin',
+      },
+      newaxHasBody: false,
+    };
+
+    await expect(
+      guard.canActivate(executionContext(currentRequest, new FakeResponse())),
+    ).rejects.toMatchObject({
+      code: 'HTTP_SECURITY_AUTHENTICATION_REQUIRED',
+      statusCode: 401,
+    });
+  });
+});

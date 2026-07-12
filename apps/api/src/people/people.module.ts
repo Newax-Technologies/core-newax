@@ -2,11 +2,13 @@ import { Module } from '@nestjs/common';
 import { PeopleService } from '@newax/people';
 
 import { DatabaseModule } from '../database/database.module';
+import { CurrentPersonController } from './current-person.controller';
 import { LoggingPersonEventPublisher } from './logging-person-event.publisher';
 import { PrismaPeopleRepository } from './prisma-people.repository';
 
 @Module({
   imports: [DatabaseModule],
+  controllers: [CurrentPersonController],
   providers: [
     PrismaPeopleRepository,
     LoggingPersonEventPublisher,
