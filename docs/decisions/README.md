@@ -34,7 +34,7 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0008](0008-use-central-identity-and-organization-registry.md)        | Accepted | Use one Central Identity and Organization Registry across LMS and future NEWAX domains.                                                         |
 | [ADR 0009](0009-define-module-registry-and-dependency-rules.md)           | Accepted | Maintain a Module Registry and enforce architecture-layer dependency rules.                                                                     |
 | [ADR 0010](0010-define-authentication-and-user-identity-strategy.md)      | Accepted | Separate people, users, authentication, memberships, roles, permissions, and organization context.                                              |
-| [ADR 0011](0011-define-technology-stack-and-implementation-baseline.md)   | Accepted | Use the TypeScript, Node.js, pnpm, NestJS, Next.js, PostgreSQL, Prisma, Vitest, Playwright, Docker, and GitHub Actions implementation baseline. |
+| [ADR 0011](0011-define-technology-stack-and-implementation-baseline.md)   | Accepted | Use the TypeScript, Node.js, pnpm, NestJS, Next.js, PostgreSQL, Prisma, Vitest, Playwright, Docker, and GitHub Actions implementation baseline.    |
 | [ADR 0012](0012-implement-central-registry-data-foundation.md)            | Accepted | Implement the first Prisma Central Registry foundation while keeping domain transactions outside the registry.                                  |
 | [ADR 0013](0013-build-people-registry-service-foundation.md)              | Accepted | Build the reusable People Registry service foundation with permission-controlled identity and identifier operations.                            |
 | [ADR 0014](0014-build-memberships-registry-service-foundation.md)         | Accepted | Build the organization-scoped Memberships Registry service foundation connecting people to organizations.                                       |
@@ -45,10 +45,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0019](0019-build-http-security-boundary.md)                          | Accepted | Establish secure HTTPS entry, browser protections, distributed throttling, trusted context enforcement, response controls, and HTTP auditing.   |
 | [ADR 0020](0020-build-authentication-http-endpoints.md)                   | Accepted | Expose bounded login, session, CSRF bootstrap, and logout endpoints without weakening authentication or tenant boundaries.                      |
 | [ADR 0021](0021-build-account-membership-discovery.md)                    | Accepted | Let authenticated accounts discover only their active organization memberships before trusted organization-context selection.                   |
+| [ADR 0022](0022-build-organization-context-confirmation.md)               | Accepted | Confirm selected organization context with minimal identity data and fixed capability summaries without exposing raw authority.                 |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than twenty-one independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than twenty-two independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -78,6 +79,7 @@ The ADRs form a deliberate sequence rather than twenty-one independent opinions 
 - ADR 0019 establishes secure HTTPS entry, browser request integrity, distributed throttling, permission enforcement, response controls, and HTTP security auditing.
 - ADR 0020 exposes only the first bounded browser authentication workflows while preserving transport, identity, and tenant separation.
 - ADR 0021 exposes self-scoped active membership discovery without treating discovery results as organization authority or permissions.
+- ADR 0022 confirms selected organization context while keeping raw permissions, role names, and browser-side authorization outside the response contract.
 
 ### Implementation Baseline
 
@@ -198,7 +200,7 @@ An ADR does not replace a module README, API documentation, testing evidence, se
 Filename example:
 
 ```text
-0022-define-repository-bootstrap-and-boundary-enforcement.md
+0023-define-repository-bootstrap-and-boundary-enforcement.md
 ```
 
 ## Review Triggers
