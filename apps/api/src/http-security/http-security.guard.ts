@@ -21,6 +21,7 @@ import {
 import {
   HTTP_AUTHENTICATION_SENSITIVE_KEY,
   HTTP_CONTEXT_MODE_KEY,
+  HTTP_PUBLIC_AUTHENTICATION_MUTATION_KEY,
   HTTP_REQUIRED_PERMISSIONS_KEY,
 } from './http-security.decorators';
 import type {
@@ -96,14 +97,25 @@ export class HttpSecurityGuard implements CanActivate {
         executionContext.getHandler(),
         executionContext.getClass(),
       ]) ?? [];
-    this.assertMetadataCompatibility(contextMode, requiredPermissions);
-
+    const publicAuthenticationMutation =
+      this.reflector.getAllAndOverride<boolean>(HTTP_PUBLIC_AUTHENTICATION_MUTATION_KEY, [
+        executionContext.getHandler(),
+        executionContext.getClass(),
+      ]) ?? false;
     const stateChanging = this.originPolicy.isStateChanging(method);
+    this.assertMetadataCompatibility(
+      contextMode,
+      requiredPermissions,
+      authenticationSensitive,
+      publicAuthenticationMutation,
+      stateChanging,
+    );
+
     request.newaxStateChanging = stateChanging;
     request.newaxRequiredPermissions = [...requiredPermissions];
 
     if (contextMode === 'public') {
-      if (stateChanging) {
+      if (stateChanging && !publicAuthenticationMutation) {
         throw new HttpSecurityError(
           'HTTP_SECURITY_FORBIDDEN',
           'Unauthenticated state-changing HTTP endpoints are not enabled.',
@@ -155,11 +167,24 @@ export class HttpSecurityGuard implements CanActivate {
   private assertMetadataCompatibility(
     contextMode: HttpSecurityContextMode,
     requiredPermissions: readonly string[],
+    authenticationSensitive: boolean,
+    publicAuthenticationMutation: boolean,
+    stateChanging: boolean,
   ): void {
     if (requiredPermissions.length > 0 && contextMode !== 'organization') {
       throw new HttpSecurityError(
         'HTTP_SECURITY_INVALID_INPUT',
         'Permission metadata requires organization context.',
+        500,
+      );
+    }
+    if (
+      publicAuthenticationMutation &&
+      (contextMode !== 'public' || !authenticationSensitive || !stateChanging)
+    ) {
+      throw new HttpSecurityError(
+        'HTTP_SECURITY_INVALID_INPUT',
+        'Public authentication mutation metadata is inconsistent.',
         500,
       );
     }
