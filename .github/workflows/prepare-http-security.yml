@@ -36,6 +36,9 @@ jobs:
       - name: Update workspace lockfile
         run: pnpm install --lockfile-only
 
+      - name: Install prepared workspace
+        run: pnpm install --frozen-lockfile
+
       - name: Format the HTTP security slice
         run: |
           pnpm --filter @newax/api db:format
