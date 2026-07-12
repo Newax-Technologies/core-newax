@@ -34,11 +34,7 @@ export class AccountMembershipDiscoveryService {
       throw this.invalidInput('The requested membership page is too large.', 'page');
     }
 
-    const result = await this.directory.listAvailableMemberships(
-      context.personId,
-      offset,
-      perPage,
-    );
+    const result = await this.directory.listAvailableMemberships(context.personId, offset, perPage);
     if (!Number.isInteger(result.total) || result.total < 0) {
       throw this.integrityFailure('Membership discovery returned an invalid total.');
     }
@@ -73,10 +69,7 @@ export class AccountMembershipDiscoveryService {
   ): AccountMembershipOption {
     const membershipId = this.requireUuid(candidate.membershipId, 'membership.membershipId');
     const personId = this.requireUuid(candidate.personId, 'membership.personId');
-    const organizationId = this.requireUuid(
-      candidate.organizationId,
-      'membership.organizationId',
-    );
+    const organizationId = this.requireUuid(candidate.organizationId, 'membership.organizationId');
 
     if (personId !== trustedPersonId) {
       throw this.integrityFailure(
@@ -102,11 +95,7 @@ export class AccountMembershipDiscoveryService {
         'membership.organizationType',
         64,
       ),
-      membershipType: this.requireText(
-        candidate.membershipType,
-        'membership.membershipType',
-        64,
-      ),
+      membershipType: this.requireText(candidate.membershipType, 'membership.membershipType', 64),
       jobTitle: this.requireNullableText(candidate.jobTitle, 'membership.jobTitle', 128),
       startDate: this.requireNullableDate(candidate.startDate, 'membership.startDate'),
     };

@@ -56,8 +56,7 @@ export interface TrustedOrganizationRequestContext {
 }
 
 export type TrustedRequestContext =
-  | TrustedAccountRequestContext
-  | TrustedOrganizationRequestContext;
+  TrustedAccountRequestContext | TrustedOrganizationRequestContext;
 
 export interface ModuleRequestContext {
   readonly actorUserId: string;

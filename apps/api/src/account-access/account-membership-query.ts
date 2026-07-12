@@ -27,12 +27,7 @@ export function parseAccountMembershipHttpQuery(value: unknown): AccountMembersh
 
   return {
     page: parsePositiveInteger(value.page, 'page', DEFAULT_PAGE, MAX_PAGE),
-    perPage: parsePositiveInteger(
-      value.per_page,
-      'per_page',
-      DEFAULT_PAGE_SIZE,
-      MAX_PAGE_SIZE,
-    ),
+    perPage: parsePositiveInteger(value.per_page, 'per_page', DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE),
   };
 }
 
