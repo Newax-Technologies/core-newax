@@ -39,7 +39,7 @@ async function bootstrap(): Promise<void> {
 
   const boundary = app.get(HttpBoundaryMiddleware);
   app.use(boundary.use.bind(boundary));
-  app.useBodyParser('json', false, {
+  app.useBodyParser('json', {
     limit: bodyLimitBytes,
     strict: true,
   });
