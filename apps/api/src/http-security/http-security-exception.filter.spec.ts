@@ -151,4 +151,28 @@ describe('HttpSecurityExceptionFilter current-person error mapping', () => {
     expect(JSON.stringify(response.body)).not.toContain('Street 1');
     expect(auditSink.records).toHaveLength(1);
   });
+
+  it('maps invalid address cursors to a generic invalid-request envelope', async () => {
+    const auditSink = new RecordingAuditSink();
+    const response = new FakeResponse();
+
+    await createFilter(auditSink).catch(
+      new AddressModuleError(
+        'ADDRESS_CURSOR_INVALID',
+        'The address cursor belongs to another organization.',
+      ),
+      createHost(response),
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({
+      error: {
+        code: 'INVALID_REQUEST',
+        message: 'The request is invalid.',
+        requestId: 'request-1',
+      },
+    });
+    expect(JSON.stringify(response.body)).not.toContain('another organization');
+    expect(auditSink.records).toHaveLength(1);
+  });
 });
