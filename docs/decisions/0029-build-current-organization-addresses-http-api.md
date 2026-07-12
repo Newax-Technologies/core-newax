@@ -119,10 +119,10 @@ The response excludes:
 The HTTP exception filter recognizes `ADDRESS_*` package errors and maps them to stable public envelopes:
 
 - Invalid input -> 400.
+- Invalid or foreign cursor -> 400.
 - Forbidden -> 403.
 - Conflict -> 409.
 - Organization unavailable -> 409.
-- Cursor invalid -> 500 at the package boundary unless converted to controlled HTTP input before service invocation.
 - Integrity failure -> 500.
 
 Package messages and physical address details are never returned to the client.
