@@ -88,6 +88,20 @@ describe('AccountMembershipDiscoveryService', () => {
     expect(Object.isFrozen(result.items)).toBe(true);
   });
 
+  it('normalizes trusted UUID casing before persistence and ownership checks', async () => {
+    const lowercasePersonId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const directory = new FakeDirectory({
+      items: [candidate({ personId: lowercasePersonId })],
+      total: 1,
+    });
+    const service = new AccountMembershipDiscoveryService(directory);
+
+    await expect(
+      service.list({ ...CONTEXT, personId: lowercasePersonId.toUpperCase() }),
+    ).resolves.toMatchObject({ total: 1 });
+    expect(directory.personId).toBe(lowercasePersonId);
+  });
+
   it('rejects memberships that do not belong to the trusted person', async () => {
     const directory = new FakeDirectory({
       items: [candidate({ personId: '00000000-0000-4000-8000-000000000099' })],
