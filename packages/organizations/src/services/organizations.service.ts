@@ -71,8 +71,12 @@ export class OrganizationsService {
   async getCurrent(
     context: CurrentOrganizationRequestContext,
   ): Promise<CurrentOrganizationProfile> {
+    this.requireTrustedUuid(context.actorUserId, 'context.actorUserId');
     this.requirePermission(context, ORGANIZATION_PERMISSIONS.view);
-    const organizationId = this.requireUuid(context.organizationId, 'organizationId');
+    const organizationId = this.requireTrustedUuid(
+      context.organizationId,
+      'context.organizationId',
+    );
     const organization = await this.repository.findById(organizationId);
 
     if (
@@ -86,7 +90,7 @@ export class OrganizationsService {
       );
     }
 
-    const persistedId = this.requireUuid(organization.id, 'organization.id');
+    const persistedId = this.requireTrustedUuid(organization.id, 'organization.id');
     if (persistedId !== organizationId) {
       throw new OrganizationModuleError(
         'ORGANIZATION_INTEGRITY_FAILURE',
@@ -339,13 +343,12 @@ export class OrganizationsService {
     }
   }
 
-  private requireUuid(value: string, field: string): string {
+  private requireTrustedUuid(value: string, field: string): string {
     const normalized = value.trim().toLowerCase();
     if (!UUID_PATTERN.test(normalized)) {
       throw new OrganizationModuleError(
-        'ORGANIZATION_INVALID_INPUT',
+        'ORGANIZATION_INTEGRITY_FAILURE',
         `${field} must be a valid UUID.`,
-        { field },
       );
     }
     return normalized;

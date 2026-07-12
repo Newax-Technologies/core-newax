@@ -117,6 +117,27 @@ describe('OrganizationsService.getCurrent', () => {
     expect(repository.requestedId).toBe(ORGANIZATION_ID);
   });
 
+  it('treats malformed trusted identifiers as integrity failures before persistence', async () => {
+    for (const malformedContext of [
+      {
+        ...context(ORGANIZATION_PERMISSIONS.view),
+        actorUserId: 'not-a-uuid',
+      },
+      {
+        ...context(ORGANIZATION_PERMISSIONS.view),
+        organizationId: 'not-a-uuid',
+      },
+    ]) {
+      const repository = new FakeOrganizationRepository();
+      const service = new OrganizationsService(repository, new NoopEventPublisher());
+
+      await expect(service.getCurrent(malformedContext)).rejects.toMatchObject({
+        code: 'ORGANIZATION_INTEGRITY_FAILURE',
+      });
+      expect(repository.requestedId).toBeNull();
+    }
+  });
+
   it('requires organizations.view even for the current organization', async () => {
     const service = new OrganizationsService(
       new FakeOrganizationRepository(),
