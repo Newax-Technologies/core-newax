@@ -1,9 +1,9 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.6",
+  "registry_version": "0.1.7",
   "registry_status": "draft",
-  "last_updated": "2026-07-11",
+  "last_updated": "2026-07-12",
   "owner": "NEWAX Engineering",
   "purpose": "Internal source of truth for planned, draft, active, deprecated, replaced, and archived NEWAX modules.",
   "governance": {
@@ -262,6 +262,42 @@
       "documentation_path": "packages/access-control/README.md",
       "changelog_path": "packages/access-control/CHANGELOG.md",
       "compatibility_notes": "Replaces the planned Roles and Permissions entries before activation. Business logic must authorize through stable permission codes, never role names."
+    },
+    {
+      "module_name": "Trusted Request Context",
+      "module_key": "request-context",
+      "module_layer": "platform_service",
+      "module_version": "0.1.0",
+      "module_status": "draft",
+      "module_owner": "NEWAX Engineering",
+      "description": "Resolves tenant-safe execution context from authenticated sessions, active memberships, organizations, and effective permissions.",
+      "dependencies": [
+        {
+          "module_key": "authentication",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "memberships",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "access-control",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [],
+      "exposed_events": [],
+      "consumed_events": [],
+      "configuration_options": [
+        "membership_selection_policy",
+        "request_context_storage",
+        "permission_evaluation_policy"
+      ],
+      "database_ownership": [],
+      "tenant_scope": "authenticated_account_and_organization_scoped",
+      "documentation_path": "packages/request-context/README.md",
+      "changelog_path": "packages/request-context/CHANGELOG.md",
+      "compatibility_notes": "Clients may select a membership identifier only. User, person, organization, and permission authority must be derived from trusted server-side records."
     },
     {
       "module_name": "Contacts",

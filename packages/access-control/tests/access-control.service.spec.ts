@@ -343,11 +343,37 @@ describe('PermissionEvaluator', () => {
     expect(result.effectivePermissionCodes).toEqual([]);
   });
 
-  it('preserves repository deny precedence for active memberships', async () => {
+  it('returns no permissions for inactive organizations', async () => {
     const repository = new FakeAccessControlRepository();
     const references = new FakeReferenceDirectory();
     references.records.set('membership', {
       id: 'membership',
+      organizationId: 'organization',
+      status: 'active',
+    });
+    references.records.set('organization', {
+      id: 'organization',
+      organizationId: 'organization',
+      status: 'archived',
+    });
+
+    const result = await new PermissionEvaluator(repository, references).evaluate(
+      'membership',
+      now,
+    );
+    expect(result.effectivePermissionCodes).toEqual([]);
+  });
+
+  it('preserves repository deny precedence for active memberships and organizations', async () => {
+    const repository = new FakeAccessControlRepository();
+    const references = new FakeReferenceDirectory();
+    references.records.set('membership', {
+      id: 'membership',
+      organizationId: 'organization',
+      status: 'active',
+    });
+    references.records.set('organization', {
+      id: 'organization',
       organizationId: 'organization',
       status: 'active',
     });

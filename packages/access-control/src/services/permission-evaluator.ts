@@ -12,21 +12,30 @@ export class PermissionEvaluator {
     membershipId: string,
     evaluatedAt: Date = new Date(),
   ): Promise<PermissionEvaluation> {
-    const membership = await this.referenceDirectory.findMembershipById(membershipId.trim());
+    const normalizedMembershipId = membershipId.trim();
+    const membership = await this.referenceDirectory.findMembershipById(normalizedMembershipId);
 
     if (
       membership === null ||
       membership.organizationId === null ||
       membership.status !== 'active'
     ) {
-      return {
-        membershipId: membershipId.trim(),
-        organizationId: membership?.organizationId ?? '',
-        evaluatedAt: new Date(evaluatedAt.getTime()),
-        allowedPermissionCodes: [],
-        deniedPermissionCodes: [],
-        effectivePermissionCodes: [],
-      };
+      return this.emptyEvaluation(
+        normalizedMembershipId,
+        membership?.organizationId ?? '',
+        evaluatedAt,
+      );
+    }
+
+    const organization = await this.referenceDirectory.findOrganizationById(
+      membership.organizationId,
+    );
+    if (
+      organization === null ||
+      organization.id !== membership.organizationId ||
+      organization.status !== 'active'
+    ) {
+      return this.emptyEvaluation(membership.id, membership.organizationId, evaluatedAt);
     }
 
     return this.repository.evaluateMembershipPermissions(
@@ -34,5 +43,20 @@ export class PermissionEvaluator {
       membership.organizationId,
       new Date(evaluatedAt.getTime()),
     );
+  }
+
+  private emptyEvaluation(
+    membershipId: string,
+    organizationId: string,
+    evaluatedAt: Date,
+  ): PermissionEvaluation {
+    return {
+      membershipId,
+      organizationId,
+      evaluatedAt: new Date(evaluatedAt.getTime()),
+      allowedPermissionCodes: [],
+      deniedPermissionCodes: [],
+      effectivePermissionCodes: [],
+    };
   }
 }

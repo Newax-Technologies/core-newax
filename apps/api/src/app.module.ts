@@ -9,6 +9,7 @@ import { HealthController } from './health/health.controller';
 import { MembershipsModule } from './memberships/memberships.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { PeopleModule } from './people/people.module';
+import { RequestContextModule } from './request-context/request-context.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { UsersModule } from './users/users.module';
     AccessControlModule,
     UsersModule,
     AuthenticationModule,
+    RequestContextModule,
   ],
   controllers: [HealthController],
   providers: [],

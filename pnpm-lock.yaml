@@ -59,6 +59,9 @@ importers:
       '@newax/people':
         specifier: workspace:*
         version: link:../../packages/people
+      '@newax/request-context':
+        specifier: workspace:*
+        version: link:../../packages/request-context
       '@newax/users':
         specifier: workspace:*
         version: link:../../packages/users
@@ -189,6 +192,18 @@ importers:
         version: 4.1.10(@types/node@24.10.1)(@vitest/coverage-v8@4.1.10)(jiti@2.7.0)(terser@5.49.0)
 
   packages/people:
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: 4.1.10
+        version: 4.1.10(@types/node@24.10.1)(@vitest/coverage-v8@4.1.10)(jiti@2.7.0)(terser@5.49.0)
+
+  packages/request-context:
     devDependencies:
       '@types/node':
         specifier: 24.10.1
