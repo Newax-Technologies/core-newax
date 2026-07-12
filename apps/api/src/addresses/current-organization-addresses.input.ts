@@ -59,9 +59,7 @@ export function parseCurrentOrganizationAddressBody(body: unknown): CreateOrgani
 
   for (const required of ['address_type', 'is_primary', 'line_1', 'city', 'country_code']) {
     if (!hasOwn(record, required)) {
-      throw invalidInput(
-        'address_type, is_primary, line_1, city, and country_code are required.',
-      );
+      throw invalidInput('address_type, is_primary, line_1, city, and country_code are required.');
     }
   }
 
@@ -70,9 +68,7 @@ export function parseCurrentOrganizationAddressBody(body: unknown): CreateOrgani
     addressType: parseAddressType(parsed.address_type),
     isPrimary: parseBoolean(parsed.is_primary, 'is_primary'),
     line1: parseString(parsed.line_1, 'line_1'),
-    ...(hasOwn(record, 'line_2')
-      ? { line2: parseNullableString(parsed.line_2, 'line_2') }
-      : {}),
+    ...(hasOwn(record, 'line_2') ? { line2: parseNullableString(parsed.line_2, 'line_2') } : {}),
     city: parseString(parsed.city, 'city'),
     ...(hasOwn(record, 'state_region')
       ? { stateRegion: parseNullableString(parsed.state_region, 'state_region') }

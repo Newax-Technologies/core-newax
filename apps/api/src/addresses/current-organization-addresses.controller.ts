@@ -21,14 +21,7 @@ import {
 interface OrganizationAddressResource {
   readonly id: string;
   readonly address_type:
-    | 'registered'
-    | 'office'
-    | 'billing'
-    | 'shipping'
-    | 'mailing'
-    | 'campus'
-    | 'facility'
-    | 'other';
+    'registered' | 'office' | 'billing' | 'shipping' | 'mailing' | 'campus' | 'facility' | 'other';
   readonly is_primary: boolean;
   readonly line_1: string;
   readonly line_2: string | null;

@@ -52,7 +52,7 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0026](0026-build-current-organization-contacts-http-api.md)          | Accepted | Expose bounded current-organization contact creation and listing through trusted context and explicit Contacts permissions.                      |
 | [ADR 0027](0027-separate-tenant-ownership-from-organizations.md)          | Accepted | Give every customer Tenant an independent ID and require Organizations, hierarchy, and relationships to remain inside that Tenant.               |
 | [ADR 0028](0028-build-organization-addresses-registry-foundation.md)      | Accepted | Build tenant-bound Organization address creation and listing while deferring Person-address visibility until explicit privacy policy exists.     |
-| [ADR 0029](0029-build-current-organization-addresses-http-api.md)         | Accepted | Expose bounded current-Organization address creation and listing without accepting client-supplied Tenant or Organization authority.              |
+| [ADR 0029](0029-build-current-organization-addresses-http-api.md)         | Accepted | Expose bounded current-Organization address creation and listing without accepting client-supplied Tenant or Organization authority.             |
 
 ## Decision Sequence
 

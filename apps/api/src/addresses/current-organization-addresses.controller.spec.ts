@@ -179,14 +179,18 @@ describe('CurrentOrganizationAddressesController', () => {
     const addresses = new FakeAddressesService();
 
     await expect(
-      controller(addresses).create(request(CONTEXT), {}, {
-        address_type: 'office',
-        is_primary: true,
-        line_1: 'NEWAX Tower',
-        city: 'Islamabad',
-        country_code: 'PK',
-        tenant_id: TENANT_ID,
-      }),
+      controller(addresses).create(
+        request(CONTEXT),
+        {},
+        {
+          address_type: 'office',
+          is_primary: true,
+          line_1: 'NEWAX Tower',
+          city: 'Islamabad',
+          country_code: 'PK',
+          tenant_id: TENANT_ID,
+        },
+      ),
     ).rejects.toMatchObject({
       code: 'HTTP_SECURITY_INVALID_INPUT',
       statusCode: 400,
