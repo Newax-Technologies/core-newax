@@ -9,6 +9,14 @@ export class UserAuthenticationGateway {
     private readonly identityNormalizer: UserIdentityNormalizer,
   ) {}
 
+  async findAccountById(userId: string): Promise<UserRecord | null> {
+    const normalized = userId.trim();
+    if (normalized.length === 0) {
+      throw new UserModuleError('USER_INVALID_INPUT', 'userId is required.');
+    }
+    return this.repository.findById(normalized);
+  }
+
   async resolveIdentity(
     identityType: UserIdentityType,
     identityValue: string,
@@ -73,11 +81,7 @@ export class UserAuthenticationGateway {
   }
 
   private async requireUser(userId: string): Promise<UserRecord> {
-    const normalized = userId.trim();
-    if (normalized.length === 0) {
-      throw new UserModuleError('USER_INVALID_INPUT', 'userId is required.');
-    }
-    const user = await this.repository.findById(normalized);
+    const user = await this.findAccountById(userId);
     if (user === null) {
       throw new UserModuleError('USER_ACCOUNT_NOT_FOUND', 'The user account does not exist.');
     }
