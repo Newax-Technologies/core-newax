@@ -1,29 +1,37 @@
 import {
   type CallHandler,
   type ExecutionContext,
+  Inject,
   Injectable,
   Logger,
   type NestInterceptor,
 } from '@nestjs/common';
-import { type SensitiveResponseRedactor, type HttpSecurityAuditSink } from '@newax/http-security';
+import {
+  SensitiveResponseRedactor,
+  type HttpSecurityAuditSink,
+} from '@newax/http-security';
 import { from, lastValueFrom, type Observable } from 'rxjs';
 
-import { type AsyncLocalStorageTrustedRequestContextStore } from '../request-context/node-request-context.infrastructure';
+import { AsyncLocalStorageTrustedRequestContextStore } from '../request-context/node-request-context.infrastructure';
 import type {
   HttpSecurityRequestAdapter,
   HttpSecurityResponseAdapter,
 } from './http-security-request';
-import { type SystemHttpSecurityClock } from './node-http-security.infrastructure';
-import { type PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
+import { SystemHttpSecurityClock } from './node-http-security.infrastructure';
+import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
 
 @Injectable()
 export class HttpSecurityInterceptor implements NestInterceptor {
   private readonly logger = new Logger(HttpSecurityInterceptor.name);
 
   constructor(
+    @Inject(AsyncLocalStorageTrustedRequestContextStore)
     private readonly contextStore: AsyncLocalStorageTrustedRequestContextStore,
+    @Inject(SensitiveResponseRedactor)
     private readonly redactor: SensitiveResponseRedactor,
+    @Inject(PrismaHttpSecurityAuditSink)
     private readonly auditSink: PrismaHttpSecurityAuditSink,
+    @Inject(SystemHttpSecurityClock)
     private readonly clock: SystemHttpSecurityClock,
   ) {}
 
