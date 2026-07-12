@@ -22,7 +22,10 @@ export function parseAuthenticationLoginRequest(value: unknown): AuthenticationL
   }
 
   const identityType = record.identityType;
-  if (typeof identityType !== 'string' || !IDENTITY_TYPES.has(identityType as AuthenticationIdentityType)) {
+  if (
+    typeof identityType !== 'string' ||
+    !IDENTITY_TYPES.has(identityType as AuthenticationIdentityType)
+  ) {
     throw invalidRequest();
   }
 

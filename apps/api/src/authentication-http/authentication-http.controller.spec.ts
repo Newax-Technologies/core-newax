@@ -84,9 +84,7 @@ class FakeResponse implements HttpSecurityResponseAdapter {
   end(): void {}
 }
 
-function request(
-  overrides: Partial<HttpSecurityRequestAdapter> = {},
-): HttpSecurityRequestAdapter {
+function request(overrides: Partial<HttpSecurityRequestAdapter> = {}): HttpSecurityRequestAdapter {
   return {
     method: 'GET',
     ip: '192.0.2.10',
@@ -190,8 +188,7 @@ describe('AuthenticationHttpController', () => {
       request({
         method: 'POST',
         headers: {
-          cookie:
-            '__Host-newax_session=opaque-session-token; __Host-newax_csrf=csrf-token',
+          cookie: '__Host-newax_session=opaque-session-token; __Host-newax_csrf=csrf-token',
         },
       }),
       response,

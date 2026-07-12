@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Header,
-  HttpCode,
-  Inject,
-  Post,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpCode, Inject, Post, Req, Res } from '@nestjs/common';
 import { AuthenticationService, type PasswordLoginInput } from '@newax/auth';
 import {
   CookieHeaderParser,
@@ -170,9 +160,7 @@ export class AuthenticationHttpController {
     };
   }
 
-  private requireAccountContext(
-    request: HttpSecurityRequestAdapter,
-  ): TrustedAccountRequestContext {
+  private requireAccountContext(request: HttpSecurityRequestAdapter): TrustedAccountRequestContext {
     const context = request.trustedContext;
     if (context === undefined || context.scope !== 'account') {
       throw new HttpSecurityError(

@@ -8,10 +8,7 @@ import {
   SecureCookieTransport,
   type SignedCsrfTokenService,
 } from '@newax/http-security';
-import type {
-  ContextAuthorizer,
-  TrustedRequestContextService,
-} from '@newax/request-context';
+import type { ContextAuthorizer, TrustedRequestContextService } from '@newax/request-context';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -49,7 +46,10 @@ class MetadataReflector {
 class RecordingRateLimiter {
   authenticationSensitive: boolean | null = null;
 
-  async consume(_key: string, authenticationSensitive: boolean): Promise<{
+  async consume(
+    _key: string,
+    authenticationSensitive: boolean,
+  ): Promise<{
     readonly allowed: true;
     readonly remaining: number;
     readonly retryAfterSeconds: number;
