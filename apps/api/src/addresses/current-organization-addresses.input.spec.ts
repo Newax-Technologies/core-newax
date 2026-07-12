@@ -8,9 +8,9 @@ import {
 
 describe('current organization addresses HTTP input contracts', () => {
   it('rejects repeated and unsupported list query parameters', () => {
-    expect(() =>
-      parseCurrentOrganizationAddressesQuery({ limit: ['10', '20'] }),
-    ).toThrowError(/limit must be a single non-empty string/u);
+    expect(() => parseCurrentOrganizationAddressesQuery({ limit: ['10', '20'] })).toThrowError(
+      /limit must be a single non-empty string/u,
+    );
 
     expect(() =>
       parseCurrentOrganizationAddressesQuery({ tenant_id: 'not-authority' }),
