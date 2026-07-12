@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ContextAuthorizer, TrustedRequestContextService } from '@newax/request-context';
+import {
+  AccountMembershipDiscoveryService,
+  ContextAuthorizer,
+  TrustedRequestContextService,
+} from '@newax/request-context';
 
 import { AccessControlModule } from '../access-control/access-control.module';
 import { AuthenticationModule } from '../authentication/authentication.module';
@@ -11,6 +15,7 @@ import {
   NodeRequestIdFactory,
   SystemTrustedContextClock,
 } from './node-request-context.infrastructure';
+import { PrismaAccountMembershipDiscoveryDirectory } from './prisma-account-membership-discovery.directory';
 import { PrismaTrustedMembershipDirectory } from './prisma-trusted-membership.directory';
 
 @Module({
@@ -18,11 +23,19 @@ import { PrismaTrustedMembershipDirectory } from './prisma-trusted-membership.di
   providers: [
     AuthenticationSessionValidator,
     PrismaTrustedMembershipDirectory,
+    PrismaAccountMembershipDiscoveryDirectory,
     AccessControlPermissionEvaluator,
     NodeRequestIdFactory,
     SystemTrustedContextClock,
     AsyncLocalStorageTrustedRequestContextStore,
     ContextAuthorizer,
+    {
+      provide: AccountMembershipDiscoveryService,
+      inject: [PrismaAccountMembershipDiscoveryDirectory],
+      useFactory: (
+        directory: PrismaAccountMembershipDiscoveryDirectory,
+      ): AccountMembershipDiscoveryService => new AccountMembershipDiscoveryService(directory),
+    },
     {
       provide: TrustedRequestContextService,
       inject: [
@@ -49,6 +62,7 @@ import { PrismaTrustedMembershipDirectory } from './prisma-trusted-membership.di
     },
   ],
   exports: [
+    AccountMembershipDiscoveryService,
     TrustedRequestContextService,
     ContextAuthorizer,
     AsyncLocalStorageTrustedRequestContextStore,
