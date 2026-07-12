@@ -1,20 +1,20 @@
 import { type CanActivate, type ExecutionContext, Inject, Injectable } from '@nestjs/common';
-import { type Reflector } from '@nestjs/core';
+import { Reflector } from '@nestjs/core';
 import {
-  type CookieHeaderParser,
-  type HttpRateLimiter,
+  CookieHeaderParser,
+  HttpRateLimiter,
   HttpSecurityError,
-  type RequestOriginPolicy,
-  type SecureCookieTransport,
-  type SignedCsrfTokenService,
+  RequestOriginPolicy,
+  SecureCookieTransport,
+  SignedCsrfTokenService,
   type HttpSecurityContextMode,
   type HttpSecurityMethod,
   type HttpSecurityPolicy,
   type HttpSecurityRequest,
 } from '@newax/http-security';
 import {
-  type ContextAuthorizer,
-  type TrustedRequestContextService,
+  ContextAuthorizer,
+  TrustedRequestContextService,
   type TrustedRequestContext,
 } from '@newax/request-context';
 
@@ -32,15 +32,23 @@ import { HTTP_SECURITY_POLICY } from './http-security.tokens';
 @Injectable()
 export class HttpSecurityGuard implements CanActivate {
   constructor(
+    @Inject(Reflector)
     private readonly reflector: Reflector,
     @Inject(HTTP_SECURITY_POLICY)
     private readonly policy: HttpSecurityPolicy,
+    @Inject(CookieHeaderParser)
     private readonly cookieParser: CookieHeaderParser,
+    @Inject(SecureCookieTransport)
     private readonly cookieTransport: SecureCookieTransport,
+    @Inject(RequestOriginPolicy)
     private readonly originPolicy: RequestOriginPolicy,
+    @Inject(SignedCsrfTokenService)
     private readonly csrfTokens: SignedCsrfTokenService,
+    @Inject(HttpRateLimiter)
     private readonly rateLimiter: HttpRateLimiter,
+    @Inject(TrustedRequestContextService)
     private readonly contexts: TrustedRequestContextService,
+    @Inject(ContextAuthorizer)
     private readonly authorizer: ContextAuthorizer,
   ) {}
 
