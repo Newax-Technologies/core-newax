@@ -1,0 +1,43 @@
+name: Format Authentication HTTP Test
+
+on:
+  push:
+    branches:
+      - agent/authentication-http-endpoints
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: ${{ !contains(github.event.head_commit.message, '[skip authentication http test formatter]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/authentication-http-endpoints
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Format corrected test
+        run: pnpm exec prettier --write apps/api/src/authentication-http/authentication-http.controller.spec.ts
+
+      - name: Commit formatted test
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/api/src/authentication-http/authentication-http.controller.spec.ts
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Format authentication HTTP controller test [skip authentication http test formatter]"
+          git push origin HEAD:agent/authentication-http-endpoints
