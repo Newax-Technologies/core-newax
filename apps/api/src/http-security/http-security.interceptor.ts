@@ -6,10 +6,7 @@ import {
   Logger,
   type NestInterceptor,
 } from '@nestjs/common';
-import {
-  SensitiveResponseRedactor,
-  type HttpSecurityAuditSink,
-} from '@newax/http-security';
+import { SensitiveResponseRedactor, type HttpSecurityAuditSink } from '@newax/http-security';
 import { from, lastValueFrom, type Observable } from 'rxjs';
 
 import { AsyncLocalStorageTrustedRequestContextStore } from '../request-context/node-request-context.infrastructure';
