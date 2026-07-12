@@ -1,5 +1,5 @@
 import {
-  ArgumentsHost,
+  type ArgumentsHost,
   Catch,
   HttpException,
   Injectable,
@@ -12,8 +12,8 @@ import type {
   HttpSecurityRequestAdapter,
   HttpSecurityResponseAdapter,
 } from './http-security-request';
-import { SystemHttpSecurityClock } from './node-http-security.infrastructure';
-import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
+import { type SystemHttpSecurityClock } from './node-http-security.infrastructure';
+import { type PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
 
 interface CodedError {
   readonly code: string;
@@ -175,15 +175,33 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
   }
 
   private publicCode(statusCode: number): string {
-    if (statusCode === 400 || statusCode === 422) return 'INVALID_REQUEST';
-    if (statusCode === 401) return 'AUTHENTICATION_REQUIRED';
-    if (statusCode === 403) return 'FORBIDDEN';
-    if (statusCode === 404) return 'NOT_FOUND';
-    if (statusCode === 405) return 'METHOD_NOT_ALLOWED';
-    if (statusCode === 409) return 'CONFLICT';
-    if (statusCode === 413) return 'PAYLOAD_TOO_LARGE';
-    if (statusCode === 415) return 'UNSUPPORTED_MEDIA_TYPE';
-    if (statusCode === 429) return 'RATE_LIMITED';
+    if (statusCode === 400 || statusCode === 422) {
+      return 'INVALID_REQUEST';
+    }
+    if (statusCode === 401) {
+      return 'AUTHENTICATION_REQUIRED';
+    }
+    if (statusCode === 403) {
+      return 'FORBIDDEN';
+    }
+    if (statusCode === 404) {
+      return 'NOT_FOUND';
+    }
+    if (statusCode === 405) {
+      return 'METHOD_NOT_ALLOWED';
+    }
+    if (statusCode === 409) {
+      return 'CONFLICT';
+    }
+    if (statusCode === 413) {
+      return 'PAYLOAD_TOO_LARGE';
+    }
+    if (statusCode === 415) {
+      return 'UNSUPPORTED_MEDIA_TYPE';
+    }
+    if (statusCode === 429) {
+      return 'RATE_LIMITED';
+    }
     return 'INTERNAL_ERROR';
   }
 
@@ -191,18 +209,30 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
     if (statusCode === 400 || statusCode === 422) {
       return 'The request is invalid.';
     }
-    if (statusCode === 401) return 'Authentication is required.';
-    if (statusCode === 403) return 'The request is not allowed.';
-    if (statusCode === 404) return 'The requested resource was not found.';
-    if (statusCode === 405) return 'The HTTP method is not allowed.';
+    if (statusCode === 401) {
+      return 'Authentication is required.';
+    }
+    if (statusCode === 403) {
+      return 'The request is not allowed.';
+    }
+    if (statusCode === 404) {
+      return 'The requested resource was not found.';
+    }
+    if (statusCode === 405) {
+      return 'The HTTP method is not allowed.';
+    }
     if (statusCode === 409) {
       return 'The request conflicts with the current resource state.';
     }
-    if (statusCode === 413) return 'The request body is too large.';
+    if (statusCode === 413) {
+      return 'The request body is too large.';
+    }
     if (statusCode === 415) {
       return 'The request content type is not supported.';
     }
-    if (statusCode === 429) return 'Too many requests. Try again later.';
+    if (statusCode === 429) {
+      return 'Too many requests. Try again later.';
+    }
     return 'The request could not be completed.';
   }
 

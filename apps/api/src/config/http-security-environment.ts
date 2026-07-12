@@ -225,8 +225,12 @@ function parseBoolean(value: unknown, name: string, defaultValue: boolean): bool
   }
   if (typeof value === 'string') {
     const normalized = value.trim().toLowerCase();
-    if (normalized === 'true') return true;
-    if (normalized === 'false') return false;
+    if (normalized === 'true') {
+      return true;
+    }
+    if (normalized === 'false') {
+      return false;
+    }
   }
   throw new Error(`${name} must be true or false.`);
 }
