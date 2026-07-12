@@ -11,12 +11,18 @@ All notable changes to the NEWAX Trusted Request Context module are documented h
 - Integrity validation preventing cross-person, inactive, malformed, or duplicate membership results.
 - Paginated discovery contracts and a Prisma account-membership directory adapter.
 - `GET /api/account/memberships` with strict pagination parsing and no-store responses.
+- Organization context confirmation for an already validated selected membership.
+- Fixed high-level capability summaries for client navigation without raw permission disclosure.
+- `GET /api/account/organization-context` with current membership and organization revalidation.
 
 ### Security
 
 - Person identity is derived only from the authenticated account context.
 - Discovery returns no person identifiers, reference numbers, roles, permissions, or client-declared organization authority.
 - A discovered membership still requires full Trusted Request Context validation before organization access is granted.
+- Confirmation reloads the current membership and verifies it against trusted person, membership, and organization identifiers.
+- Confirmation returns no raw roles, permission codes, user identifiers, person identifiers, session identifiers, or bearer material.
+- Capability indicators are advisory only and never replace exact server-side permission enforcement.
 
 ### Database
 
