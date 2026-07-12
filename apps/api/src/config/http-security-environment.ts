@@ -42,7 +42,7 @@ export function validateHttpSecurityEnvironment(
   const hstsIncludeSubDomains = parseBoolean(
     configuration.HTTP_HSTS_INCLUDE_SUBDOMAINS,
     'HTTP_HSTS_INCLUDE_SUBDOMAINS',
-    nodeEnvironment === 'production',
+    false,
   );
   const hstsPreload = parseBoolean(configuration.HTTP_HSTS_PRELOAD, 'HTTP_HSTS_PRELOAD', false);
   const hstsMaxAgeSeconds = parseInteger(
