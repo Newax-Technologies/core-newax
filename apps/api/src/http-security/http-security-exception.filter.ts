@@ -162,7 +162,11 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
     if (code.includes('_CONFLICT') || code.includes('_ALREADY_')) {
       return 409;
     }
-    if (code.endsWith('_INVALID_INPUT') || code.endsWith('_POLICY_FAILED')) {
+    if (
+      code.endsWith('_INVALID_INPUT') ||
+      code.endsWith('_CURSOR_INVALID') ||
+      code.endsWith('_POLICY_FAILED')
+    ) {
       return 400;
     }
     if (code.endsWith('_UNAVAILABLE')) {
