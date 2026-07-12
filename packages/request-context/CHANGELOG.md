@@ -2,6 +2,26 @@
 
 All notable changes to the NEWAX Trusted Request Context module are documented here.
 
+## Unreleased
+
+### Added
+
+- Bounded account membership discovery from trusted account context.
+- Active membership and active organization filtering.
+- Integrity validation preventing cross-person, inactive, malformed, or duplicate membership results.
+- Paginated discovery contracts and a Prisma account-membership directory adapter.
+- `GET /api/account/memberships` with strict pagination parsing and no-store responses.
+
+### Security
+
+- Person identity is derived only from the authenticated account context.
+- Discovery returns no person identifiers, reference numbers, roles, permissions, or client-declared organization authority.
+- A discovered membership still requires full Trusted Request Context validation before organization access is granted.
+
+### Database
+
+- No tables or migrations are added.
+
 ## 0.1.0 - 2026-07-12
 
 ### Added

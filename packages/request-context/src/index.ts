@@ -2,15 +2,22 @@ export { RequestContextError, type RequestContextErrorCode } from './errors/requ
 export { ContextAuthorizer } from './security/context-authorizer';
 export { ImmutablePermissionSet } from './security/immutable-permission-set';
 export type {
+  AccountMembershipDirectory,
   RequestIdFactory,
   TrustedContextClock,
   TrustedMembershipDirectory,
   TrustedPermissionEvaluator,
   TrustedSessionValidator,
 } from './services/request-context-ports';
+export { AccountMembershipDiscoveryService } from './services/account-membership-discovery.service';
 export { TrustedRequestContextService } from './services/trusted-request-context.service';
 export type { TrustedRequestContextStore } from './services/trusted-request-context-store';
 export type {
+  AccountMembershipCandidate,
+  AccountMembershipDirectoryPage,
+  AccountMembershipDiscoveryPage,
+  AccountMembershipDiscoveryQuery,
+  AccountMembershipOption,
   ModuleRequestContext,
   ResolveAccountContextInput,
   ResolveOrganizationContextInput,
