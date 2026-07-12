@@ -114,6 +114,7 @@ export class PrismaAddressesRepository implements AddressRepository {
             where: {
               organizationId: input.organizationId,
               addressType: input.addressType,
+              status: 'active',
               isPrimary: true,
             },
             data: { isPrimary: false },
@@ -126,6 +127,7 @@ export class PrismaAddressesRepository implements AddressRepository {
             addressId: address.id,
             addressType: input.addressType,
             isPrimary: input.isPrimary,
+            status: 'active',
           },
           include: {
             organization: { select: { tenantId: true } },
@@ -162,6 +164,7 @@ export class PrismaAddressesRepository implements AddressRepository {
             where: {
               id: input.afterId,
               organizationId: input.organizationId,
+              status: 'active',
               organization: { is: { tenantId: input.tenantId } },
             },
             select: { id: true },
@@ -174,6 +177,7 @@ export class PrismaAddressesRepository implements AddressRepository {
         const records = await transaction.coreOrganizationAddress.findMany({
           where: {
             organizationId: input.organizationId,
+            status: 'active',
             organization: { is: { tenantId: input.tenantId } },
             ...(input.addressType === undefined ? {} : { addressType: input.addressType }),
           },
