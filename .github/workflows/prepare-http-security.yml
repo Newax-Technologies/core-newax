@@ -44,7 +44,6 @@ jobs:
           pnpm --filter @newax/api db:format
           pnpm exec prettier --write \
             apps/api/package.json \
-            apps/api/prisma/schema.prisma \
             apps/api/src/config/environment.ts \
             apps/api/src/config/environment.spec.ts \
             apps/api/src/config/http-security-environment.ts \
