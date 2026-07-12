@@ -3,7 +3,9 @@ import type {
   OrganizationContextCapabilitySummary,
   OrganizationContextConfirmation,
   OrganizationContextConfirmationRecord,
+  TrustedMembershipStatus,
   TrustedOrganizationRequestContext,
+  TrustedOrganizationStatus,
 } from '../types/request-context';
 import type { OrganizationContextConfirmationDirectory } from './request-context-ports';
 
@@ -180,13 +182,17 @@ export class OrganizationContextConfirmationService {
         'confirmation.organizationType',
         64,
       ),
-      organizationStatus: record.organizationStatus,
+      organizationStatus: this.requireOrganizationStatus(
+        record.organizationStatus,
+      ),
       membershipType: this.requireText(
         record.membershipType,
         'confirmation.membershipType',
         64,
       ),
-      membershipStatus: record.membershipStatus,
+      membershipStatus: this.requireMembershipStatus(
+        record.membershipStatus,
+      ),
       jobTitle: this.requireNullableText(
         record.jobTitle,
         'confirmation.jobTitle',
@@ -229,6 +235,26 @@ export class OrganizationContextConfirmationService {
     required: readonly string[],
   ): boolean {
     return required.some((permission) => permissions.has(permission));
+  }
+
+  private requireMembershipStatus(value: string): TrustedMembershipStatus {
+    if (value === 'active' || value === 'suspended' || value === 'ended') {
+      return value;
+    }
+    throw this.integrityFailure(
+      'confirmation.membershipStatus is invalid.',
+    );
+  }
+
+  private requireOrganizationStatus(
+    value: string,
+  ): TrustedOrganizationStatus {
+    if (value === 'active' || value === 'suspended' || value === 'archived') {
+      return value;
+    }
+    throw this.integrityFailure(
+      'confirmation.organizationStatus is invalid.',
+    );
   }
 
   private requireUuid(value: string, field: string): string {
