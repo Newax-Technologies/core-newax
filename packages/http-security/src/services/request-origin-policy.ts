@@ -88,6 +88,7 @@ export class RequestOriginPolicy {
         (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') ||
         parsed.username.length > 0 ||
         parsed.password.length > 0 ||
+        parsed.hostname.includes('*') ||
         parsed.pathname !== '/' ||
         parsed.search.length > 0 ||
         parsed.hash.length > 0
