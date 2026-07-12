@@ -56,7 +56,8 @@ export interface TrustedOrganizationRequestContext {
 }
 
 export type TrustedRequestContext =
-  TrustedAccountRequestContext | TrustedOrganizationRequestContext;
+  | TrustedAccountRequestContext
+  | TrustedOrganizationRequestContext;
 
 export interface ModuleRequestContext {
   readonly actorUserId: string;
@@ -102,4 +103,41 @@ export interface AccountMembershipDiscoveryPage {
   readonly page: number;
   readonly perPage: number;
   readonly total: number;
+}
+
+export interface OrganizationContextConfirmationRecord {
+  readonly membershipId: string;
+  readonly personId: string;
+  readonly organizationId: string;
+  readonly organizationDisplayName: string;
+  readonly organizationType: string;
+  readonly organizationStatus: TrustedOrganizationStatus;
+  readonly membershipType: string;
+  readonly membershipStatus: TrustedMembershipStatus;
+  readonly jobTitle: string | null;
+}
+
+export interface OrganizationContextCapabilitySummary {
+  readonly organizationView: boolean;
+  readonly organizationManage: boolean;
+  readonly peopleView: boolean;
+  readonly peopleManage: boolean;
+  readonly membershipsView: boolean;
+  readonly membershipsManage: boolean;
+  readonly usersView: boolean;
+  readonly usersManage: boolean;
+  readonly accessControlView: boolean;
+  readonly accessControlManage: boolean;
+}
+
+export interface OrganizationContextConfirmation {
+  readonly membershipId: string;
+  readonly organizationId: string;
+  readonly organizationDisplayName: string;
+  readonly organizationType: string;
+  readonly membershipType: string;
+  readonly jobTitle: string | null;
+  readonly sessionExpiresAt: Date;
+  readonly permissionsEvaluatedAt: Date;
+  readonly capabilities: OrganizationContextCapabilitySummary;
 }
