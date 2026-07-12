@@ -21,7 +21,7 @@ export class AccountMembershipDiscoveryService {
     context: TrustedAccountRequestContext,
     query: AccountMembershipDiscoveryQuery = {},
   ): Promise<AccountMembershipDiscoveryPage> {
-    this.assertAccountContext(context);
+    const trustedPersonId = this.assertAccountContext(context);
     const page = this.normalizeInteger(query.page, 'page', DEFAULT_PAGE, MAX_PAGE);
     const perPage = this.normalizeInteger(
       query.perPage,
@@ -34,7 +34,11 @@ export class AccountMembershipDiscoveryService {
       throw this.invalidInput('The requested membership page is too large.', 'page');
     }
 
-    const result = await this.directory.listAvailableMemberships(context.personId, offset, perPage);
+    const result = await this.directory.listAvailableMemberships(
+      trustedPersonId,
+      offset,
+      perPage,
+    );
     if (!Number.isInteger(result.total) || result.total < 0) {
       throw this.integrityFailure('Membership discovery returned an invalid total.');
     }
@@ -47,7 +51,7 @@ export class AccountMembershipDiscoveryService {
 
     const seenMembershipIds = new Set<string>();
     const items = result.items.map((candidate) => {
-      const option = this.toOption(candidate, context.personId);
+      const option = this.toOption(candidate, trustedPersonId);
       if (seenMembershipIds.has(option.membershipId)) {
         throw this.integrityFailure('Membership discovery returned a duplicate membership.');
       }
@@ -101,15 +105,16 @@ export class AccountMembershipDiscoveryService {
     };
   }
 
-  private assertAccountContext(context: TrustedAccountRequestContext): void {
+  private assertAccountContext(context: TrustedAccountRequestContext): string {
     if (context.scope !== 'account') {
       throw this.integrityFailure('Account membership discovery requires trusted account context.');
     }
     this.requireUuid(context.userId, 'context.userId');
-    this.requireUuid(context.personId, 'context.personId');
+    const personId = this.requireUuid(context.personId, 'context.personId');
     this.requireUuid(context.sessionId, 'context.sessionId');
     this.requireText(context.requestId, 'context.requestId', 128);
     this.requireDate(context.sessionExpiresAt, 'context.sessionExpiresAt');
+    return personId;
   }
 
   private normalizeInteger(
