@@ -117,6 +117,7 @@ import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
     },
   ],
   exports: [
+    CookieHeaderParser,
     SecureCookieTransport,
     SignedCsrfTokenService,
     HTTP_SECURITY_POLICY,
