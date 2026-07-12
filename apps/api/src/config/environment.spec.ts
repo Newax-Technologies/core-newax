@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { validateEnvironment } from './environment';
 
 const productionPepper = 'production-authentication-pepper-with-more-than-thirty-two-characters';
+const productionCsrfSecret = 'production-http-csrf-secret-with-more-than-thirty-two-characters';
 
 describe('validateEnvironment', () => {
   it('applies safe defaults and preserves unrelated values', () => {
@@ -18,22 +19,31 @@ describe('validateEnvironment', () => {
       AUTH_MAXIMUM_FAILED_ATTEMPTS: 5,
       AUTH_ACCOUNT_LOCK_MINUTES: 15,
       AUTH_SESSION_TOUCH_INTERVAL_MINUTES: 5,
+      HTTP_REQUIRE_HTTPS: false,
+      HTTP_TRUSTED_PROXY_CIDRS: [],
     });
   });
 
-  it('normalizes supported environment values', () => {
+  it('normalizes supported production environment values', () => {
     expect(
       validateEnvironment({
         NODE_ENV: 'production',
         HOST: ' 127.0.0.1 ',
         PORT: '8080',
         AUTH_TOKEN_PEPPER: ` ${productionPepper} `,
+        HTTP_ALLOWED_ORIGINS: ' https://app.newax.test ',
+        HTTP_CSRF_SECRET: productionCsrfSecret,
+        HTTP_TRUSTED_PROXY_CIDRS: ' 10.0.0.0/8 ',
       }),
     ).toMatchObject({
       NODE_ENV: 'production',
       HOST: '127.0.0.1',
       PORT: 8080,
       AUTH_TOKEN_PEPPER: productionPepper,
+      HTTP_ALLOWED_ORIGINS: ['https://app.newax.test'],
+      HTTP_CSRF_SECRET: productionCsrfSecret,
+      HTTP_REQUIRE_HTTPS: true,
+      HTTP_TRUSTED_PROXY_CIDRS: ['10.0.0.0/8'],
     });
   });
 

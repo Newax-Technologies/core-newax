@@ -1,3 +1,8 @@
+import {
+  validateHttpSecurityEnvironment,
+  type HttpSecurityEnvironment,
+} from './http-security-environment';
+
 const DEFAULT_HOST = '0.0.0.0';
 const DEFAULT_PORT = 3000;
 const DEFAULT_NODE_ENV = 'development';
@@ -13,7 +18,7 @@ const NODE_ENVIRONMENTS = ['development', 'test', 'production'] as const;
 
 type NodeEnvironment = (typeof NODE_ENVIRONMENTS)[number];
 
-export interface ApplicationEnvironment {
+export interface ApplicationEnvironment extends HttpSecurityEnvironment {
   readonly NODE_ENV: NodeEnvironment;
   readonly HOST: string;
   readonly PORT: number;
@@ -214,5 +219,6 @@ export function validateEnvironment(
       DEFAULT_AUTH_SESSION_TOUCH_INTERVAL_MINUTES,
       1_440,
     ),
+    ...validateHttpSecurityEnvironment(configuration, nodeEnvironment),
   };
 }

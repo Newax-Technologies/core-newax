@@ -1,7 +1,7 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.7",
+  "registry_version": "0.1.8",
   "registry_status": "draft",
   "last_updated": "2026-07-12",
   "owner": "NEWAX Engineering",
@@ -298,6 +298,38 @@
       "documentation_path": "packages/request-context/README.md",
       "changelog_path": "packages/request-context/CHANGELOG.md",
       "compatibility_notes": "Clients may select a membership identifier only. User, person, organization, and permission authority must be derived from trusted server-side records."
+    },
+    {
+      "module_name": "HTTP Security Boundary",
+      "module_key": "http-security",
+      "module_layer": "platform_service",
+      "module_version": "0.1.0",
+      "module_status": "draft",
+      "module_owner": "NEWAX Engineering",
+      "description": "Protects HTTPS entry through proxy trust, request framing, origin and CSRF controls, distributed throttling, trusted context enforcement, response controls, and security auditing.",
+      "dependencies": [
+        {
+          "module_key": "request-context",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [],
+      "exposed_events": [],
+      "consumed_events": [],
+      "configuration_options": [
+        "allowed_origins",
+        "csrf_secret",
+        "https_requirement",
+        "trusted_proxy_cidrs",
+        "body_limit_bytes",
+        "rate_limit_policy",
+        "hsts_policy"
+      ],
+      "database_ownership": ["core_http_rate_limit_buckets"],
+      "tenant_scope": "public_account_and_organization_http_boundary",
+      "documentation_path": "packages/http-security/README.md",
+      "changelog_path": "packages/http-security/CHANGELOG.md",
+      "compatibility_notes": "Production clients use HTTPS. Foundation modules remain transport-independent, and client-supplied identity, tenant, role, and permission values are never accepted as authority."
     },
     {
       "module_name": "Contacts",

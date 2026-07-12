@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { HealthController } from './health.controller';
 
@@ -10,20 +10,14 @@ describe('HealthController', () => {
   });
 
   it('returns the stable health response contract', () => {
-    vi.spyOn(Date.prototype, 'toISOString').mockReturnValue('2026-07-10T00:00:00.000Z');
-    vi.spyOn(process, 'uptime').mockReturnValue(123.9);
-
     expect(controller.getHealth()).toEqual({
       status: 'ok',
       service: 'newax-api',
-      timestamp: '2026-07-10T00:00:00.000Z',
-      uptimeSeconds: 123,
     });
   });
 
-  it('does not expose fractional uptime values', () => {
-    vi.spyOn(process, 'uptime').mockReturnValue(42.99);
-
-    expect(controller.getHealth().uptimeSeconds).toBe(42);
+  it('does not expose process timing information', () => {
+    expect(controller.getHealth()).not.toHaveProperty('timestamp');
+    expect(controller.getHealth()).not.toHaveProperty('uptimeSeconds');
   });
 });

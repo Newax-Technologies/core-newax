@@ -1,0 +1,1 @@
+export const HTTP_SECURITY_POLICY = Symbol('HTTP_SECURITY_POLICY');

@@ -6,6 +6,7 @@ import { AuthenticationModule } from './authentication/authentication.module';
 import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
+import { HttpSecurityModule } from './http-security/http-security.module';
 import { MembershipsModule } from './memberships/memberships.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { PeopleModule } from './people/people.module';
@@ -28,6 +29,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     AuthenticationModule,
     RequestContextModule,
+    HttpSecurityModule,
   ],
   controllers: [HealthController],
   providers: [],
