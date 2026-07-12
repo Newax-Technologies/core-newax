@@ -1,4 +1,5 @@
 import type { ArgumentsHost } from '@nestjs/common';
+import { AddressModuleError } from '@newax/addresses';
 import { PeopleModuleError } from '@newax/people';
 import { describe, expect, it } from 'vitest';
 
@@ -127,6 +128,27 @@ describe('HttpSecurityExceptionFilter current-person error mapping', () => {
     });
     expect(JSON.stringify(response.body)).not.toContain('repository');
     expect(JSON.stringify(response.body)).not.toContain('trusted person boundary');
+    expect(auditSink.records).toHaveLength(1);
+  });
+
+  it('maps address conflicts without exposing physical address details', async () => {
+    const auditSink = new RecordingAuditSink();
+    const response = new FakeResponse();
+
+    await createFilter(auditSink).catch(
+      new AddressModuleError('ADDRESS_CONFLICT', 'The office address already exists at Street 1.'),
+      createHost(response),
+    );
+
+    expect(response.statusCode).toBe(409);
+    expect(response.body).toEqual({
+      error: {
+        code: 'CONFLICT',
+        message: 'The request conflicts with the current resource state.',
+        requestId: 'request-1',
+      },
+    });
+    expect(JSON.stringify(response.body)).not.toContain('Street 1');
     expect(auditSink.records).toHaveLength(1);
   });
 });
