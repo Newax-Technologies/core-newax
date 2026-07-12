@@ -23,6 +23,7 @@ const SUPPORTED_METHODS: ReadonlySet<string> = new Set([
   'PATCH',
   'DELETE',
 ]);
+const BODYLESS_METHODS: ReadonlySet<string> = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 @Injectable()
 export class HttpBoundaryMiddleware implements NestMiddleware {
@@ -105,6 +106,18 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
     }
 
     request.newaxHasBody = contentLength > 0 || transferEncoding === true;
+    if (request.newaxHasBody && BODYLESS_METHODS.has(method)) {
+      await this.reject(
+        request,
+        response,
+        requestId,
+        'http.body.rejected',
+        'INVALID_REQUEST',
+        400,
+        'This HTTP method does not accept a request body.',
+      );
+      return;
+    }
     if (contentLength > this.policy.bodyLimitBytes) {
       await this.reject(
         request,
