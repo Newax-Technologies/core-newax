@@ -56,10 +56,51 @@ export interface TrustedOrganizationRequestContext {
 }
 
 export type TrustedRequestContext =
-  TrustedAccountRequestContext | TrustedOrganizationRequestContext;
+  | TrustedAccountRequestContext
+  | TrustedOrganizationRequestContext;
 
 export interface ModuleRequestContext {
   readonly actorUserId: string;
   readonly organizationId: string;
   readonly permissionCodes: ReadonlySet<string>;
+}
+
+export interface AccountMembershipDiscoveryQuery {
+  readonly page?: number;
+  readonly perPage?: number;
+}
+
+export interface AccountMembershipCandidate {
+  readonly membershipId: string;
+  readonly personId: string;
+  readonly organizationId: string;
+  readonly organizationDisplayName: string;
+  readonly organizationType: string;
+  readonly organizationStatus: TrustedOrganizationStatus;
+  readonly membershipType: string;
+  readonly membershipStatus: TrustedMembershipStatus;
+  readonly jobTitle: string | null;
+  readonly startDate: Date | null;
+}
+
+export interface AccountMembershipDirectoryPage {
+  readonly items: readonly AccountMembershipCandidate[];
+  readonly total: number;
+}
+
+export interface AccountMembershipOption {
+  readonly membershipId: string;
+  readonly organizationId: string;
+  readonly organizationDisplayName: string;
+  readonly organizationType: string;
+  readonly membershipType: string;
+  readonly jobTitle: string | null;
+  readonly startDate: Date | null;
+}
+
+export interface AccountMembershipDiscoveryPage {
+  readonly items: readonly AccountMembershipOption[];
+  readonly page: number;
+  readonly perPage: number;
+  readonly total: number;
 }
