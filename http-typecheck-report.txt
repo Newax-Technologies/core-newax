@@ -6,10 +6,39 @@ packages/access-control typecheck: Done
 packages/auth typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
 apps/web typecheck: Done
 packages/http-security typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
-packages/http-security typecheck: src/services/request-origin-policy.ts(1,21): error TS2591: Cannot find name 'node:url'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
-packages/http-security typecheck: Failed
-/home/runner/work/core-newax/core-newax/packages/http-security:
-[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @newax/http-security@0.1.0 typecheck: `tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit`
-Exit status 2
+packages/auth typecheck: Done
 packages/memberships typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
+packages/http-security typecheck: Done
+packages/organizations typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
+packages/memberships typecheck: Done
+packages/people typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
+packages/organizations typecheck: Done
+packages/request-context typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
+packages/people typecheck: Done
+packages/users typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
+packages/request-context typecheck: Done
+packages/users typecheck: Done
+apps/api pretypecheck$ pnpm run build:foundation && pnpm run db:generate
+apps/api pretypecheck: $ pnpm --filter @newax/organizations build && pnpm --filter @newax/people build && pnpm --filter @newax/memberships build && pnpm --filter @newax/access-control build && pnpm --filter @newax/users build && pnpm --filter @newax/auth build && pnpm --filter @newax/request-context build && pnpm --filter @newax/http-security build
+apps/api pretypecheck: $ tsc --project tsconfig.json
+apps/api pretypecheck: $ tsc --project tsconfig.json
+apps/api pretypecheck: $ tsc --project tsconfig.json
+apps/api pretypecheck: $ tsc --project tsconfig.json
+apps/api pretypecheck: $ tsc --project tsconfig.json
+apps/api pretypecheck: $ tsc --project tsconfig.json
+apps/api pretypecheck: $ tsc --project tsconfig.json
+apps/api pretypecheck: $ tsc --project tsconfig.json
+apps/api pretypecheck: $ prisma generate
+apps/api pretypecheck: Loaded Prisma config from prisma.config.ts.
+apps/api pretypecheck: Prisma schema loaded from prisma/schema.prisma.
+apps/api pretypecheck: ✔ Generated Prisma Client (7.8.0) to ./src/generated/prisma in 355ms
+apps/api pretypecheck: Done
+apps/api typecheck$ pnpm run typecheck:src && pnpm run typecheck:test
+apps/api typecheck: $ tsc --project tsconfig.json --noEmit
+apps/api typecheck: src/main.ts(42,36): error TS2554: Expected 1-2 arguments, but got 3.
+apps/api typecheck: [ELIFECYCLE] Command failed with exit code 2.
+apps/api typecheck: Failed
+/home/runner/work/core-newax/core-newax/apps/api:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @newax/api@0.0.0 typecheck: `pnpm run typecheck:src && pnpm run typecheck:test`
+Exit status 2
 [ELIFECYCLE] Command failed with exit code 2.
