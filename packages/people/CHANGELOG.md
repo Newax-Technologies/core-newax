@@ -2,6 +2,30 @@
 
 All notable changes to the NEWAX People module are documented here.
 
+## Unreleased
+
+### Added
+
+- Bounded `CurrentPersonRequestContext` and `CurrentPersonProfile` contracts.
+- `PeopleService.getCurrent` for authenticated account self-profile access.
+- `GET /api/core/people/current` through trusted account context.
+- Focused package and controller tests for current-person retrieval and boundary enforcement.
+
+### Security
+
+- Self-profile access is separate from organization-wide `people.view` authority.
+- Trusted actor and linked-person UUIDs are validated before persistence access.
+- Missing, inactive, archived, suspended, or deleted people fail closed.
+- Repository records must match the trusted person boundary.
+- Every query parameter, including client-supplied person selection, is rejected.
+- Responses exclude identifiers, date of birth, gender, contacts, addresses, authentication data, sessions, memberships, organizations, roles, permissions, timestamps, audit fields, and deletion metadata.
+- Responses use `Cache-Control: no-store`.
+
+### Database
+
+- Reuses the existing `core_people` Central Registry table.
+- Adds no schema change, migration, cache, or alternative source of truth.
+
 ## 0.1.0 - 2026-07-11
 
 ### Added

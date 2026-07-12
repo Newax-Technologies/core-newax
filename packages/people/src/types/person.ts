@@ -14,6 +14,20 @@ export interface PersonRecord {
   readonly deletedAt: Date | null;
 }
 
+export interface CurrentPersonRequestContext {
+  readonly actorUserId: string;
+  readonly personId: string;
+}
+
+export interface CurrentPersonProfile {
+  readonly id: string;
+  readonly firstName: string;
+  readonly middleName: string | null;
+  readonly lastName: string;
+  readonly preferredName: string | null;
+  readonly status: 'active';
+}
+
 export interface PersonIdentifierRecord {
   readonly id: string;
   readonly personId: string;

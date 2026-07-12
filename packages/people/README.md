@@ -10,7 +10,7 @@ Version: `0.1.0`
 
 The People module maintains one stable identity record for each real person used across NEWAX business infrastructure.
 
-A person may later participate in multiple organizations, hold multiple memberships, and have a login account, but those concerns remain outside this module. Domain modules such as LMS, HR, Healthcare, Legal, CRM, and Finance reference the shared person through `person_id` instead of duplicating identity data.
+A person may participate in multiple organizations, hold multiple memberships, and have a login account, but those concerns remain outside this module. Domain modules such as LMS, HR, Healthcare, Legal, CRM, and Finance reference the shared person through `person_id` instead of duplicating identity data.
 
 ## Owned concepts and data
 
@@ -20,6 +20,7 @@ The module owns:
 - Person lifecycle status.
 - Person identifiers such as national identifiers, passports, and professional registration numbers.
 - Identity validation and duplicate-sensitive identifier assignment.
+- A bounded current-person self-profile projection.
 - People permission definitions.
 - Person lifecycle and identifier events.
 
@@ -46,6 +47,7 @@ Primary operations:
 ```text
 create
 getById
+getCurrent
 list
 update
 archive
@@ -54,9 +56,9 @@ listIdentifiers
 verifyIdentifier
 ```
 
-## Permissions
+## Permissions and self-access
 
-Protected operations require explicit permissions:
+Organization-wide People Registry operations require explicit permissions:
 
 ```text
 people.view
@@ -68,6 +70,18 @@ people.identifiers.manage
 ```
 
 Roles may bundle these permissions, but the module never authorizes actions through role names.
+
+`getCurrent` is intentionally separate from organization-wide `people.view`. It accepts only a trusted actor user identifier and the person identifier already linked to that authenticated account by Trusted Request Context. It does not accept a client-selected person identifier, organization permission set, role, membership, or tenant authority.
+
+## Current-person rules
+
+- The trusted actor and linked person identifiers must be valid UUIDs.
+- The linked person is reloaded from the Central Registry source of truth.
+- The person must still exist, remain active, and have no deletion marker.
+- The repository result must match the trusted person identifier.
+- Malformed trusted context or repository boundary mismatches fail as integrity errors.
+- The bounded profile contains only person ID, first name, optional middle name, last name, optional preferred name, and active status.
+- Date of birth, gender, identifiers, contacts, addresses, credentials, sessions, memberships, organizations, roles, permissions, audit metadata, deletion metadata, and timestamps are excluded.
 
 ## Identity rules
 
@@ -99,6 +113,8 @@ Events include the actor user, person identifier, occurrence time, and resulting
 
 The initial application adapter records events through structured application logging. Durable event delivery and transactional outbox support remain deferred until the shared Events capability is implemented.
 
+Current-person reads do not publish lifecycle events because they do not mutate person state. HTTP access is still covered by the shared HTTP Security audit boundary.
+
 ## Dependencies
 
 The reusable package has no dependency on another business domain.
@@ -108,23 +124,47 @@ The NestJS application adapter depends on:
 - The API Database Module.
 - Prisma-generated database access.
 - PostgreSQL Central Registry tables.
+- Trusted account context established by the global HTTP Security Boundary.
 
 ## HTTP exposure
 
-This slice does not expose public HTTP endpoints.
+The API exposes:
 
-REST controllers remain deferred until authentication, trusted organization context, permission guards, sensitive-identifier response controls, and audit actor resolution can protect them.
+```text
+GET /api/core/people/current
+```
+
+The endpoint:
+
+- Requires an authenticated account session.
+- Uses account context rather than organization context.
+- Accepts no route person identifier.
+- Rejects every query parameter.
+- Accepts no client person authority.
+- Returns `Cache-Control: no-store`.
+- Returns only the bounded current-person profile.
+
+Arbitrary person lookup, search, administration, identifiers, contacts, addresses, and domain profiles remain unexposed.
 
 ## Testing
 
 Unit tests cover:
 
-- Permission rejection.
+- Permission rejection for organization-wide operations.
 - Person input normalization.
 - Future date-of-birth rejection.
 - Identifier normalization.
 - Cross-person identifier conflict handling.
 - Identifier verification and event publication.
+- Successful current-person self-profile retrieval without `people.view`.
+- Trusted actor and linked-person UUID integrity.
+- Missing linked-person context.
+- Missing, inactive, and deleted current-person records.
+- Repository boundary mismatch detection.
+- Bounded response-field enforcement.
+- Account-context-only HTTP metadata.
+- Query-parameter and client person-selection rejection.
+- `Cache-Control: no-store` declaration.
 
 Repository CI validates formatting, linting, strict TypeScript, tests, production builds, Prisma schema validity, and database migrations against PostgreSQL 18.
 
@@ -136,11 +176,12 @@ Client fields must not be added directly to `core_people` unless they are univer
 
 ## Known limitations
 
-- Public REST endpoints are not enabled.
+- Only the bounded authenticated current-person read endpoint is exposed.
 - Contacts and addresses remain separate planned modules.
 - Authentication and membership consequences of person archival are not yet automated.
 - Probabilistic duplicate-person matching and record merging remain deferred.
-- Durable audit and event persistence remain deferred.
+- Durable module-event persistence remains deferred.
+- Arbitrary person administration HTTP endpoints remain deferred.
 
 ## Related decisions
 
@@ -150,3 +191,7 @@ Client fields must not be added directly to `core_people` unless they are univer
 - ADR 0010: Define Authentication and User Identity Strategy.
 - ADR 0011: Define Technology Stack and Implementation Baseline.
 - ADR 0012: Implement the Central Registry Data Foundation.
+- ADR 0013: Build the People Registry Service Foundation.
+- ADR 0018: Build the Trusted Request Context Foundation.
+- ADR 0019: Build the HTTP Security Boundary.
+- ADR 0024: Build the Current Person Read API.

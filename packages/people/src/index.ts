@@ -16,6 +16,8 @@ export type {
   CreatePersonIdentifierResult,
   CreatePersonInput,
   CreatePersonRecordInput,
+  CurrentPersonProfile,
+  CurrentPersonRequestContext,
   PersonIdentifierRecord,
   PersonListQuery,
   PersonPage,
