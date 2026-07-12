@@ -149,10 +149,9 @@ describe('OrganizationContextConfirmationService', () => {
     });
   });
 
-  it('rejects permission evaluation after session expiry', async () => {
-    const service = new OrganizationContextConfirmationService(
-      new FakeDirectory(record()),
-    );
+  it('rejects permission evaluation after session expiry before persistence access', async () => {
+    const directory = new FakeDirectory(record());
+    const service = new OrganizationContextConfirmationService(directory);
 
     await expect(
       service.confirm({
@@ -162,6 +161,6 @@ describe('OrganizationContextConfirmationService', () => {
     ).rejects.toMatchObject({
       code: 'REQUEST_CONTEXT_INTEGRITY_FAILURE',
     });
-    expect((service as unknown as { directory: FakeDirectory }).directory.membershipId).toBeNull();
+    expect(directory.membershipId).toBeNull();
   });
 });
