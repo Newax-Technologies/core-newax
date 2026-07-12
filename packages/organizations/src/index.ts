@@ -16,6 +16,8 @@ export { OrganizationsService } from './services/organizations.service';
 export type {
   CreateOrganizationInput,
   CreateOrganizationRecordInput,
+  CurrentOrganizationProfile,
+  CurrentOrganizationRequestContext,
   OrganizationListQuery,
   OrganizationPage,
   OrganizationRecord,
