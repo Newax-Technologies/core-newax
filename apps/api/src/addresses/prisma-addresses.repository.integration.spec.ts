@@ -78,7 +78,7 @@ describeWithDatabase('PrismaAddressesRepository PostgreSQL integration', () => {
     await prisma.$disconnect();
   });
 
-  it('reuses canonical addresses, enforces tenant boundaries, and keeps one primary per type', async () => {
+  it('reuses canonical addresses, enforces tenant boundaries, and keeps one active primary per type', async () => {
     const firstTenant = await prisma.coreTenant.create({
       data: { name: organizationName('Tenant A') },
     });
@@ -172,6 +172,38 @@ describeWithDatabase('PrismaAddressesRepository PostgreSQL integration', () => {
         (address) =>
           address.tenantId === firstTenant.id && address.organizationId === firstOrganization.id,
       ),
+    ).toBe(true);
+
+    await prisma.coreOrganizationAddress.update({
+      where: { id: first.address.id },
+      data: { status: 'removed', isPrimary: true },
+    });
+
+    const replacementAfterRemoval = await repository.createOrganizationAddress(
+      addressInput(firstTenant.id, firstOrganization.id, 'Replacement after removal'),
+    );
+    expect(replacementAfterRemoval.status).toBe('created');
+    if (replacementAfterRemoval.status !== 'created') {
+      throw new Error('Expected an active primary to replace a removed primary.');
+    }
+    addressIds.push(replacementAfterRemoval.address.addressId);
+
+    const afterRemoval = await repository.listOrganizationAddresses({
+      tenantId: firstTenant.id,
+      organizationId: firstOrganization.id,
+      addressType: 'office',
+      limit: 10,
+    });
+    expect(afterRemoval.status).toBe('available');
+    if (afterRemoval.status !== 'available') {
+      throw new Error('Expected active organization addresses after removal.');
+    }
+    expect(afterRemoval.items).toHaveLength(3);
+    expect(afterRemoval.items.map((address) => address.id)).not.toContain(first.address.id);
+    expect(afterRemoval.items.filter((address) => address.isPrimary)).toHaveLength(1);
+    expect(
+      afterRemoval.items.find((address) => address.id === replacementAfterRemoval.address.id)
+        ?.isPrimary,
     ).toBe(true);
 
     const foreignCursor = await prisma.coreOrganizationAddress.findFirst({
