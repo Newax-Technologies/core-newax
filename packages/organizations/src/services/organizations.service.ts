@@ -7,6 +7,8 @@ import {
 } from '../permissions/organization-permissions';
 import type {
   CreateOrganizationInput,
+  CurrentOrganizationProfile,
+  CurrentOrganizationRequestContext,
   OrganizationListQuery,
   OrganizationPage,
   OrganizationRecord,
@@ -17,6 +19,7 @@ import type {
 
 const DEFAULT_PAGE_SIZE = 50;
 const MAX_PAGE_SIZE = 100;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 type Mutable<T> = {
   -readonly [Key in keyof T]: T[Key];
@@ -63,6 +66,64 @@ export class OrganizationsService {
   ): Promise<OrganizationRecord> {
     this.requirePermission(context, ORGANIZATION_PERMISSIONS.view);
     return this.requireOrganization(organizationId);
+  }
+
+  async getCurrent(
+    context: CurrentOrganizationRequestContext,
+  ): Promise<CurrentOrganizationProfile> {
+    this.requireTrustedUuid(context.actorUserId, 'context.actorUserId');
+    this.requirePermission(context, ORGANIZATION_PERMISSIONS.view);
+    const organizationId = this.requireTrustedUuid(
+      context.organizationId,
+      'context.organizationId',
+    );
+    const organization = await this.repository.findById(organizationId);
+
+    if (
+      organization === null ||
+      organization.status !== 'active' ||
+      organization.deletedAt !== null
+    ) {
+      throw new OrganizationModuleError(
+        'ORGANIZATION_NOT_FOUND',
+        'The current organization is unavailable.',
+      );
+    }
+
+    const persistedId = this.requireTrustedUuid(organization.id, 'organization.id');
+    if (persistedId !== organizationId) {
+      throw new OrganizationModuleError(
+        'ORGANIZATION_INTEGRITY_FAILURE',
+        'The organization repository returned a record outside the trusted organization boundary.',
+      );
+    }
+
+    const createdAt = this.requireDate(organization.createdAt, 'organization.createdAt');
+    const updatedAt = this.requireDate(organization.updatedAt, 'organization.updatedAt');
+    if (updatedAt.getTime() < createdAt.getTime()) {
+      throw new OrganizationModuleError(
+        'ORGANIZATION_INTEGRITY_FAILURE',
+        'The organization record contains an invalid update timestamp.',
+      );
+    }
+
+    return Object.freeze({
+      id: persistedId,
+      legalName: this.requireStoredText(organization.legalName, 'organization.legalName', 255),
+      displayName: this.requireStoredText(
+        organization.displayName,
+        'organization.displayName',
+        255,
+      ),
+      organizationType: this.requireStoredText(
+        organization.organizationType,
+        'organization.organizationType',
+        64,
+      ),
+      status: 'active',
+      createdAt: new Date(createdAt.getTime()),
+      updatedAt: new Date(updatedAt.getTime()),
+    });
   }
 
   async list(
@@ -280,6 +341,39 @@ export class OrganizationsService {
         { parentOrganizationId },
       );
     }
+  }
+
+  private requireTrustedUuid(value: string, field: string): string {
+    const normalized = value.trim().toLowerCase();
+    if (!UUID_PATTERN.test(normalized)) {
+      throw new OrganizationModuleError(
+        'ORGANIZATION_INTEGRITY_FAILURE',
+        `${field} must be a valid UUID.`,
+      );
+    }
+    return normalized;
+  }
+
+  private requireStoredText(value: string, field: string, maximumLength: number): string {
+    if (
+      typeof value !== 'string' ||
+      value.length === 0 ||
+      value.length > maximumLength ||
+      value.trim() !== value
+    ) {
+      throw new OrganizationModuleError('ORGANIZATION_INTEGRITY_FAILURE', `${field} is invalid.`);
+    }
+    return value;
+  }
+
+  private requireDate(value: Date, field: string): Date {
+    if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+      throw new OrganizationModuleError(
+        'ORGANIZATION_INTEGRITY_FAILURE',
+        `${field} must be a valid date.`,
+      );
+    }
+    return value;
   }
 
   private requireText(value: string, field: string): string {

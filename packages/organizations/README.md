@@ -38,6 +38,8 @@ The package exports:
 - `OrganizationRepository`
 - `OrganizationEventPublisher`
 - Organization request, response, persistence, and event types
+- `CurrentOrganizationRequestContext`
+- `CurrentOrganizationProfile`
 - `ORGANIZATION_PERMISSIONS`
 - `OrganizationModuleError`
 
@@ -46,12 +48,36 @@ Primary operations:
 ```text
 create
 getById
+getCurrent
 list
 update
 archive
 ```
 
-The service layer validates permissions, required text fields, parent existence, archived-parent rules, hierarchy cycles, and active-child archive restrictions before persistence.
+The service layer validates permissions, required text fields, parent existence, archived-parent rules, hierarchy cycles, active-child archive restrictions, current-organization state, trusted identifier integrity, and profile timestamps before persistence results reach callers.
+
+## Current organization profile
+
+`getCurrent` reads only the organization identified by trusted organization context.
+
+It requires:
+
+- A trusted actor user identifier.
+- A trusted organization identifier.
+- `organizations.view` in the effective permission set.
+
+The operation returns only:
+
+- Organization identifier.
+- Legal name.
+- Display name.
+- Organization type.
+- Active status.
+- Created and updated timestamps.
+
+It deliberately excludes registration numbers, tax numbers, parent hierarchy, deletion metadata, roles, permission codes, people, users, memberships, and domain data.
+
+The organization must still be active and non-deleted when the repository read occurs. A previously valid context does not preserve access after the organization becomes unavailable.
 
 ## Permissions
 
@@ -65,6 +91,8 @@ organizations.archive
 ```
 
 Roles may group these permissions, but module behavior must never authorize actions through hardcoded role names.
+
+The current-organization HTTP endpoint enforces `organizations.view` in the HTTP guard and again inside `OrganizationsService`.
 
 ## Events
 
@@ -80,6 +108,8 @@ Each event includes the actor user, organization identifier, occurrence time, an
 
 The initial application adapter logs these events in process. Durable external delivery or transactional outbox behavior remains deferred until a concrete integration requires it.
 
+Read operations do not publish organization lifecycle events.
+
 ## Dependencies
 
 The reusable package has no dependency on LMS or another business domain.
@@ -87,10 +117,12 @@ The reusable package has no dependency on LMS or another business domain.
 The NestJS application adapter depends on:
 
 - The API database module.
+- Trusted Request Context for server-derived actor, organization, and permission values.
+- The HTTP Security Boundary for HTTPS, authentication, selected-membership validation, and permission guards.
 - Prisma-generated database access.
 - PostgreSQL Central Registry tables.
 
-The package defines ports so its service rules do not depend directly on NestJS, Prisma, PostgreSQL, or a client-specific deployment.
+The package defines ports so its service rules do not depend directly on NestJS, Prisma, PostgreSQL, HTTP transport, or a client-specific deployment.
 
 ## Configuration
 
@@ -101,16 +133,27 @@ The first version uses the following built-in behavior:
 - Organization status values: `active`, `suspended`, `archived`
 - Archived organizations cannot be updated or selected as parents.
 - Organizations with active children cannot be archived.
+- Current-organization reads require active, non-deleted records.
 
 Organization type values remain controlled by the calling solution until a dedicated reference-data capability is approved.
 
 ## HTTP exposure
 
-This slice does not expose public HTTP endpoints.
+The API exposes one bounded organization read endpoint:
 
-The module is composed into the API application as an application-facing service, but REST controllers are intentionally deferred until authentication, active organization context, permission guards, and audit actor resolution can protect them.
+```text
+GET /api/core/organizations/current
+```
 
-Raw request headers must not be treated as trusted permission evidence merely to make an endpoint appear finished.
+Rules:
+
+- The organization identifier comes from trusted organization context.
+- The client must not supply an organization identifier in the route, query, or body.
+- Every query parameter is rejected.
+- `organizations.view` is required.
+- The response uses `Cache-Control: no-store`.
+- Only the bounded current-organization profile is returned.
+- The endpoint does not expose organization listing, arbitrary lookup, creation, update, archive, hierarchy, registration, or tax data.
 
 ## Testing
 
@@ -121,6 +164,12 @@ Unit tests cover:
 - Event publication.
 - Hierarchy cycle prevention.
 - Active-child archive protection.
+- Current-organization identifier normalization.
+- Active and non-deleted state enforcement.
+- Repository boundary mismatch rejection.
+- Timestamp integrity.
+- Minimal HTTP response projection.
+- Query-parameter and missing-context rejection.
 
 The Prisma migration and repository composition are validated through the repository CI pipeline using PostgreSQL 18.
 
@@ -132,8 +181,9 @@ Client fields must not be added directly to `core_organizations` unless they are
 
 ## Known limitations
 
-- Public REST endpoints are not yet enabled.
-- Authentication and permission-context adapters are not yet implemented.
+- Arbitrary organization lookup and administration HTTP endpoints are not enabled.
+- Organization hierarchy presentation remains deferred.
+- Registration and tax profile exposure requires a separately approved contract and permission policy.
 - Durable event delivery is not yet implemented.
 - Organization relationship types beyond the parent hierarchy are persisted but do not yet have service operations.
 - Reference-data management for organization types remains deferred.
@@ -146,3 +196,7 @@ Client fields must not be added directly to `core_organizations` unless they are
 - ADR 0008: Use Central Identity and Organization Registry.
 - ADR 0011: Define Technology Stack and Implementation Baseline.
 - ADR 0012: Implement the Central Registry Data Foundation.
+- ADR 0018: Build the Trusted Request Context Foundation.
+- ADR 0019: Build the HTTP Security Boundary.
+- ADR 0022: Build Organization Context Confirmation.
+- ADR 0023: Build Current Organization Read API.

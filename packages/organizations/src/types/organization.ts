@@ -19,6 +19,20 @@ export interface OrganizationRequestContext {
   readonly permissionCodes: ReadonlySet<string>;
 }
 
+export interface CurrentOrganizationRequestContext extends OrganizationRequestContext {
+  readonly organizationId: string;
+}
+
+export interface CurrentOrganizationProfile {
+  readonly id: string;
+  readonly legalName: string;
+  readonly displayName: string;
+  readonly organizationType: string;
+  readonly status: 'active';
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
 export interface CreateOrganizationInput {
   readonly parentOrganizationId?: string | null;
   readonly legalName: string;
