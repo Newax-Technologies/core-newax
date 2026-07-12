@@ -133,6 +133,23 @@ describe('HttpBoundaryMiddleware', () => {
     });
   });
 
+  it('rejects request bodies on safe HTTP methods', async () => {
+    const auditSink = new RecordingAuditSink();
+    const response = new FakeResponse();
+
+    await middleware(auditSink).use(
+      request({ headers: { 'content-length': '2' } }),
+      response,
+      () => undefined,
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toMatchObject({
+      error: { code: 'INVALID_REQUEST' },
+    });
+    expect(auditSink.records[0]?.action).toBe('http.body.rejected');
+  });
+
   it('marks chunked or non-empty requests for downstream body policy', async () => {
     const currentRequest = request({
       method: 'POST',
