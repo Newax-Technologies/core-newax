@@ -1,0 +1,57 @@
+name: Format Current Organization Addresses HTTP API
+
+on:
+  pull_request:
+    branches:
+      - agent/organization-addresses-foundation
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+env:
+  CI: true
+  NEXT_TELEMETRY_DISABLED: 1
+  SEARCH_INDEXING_ENABLED: false
+
+jobs:
+  format:
+    name: Normalize addresses HTTP slice
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Install frozen dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply repository formatting
+        run: pnpm format
+
+      - name: Remove temporary formatter and commit normalized files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/format-current-organization-addresses-http-api.yml
+          git config user.name 'NEWAX Engineering Automation'
+          git config user.email 'engineering@newax.co'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No formatting changes were produced.'
+            exit 1
+          fi
+          git commit -m 'Format current organization addresses HTTP API'
+          git push origin HEAD:agent/current-organization-addresses-http-api
