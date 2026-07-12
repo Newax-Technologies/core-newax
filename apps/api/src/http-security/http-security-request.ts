@@ -16,6 +16,8 @@ export interface HttpSecurityRequestAdapter {
   newaxSecurityRequest?: HttpSecurityRequest;
   newaxRequiredPermissions?: readonly string[];
   newaxStateChanging?: boolean;
+  newaxAuthenticatedUserId?: string;
+  newaxAuthenticatedSessionId?: string;
   trustedContext?: TrustedRequestContext;
 }
 
