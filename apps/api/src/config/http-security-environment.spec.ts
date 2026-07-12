@@ -47,9 +47,7 @@ describe('validateHttpSecurityEnvironment', () => {
   });
 
   it('keeps HSTS subdomain coverage opt-in in production', () => {
-    expect(
-      validateHttpSecurityEnvironment(productionBase, 'production'),
-    ).toMatchObject({
+    expect(validateHttpSecurityEnvironment(productionBase, 'production')).toMatchObject({
       HTTP_REQUIRE_HTTPS: true,
       HTTP_HSTS_INCLUDE_SUBDOMAINS: false,
       HTTP_HSTS_PRELOAD: false,
