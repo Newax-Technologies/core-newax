@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AccessControlModule } from './access-control/access-control.module';
+import { AuthenticationHttpController } from './authentication-http/authentication-http.controller';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
@@ -31,7 +32,7 @@ import { UsersModule } from './users/users.module';
     RequestContextModule,
     HttpSecurityModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, AuthenticationHttpController],
   providers: [],
 })
 export class AppModule {}

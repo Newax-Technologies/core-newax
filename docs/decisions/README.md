@@ -43,10 +43,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0017](0017-build-authentication-service-foundation.md)               | Accepted | Build credential verification, failed-attempt protection, and revocable sessions without merging Authentication into Users.                     |
 | [ADR 0018](0018-build-trusted-request-context-foundation.md)              | Accepted | Resolve tenant-safe execution context from authenticated sessions, active memberships, organizations, and effective permissions.                |
 | [ADR 0019](0019-build-http-security-boundary.md)                          | Accepted | Establish secure HTTPS entry, browser protections, distributed throttling, trusted context enforcement, response controls, and HTTP auditing.   |
+| [ADR 0020](0020-build-authentication-http-endpoints.md)                   | Accepted | Expose bounded login, session, CSRF bootstrap, and logout endpoints without weakening authentication or tenant boundaries.                      |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than nineteen independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than twenty independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -74,6 +75,7 @@ The ADRs form a deliberate sequence rather than nineteen independent opinions wa
 - ADR 0017 defines password verification, failed-attempt protection, and secure account sessions.
 - ADR 0018 defines trusted account and organization execution context without accepting client-declared authority.
 - ADR 0019 establishes secure HTTPS entry, browser request integrity, distributed throttling, permission enforcement, response controls, and HTTP security auditing.
+- ADR 0020 exposes only the first bounded browser authentication workflows while preserving transport, identity, and tenant separation.
 
 ### Implementation Baseline
 
@@ -194,7 +196,7 @@ An ADR does not replace a module README, API documentation, testing evidence, se
 Filename example:
 
 ```text
-0020-define-repository-bootstrap-and-boundary-enforcement.md
+0021-define-repository-bootstrap-and-boundary-enforcement.md
 ```
 
 ## Review Triggers

@@ -52,11 +52,7 @@ export class HttpSecurityInterceptor implements NestInterceptor {
     response: HttpSecurityResponseAdapter,
     auditSink: HttpSecurityAuditSink,
   ): Promise<void> {
-    if (
-      request.newaxStateChanging !== true ||
-      request.trustedContext === undefined ||
-      request.newaxSecurityRequest === undefined
-    ) {
+    if (request.newaxStateChanging !== true || request.newaxSecurityRequest === undefined) {
       return;
     }
 
@@ -65,8 +61,8 @@ export class HttpSecurityInterceptor implements NestInterceptor {
     try {
       await auditSink.record({
         requestId: securityRequest.requestId,
-        actorUserId: context.userId,
-        organizationId: context.scope === 'organization' ? context.organizationId : null,
+        actorUserId: context?.userId ?? request.newaxAuthenticatedUserId ?? null,
+        organizationId: context?.scope === 'organization' ? context.organizationId : null,
         action: 'http.request.completed',
         outcome: 'allowed',
         routeKey: securityRequest.routeKey,
@@ -75,8 +71,9 @@ export class HttpSecurityInterceptor implements NestInterceptor {
         ipAddress: securityRequest.ipAddress,
         userAgent: securityRequest.userAgent,
         metadata: {
-          contextScope: context.scope,
-          membershipId: context.scope === 'organization' ? context.membershipId : null,
+          contextScope: context?.scope ?? 'public',
+          membershipId: context?.scope === 'organization' ? context.membershipId : null,
+          authenticatedSessionId: request.newaxAuthenticatedSessionId ?? null,
           requiredPermissions: [...(request.newaxRequiredPermissions ?? [])],
         },
         occurredAt: this.clock.now(),
