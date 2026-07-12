@@ -12,6 +12,8 @@ The Trusted Request Context module converts a validated account session and a se
 
 It also provides bounded account membership discovery so an authenticated person can see the active memberships available for organization-context selection without supplying or receiving trusted authority.
 
+Organization context confirmation lets the client verify that a selected membership produced valid current organization context without receiving raw role or permission data.
+
 It connects Authentication, Memberships, Organizations, and Access Control without allowing callers to declare their own user identity, organization identity, or permissions.
 
 ## Core sequence
@@ -25,6 +27,7 @@ Session token
   -> organization status validation
   -> effective permission evaluation
   -> trusted organization request context
+  -> bounded organization context confirmation
 ```
 
 Authentication proves who controls the session. Memberships determine where that person may operate. Access Control determines what the selected membership may do.
@@ -35,12 +38,14 @@ The package exports:
 
 - `TrustedRequestContextService`
 - `AccountMembershipDiscoveryService`
+- `OrganizationContextConfirmationService`
 - `TrustedRequestContextStore`
 - `ContextAuthorizer`
 - `ImmutablePermissionSet`
-- Session, membership, account-membership, permission, clock, and request identifier ports
+- Session, membership, account-membership, confirmation, permission, clock, and request identifier ports
 - Account and organization request-context contracts
 - Account membership discovery contracts
+- Organization context confirmation and capability-summary contracts
 - `RequestContextError`
 
 Core operations:
@@ -49,6 +54,7 @@ Core operations:
 resolveAccountContext
 list available account memberships
 resolveOrganizationContext
+confirm organization context
 hasPermission
 requirePermission
 requireAllPermissions
@@ -96,6 +102,34 @@ Rules:
 - Results are bounded and paginated.
 - The response excludes person identifiers, membership reference numbers, role names, permission codes, and other authority-bearing or unnecessary fields.
 - Discovery does not grant organization access. The selected membership must still pass full organization-context resolution.
+
+## Organization context confirmation
+
+Organization context confirmation exists only after Trusted Request Context has validated an active selected membership and evaluated its current permissions.
+
+Rules:
+
+- The service receives trusted organization context, not client-declared user, person, organization, role, permission, or status fields.
+- The selected membership is reloaded from the Central Registry with active person, membership, organization, non-ended, and non-deleted filters.
+- Reloaded person, membership, and organization identifiers must match trusted organization context.
+- A selection that becomes unavailable fails with the concealed membership-unavailable response.
+- Identifier mismatches or malformed persistence records fail as integrity errors.
+- The response includes only selected organization display identity, membership presentation fields, session expiry, permission-evaluation time, and fixed capability indicators.
+- Raw permission codes, role names, user identifiers, person identifiers, and session identifiers are not returned.
+
+### Capability indicators
+
+The confirmation service projects exact permission codes into a fixed set of boolean capability categories:
+
+- Organization view and management.
+- People view and management.
+- Membership view and management.
+- User view and management.
+- Access Control view and management.
+
+These indicators exist for navigation and interface presentation only. They are not authorization decisions. Every protected endpoint must continue to enforce its own exact server-side permissions.
+
+Capability projection uses explicit permission allowlists. It does not infer authority from role names, arbitrary prefixes, or client input.
 
 ## Trust rules
 
@@ -153,19 +187,25 @@ It reads trusted references from:
 
 - Authentication sessions.
 - Membership and organization status.
+- Organization display identity.
 - Effective permission evaluation.
 
 ## HTTP exposure
 
-The API exposes one account-scoped discovery endpoint:
+The API exposes two bounded account flows:
 
 ```text
 GET /api/account/memberships
+GET /api/account/organization-context
 ```
 
-The endpoint requires trusted account context, accepts only bounded pagination fields, returns `Cache-Control: no-store`, and does not require organization permissions because it reveals only the authenticated person's active context choices.
+Membership discovery requires trusted account context, accepts only bounded pagination fields, returns `Cache-Control: no-store`, and does not require organization permissions because it reveals only the authenticated person's active context choices.
 
-The caller may select a returned membership identifier in the existing `x-newax-membership-id` transport when requesting an organization-scoped endpoint. Selection alone grants nothing. The HTTP Security Boundary and Trusted Request Context must validate the membership again.
+Organization confirmation requires trusted organization context established from the `x-newax-membership-id` transport. It returns `Cache-Control: no-store` and requires no additional business permission because it confirms only the already validated selected context.
+
+The caller may select a returned membership identifier in the existing `x-newax-membership-id` transport when requesting an organization-scoped endpoint. Selection alone grants nothing. The HTTP Security Boundary and Trusted Request Context validate the membership and permissions again.
+
+Capability indicators returned by confirmation may help the client present navigation, but the server remains authoritative for every operation.
 
 ## Dependencies
 
@@ -185,6 +225,7 @@ The module depends on:
 - Permission changes during an active request take effect on the next resolution.
 - Durable authorization-denial audit persistence is deferred.
 - Organization hierarchy presentation and preferred default membership selection are deferred.
+- Capability categories currently cover foundation administration only, not future business-domain modules.
 
 ## Related decisions
 
@@ -199,3 +240,4 @@ The module depends on:
 - ADR 0019: Build the HTTP Security Boundary.
 - ADR 0020: Build Authentication HTTP Endpoints.
 - ADR 0021: Build Account Membership Discovery.
+- ADR 0022: Build Organization Context Confirmation.

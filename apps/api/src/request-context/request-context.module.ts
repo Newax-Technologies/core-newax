@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import {
   AccountMembershipDiscoveryService,
   ContextAuthorizer,
+  OrganizationContextConfirmationService,
   TrustedRequestContextService,
 } from '@newax/request-context';
 
@@ -16,6 +17,7 @@ import {
   SystemTrustedContextClock,
 } from './node-request-context.infrastructure';
 import { PrismaAccountMembershipDiscoveryDirectory } from './prisma-account-membership-discovery.directory';
+import { PrismaOrganizationContextConfirmationDirectory } from './prisma-organization-context-confirmation.directory';
 import { PrismaTrustedMembershipDirectory } from './prisma-trusted-membership.directory';
 
 @Module({
@@ -24,6 +26,7 @@ import { PrismaTrustedMembershipDirectory } from './prisma-trusted-membership.di
     AuthenticationSessionValidator,
     PrismaTrustedMembershipDirectory,
     PrismaAccountMembershipDiscoveryDirectory,
+    PrismaOrganizationContextConfirmationDirectory,
     AccessControlPermissionEvaluator,
     NodeRequestIdFactory,
     SystemTrustedContextClock,
@@ -35,6 +38,14 @@ import { PrismaTrustedMembershipDirectory } from './prisma-trusted-membership.di
       useFactory: (
         directory: PrismaAccountMembershipDiscoveryDirectory,
       ): AccountMembershipDiscoveryService => new AccountMembershipDiscoveryService(directory),
+    },
+    {
+      provide: OrganizationContextConfirmationService,
+      inject: [PrismaOrganizationContextConfirmationDirectory],
+      useFactory: (
+        directory: PrismaOrganizationContextConfirmationDirectory,
+      ): OrganizationContextConfirmationService =>
+        new OrganizationContextConfirmationService(directory),
     },
     {
       provide: TrustedRequestContextService,
@@ -63,6 +74,7 @@ import { PrismaTrustedMembershipDirectory } from './prisma-trusted-membership.di
   ],
   exports: [
     AccountMembershipDiscoveryService,
+    OrganizationContextConfirmationService,
     TrustedRequestContextService,
     ContextAuthorizer,
     AsyncLocalStorageTrustedRequestContextStore,

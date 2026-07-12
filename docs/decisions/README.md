@@ -45,10 +45,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0019](0019-build-http-security-boundary.md)                          | Accepted | Establish secure HTTPS entry, browser protections, distributed throttling, trusted context enforcement, response controls, and HTTP auditing.   |
 | [ADR 0020](0020-build-authentication-http-endpoints.md)                   | Accepted | Expose bounded login, session, CSRF bootstrap, and logout endpoints without weakening authentication or tenant boundaries.                      |
 | [ADR 0021](0021-build-account-membership-discovery.md)                    | Accepted | Let authenticated accounts discover only their active organization memberships before trusted organization-context selection.                   |
+| [ADR 0022](0022-build-organization-context-confirmation.md)               | Accepted | Confirm selected organization context with minimal identity data and fixed capability summaries without exposing raw authority.                 |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than twenty-one independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than twenty-two independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -78,6 +79,7 @@ The ADRs form a deliberate sequence rather than twenty-one independent opinions 
 - ADR 0019 establishes secure HTTPS entry, browser request integrity, distributed throttling, permission enforcement, response controls, and HTTP security auditing.
 - ADR 0020 exposes only the first bounded browser authentication workflows while preserving transport, identity, and tenant separation.
 - ADR 0021 exposes self-scoped active membership discovery without treating discovery results as organization authority or permissions.
+- ADR 0022 confirms selected organization context while keeping raw permissions, role names, and browser-side authorization outside the response contract.
 
 ### Implementation Baseline
 
@@ -198,7 +200,7 @@ An ADR does not replace a module README, API documentation, testing evidence, se
 Filename example:
 
 ```text
-0022-define-repository-bootstrap-and-boundary-enforcement.md
+0023-define-repository-bootstrap-and-boundary-enforcement.md
 ```
 
 ## Review Triggers
