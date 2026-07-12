@@ -6,8 +6,7 @@ packages/access-control typecheck: Done
 packages/auth typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
 apps/web typecheck: Done
 packages/http-security typecheck$ tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit
-packages/http-security typecheck: src/services/request-origin-policy.ts(59,18): error TS2304: Cannot find name 'URL'.
-packages/http-security typecheck: src/services/request-origin-policy.ts(86,26): error TS2304: Cannot find name 'URL'.
+packages/http-security typecheck: src/services/request-origin-policy.ts(1,21): error TS2591: Cannot find name 'node:url'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
 packages/http-security typecheck: Failed
 /home/runner/work/core-newax/core-newax/packages/http-security:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @newax/http-security@0.1.0 typecheck: `tsc --project tsconfig.json --noEmit && tsc --project tsconfig.spec.json --noEmit`
