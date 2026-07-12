@@ -34,11 +34,7 @@ export class AccountMembershipDiscoveryService {
       throw this.invalidInput('The requested membership page is too large.', 'page');
     }
 
-    const result = await this.directory.listAvailableMemberships(
-      trustedPersonId,
-      offset,
-      perPage,
-    );
+    const result = await this.directory.listAvailableMemberships(trustedPersonId, offset, perPage);
     if (!Number.isInteger(result.total) || result.total < 0) {
       throw this.integrityFailure('Membership discovery returned an invalid total.');
     }
