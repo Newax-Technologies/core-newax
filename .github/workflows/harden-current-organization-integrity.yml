@@ -1,0 +1,82 @@
+name: Harden Current Organization Integrity
+
+on:
+  push:
+    branches:
+      - agent/current-organization-read-api
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    if: ${{ !contains(github.event.head_commit.message, '[skip current organization integrity]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/current-organization-read-api
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Classify trusted identifier failures as integrity errors
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+
+          const servicePath = 'packages/organizations/src/services/organizations.service.ts';
+          let service = fs.readFileSync(servicePath, 'utf8');
+          service = service.replace(
+            `  ): Promise<CurrentOrganizationProfile> {\n    this.requirePermission(context, ORGANIZATION_PERMISSIONS.view);\n    const organizationId = this.requireUuid(context.organizationId, 'organizationId');`,
+            `  ): Promise<CurrentOrganizationProfile> {\n    this.requireTrustedUuid(context.actorUserId, 'context.actorUserId');\n    this.requirePermission(context, ORGANIZATION_PERMISSIONS.view);\n    const organizationId = this.requireTrustedUuid(\n      context.organizationId,\n      'context.organizationId',\n    );`,
+          );
+          service = service.replace(
+            `    const persistedId = this.requireUuid(organization.id, 'organization.id');`,
+            `    const persistedId = this.requireTrustedUuid(\n      organization.id,\n      'organization.id',\n    );`,
+          );
+          service = service.replace(
+            `  private requireUuid(value: string, field: string): string {\n    const normalized = value.trim().toLowerCase();\n    if (!UUID_PATTERN.test(normalized)) {\n      throw new OrganizationModuleError(\n        'ORGANIZATION_INVALID_INPUT',\n        \`\${field} must be a valid UUID.\`,\n        { field },\n      );\n    }\n    return normalized;\n  }`,
+            `  private requireTrustedUuid(value: string, field: string): string {\n    const normalized = value.trim().toLowerCase();\n    if (!UUID_PATTERN.test(normalized)) {\n      throw new OrganizationModuleError(\n        'ORGANIZATION_INTEGRITY_FAILURE',\n        \`\${field} must be a valid UUID.\`,\n      );\n    }\n    return normalized;\n  }`,
+          );
+          fs.writeFileSync(servicePath, service);
+
+          const testPath = 'packages/organizations/tests/current-organization-read.spec.ts';
+          let test = fs.readFileSync(testPath, 'utf8');
+          const marker = `  it('requires organizations.view even for the current organization', async () => {`;
+          const insertion = `  it('treats malformed trusted identifiers as integrity failures before persistence', async () => {\n    for (const malformedContext of [\n      {\n        ...context(ORGANIZATION_PERMISSIONS.view),\n        actorUserId: 'not-a-uuid',\n      },\n      {\n        ...context(ORGANIZATION_PERMISSIONS.view),\n        organizationId: 'not-a-uuid',\n      },\n    ]) {\n      const repository = new FakeOrganizationRepository();\n      const service = new OrganizationsService(\n        repository,\n        new NoopEventPublisher(),\n      );\n\n      await expect(service.getCurrent(malformedContext)).rejects.toMatchObject({\n        code: 'ORGANIZATION_INTEGRITY_FAILURE',\n      });\n      expect(repository.requestedId).toBeNull();\n    }\n  });\n\n`;
+          if (!test.includes(marker)) {
+            throw new Error('Current organization permission test marker was not found.');
+          }
+          test = test.replace(marker, `${insertion}${marker}`);
+          fs.writeFileSync(testPath, test);
+          EOF
+
+      - name: Format hardening files
+        run: |
+          pnpm exec prettier --write \
+            packages/organizations/src/services/organizations.service.ts \
+            packages/organizations/tests/current-organization-read.spec.ts
+
+      - name: Commit hardening
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            packages/organizations/src/services/organizations.service.ts \
+            packages/organizations/tests/current-organization-read.spec.ts
+
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+
+          git commit -m "Classify trusted organization identifiers as integrity data [skip current organization integrity]"
+          git push origin HEAD:agent/current-organization-read-api
