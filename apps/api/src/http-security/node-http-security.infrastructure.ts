@@ -1,15 +1,7 @@
-import {
-  createHmac,
-  randomBytes,
-  randomUUID,
-  timingSafeEqual,
-} from 'node:crypto';
+import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 
 import { Injectable } from '@nestjs/common';
-import type {
-  HttpSecurityClock,
-  HttpSecurityCrypto,
-} from '@newax/http-security';
+import type { HttpSecurityClock, HttpSecurityCrypto } from '@newax/http-security';
 import type { RequestIdFactory } from '@newax/request-context';
 
 @Injectable()
@@ -39,9 +31,7 @@ export class NodeHttpSecurityCrypto implements HttpSecurityCrypto {
     const leftBuffer = Buffer.from(left);
     const rightBuffer = Buffer.from(right);
     if (leftBuffer.length !== rightBuffer.length) {
-      const dummy = Buffer.alloc(
-        Math.max(leftBuffer.length, rightBuffer.length, 1),
-      );
+      const dummy = Buffer.alloc(Math.max(leftBuffer.length, rightBuffer.length, 1));
       timingSafeEqual(dummy, dummy);
       return false;
     }

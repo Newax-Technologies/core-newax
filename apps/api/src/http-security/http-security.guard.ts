@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
   CookieHeaderParser,
@@ -50,34 +45,23 @@ export class HttpSecurityGuard implements CanActivate {
   ) {}
 
   async canActivate(executionContext: ExecutionContext): Promise<boolean> {
-    const request = executionContext
-      .switchToHttp()
-      .getRequest<HttpSecurityRequestAdapter>();
-    const response = executionContext
-      .switchToHttp()
-      .getResponse<HttpSecurityResponseAdapter>();
+    const request = executionContext.switchToHttp().getRequest<HttpSecurityRequestAdapter>();
+    const response = executionContext.switchToHttp().getResponse<HttpSecurityResponseAdapter>();
     const method = this.normalizeMethod(request.method);
-    const routeKey = `${executionContext.getClass().name}.${executionContext.getHandler().name}`.slice(
-      0,
-      128,
-    );
+    const routeKey =
+      `${executionContext.getClass().name}.${executionContext.getHandler().name}`.slice(0, 128);
     request.newaxRouteKey = routeKey;
     request.newaxSecurityMethod = method;
 
     const requestId = this.requireRequestId(request.newaxRequestId);
-    const securityRequest = this.toSecurityRequest(
-      request,
-      requestId,
-      routeKey,
-      method,
-    );
+    const securityRequest = this.toSecurityRequest(request, requestId, routeKey, method);
     request.newaxSecurityRequest = securityRequest;
 
     const authenticationSensitive =
-      this.reflector.getAllAndOverride<boolean>(
-        HTTP_AUTHENTICATION_SENSITIVE_KEY,
-        [executionContext.getHandler(), executionContext.getClass()],
-      ) ?? false;
+      this.reflector.getAllAndOverride<boolean>(HTTP_AUTHENTICATION_SENSITIVE_KEY, [
+        executionContext.getHandler(),
+        executionContext.getClass(),
+      ]) ?? false;
     const rateLimit = await this.rateLimiter.consume(
       `${this.safeIpAddress(request.ip)}|${routeKey}`,
       authenticationSensitive,
@@ -91,22 +75,19 @@ export class HttpSecurityGuard implements CanActivate {
       ),
     );
     response.setHeader('RateLimit-Remaining', String(rateLimit.remaining));
-    response.setHeader(
-      'RateLimit-Reset',
-      String(Math.ceil(rateLimit.resetAt.getTime() / 1_000)),
-    );
+    response.setHeader('RateLimit-Reset', String(Math.ceil(rateLimit.resetAt.getTime() / 1_000)));
 
     this.originPolicy.validate(securityRequest);
     const contextMode =
-      this.reflector.getAllAndOverride<HttpSecurityContextMode>(
-        HTTP_CONTEXT_MODE_KEY,
-        [executionContext.getHandler(), executionContext.getClass()],
-      ) ?? 'organization';
+      this.reflector.getAllAndOverride<HttpSecurityContextMode>(HTTP_CONTEXT_MODE_KEY, [
+        executionContext.getHandler(),
+        executionContext.getClass(),
+      ]) ?? 'organization';
     const requiredPermissions =
-      this.reflector.getAllAndOverride<readonly string[]>(
-        HTTP_REQUIRED_PERMISSIONS_KEY,
-        [executionContext.getHandler(), executionContext.getClass()],
-      ) ?? [];
+      this.reflector.getAllAndOverride<readonly string[]>(HTTP_REQUIRED_PERMISSIONS_KEY, [
+        executionContext.getHandler(),
+        executionContext.getClass(),
+      ]) ?? [];
     this.assertMetadataCompatibility(contextMode, requiredPermissions);
 
     const stateChanging = this.originPolicy.isStateChanging(method);
@@ -124,9 +105,7 @@ export class HttpSecurityGuard implements CanActivate {
       return true;
     }
 
-    const cookies = this.cookieParser.parse(
-      this.singleHeader(request.headers.cookie, 8_192),
-    );
+    const cookies = this.cookieParser.parse(this.singleHeader(request.headers.cookie, 8_192));
     if (cookies.sessionToken === null) {
       throw new HttpSecurityError(
         'HTTP_SECURITY_AUTHENTICATION_REQUIRED',
@@ -138,10 +117,7 @@ export class HttpSecurityGuard implements CanActivate {
     const trustedContext = await this.resolveContext(
       contextMode,
       cookies.sessionToken,
-      this.singleHeader(
-        request.headers[this.cookieTransport.membershipHeaderName],
-        128,
-      ),
+      this.singleHeader(request.headers[this.cookieTransport.membershipHeaderName], 128),
       requestId,
     );
     request.trustedContext = trustedContext;
@@ -150,10 +126,7 @@ export class HttpSecurityGuard implements CanActivate {
       this.csrfTokens.verify({
         sessionId: trustedContext.sessionId,
         cookieToken: cookies.csrfToken,
-        headerToken: this.singleHeader(
-          request.headers[this.cookieTransport.csrfHeaderName],
-          256,
-        ),
+        headerToken: this.singleHeader(request.headers[this.cookieTransport.csrfHeaderName], 256),
       });
     }
 
@@ -165,10 +138,7 @@ export class HttpSecurityGuard implements CanActivate {
           500,
         );
       }
-      this.authorizer.requireAllPermissions(
-        trustedContext,
-        requiredPermissions,
-      );
+      this.authorizer.requireAllPermissions(trustedContext, requiredPermissions);
     }
 
     return true;

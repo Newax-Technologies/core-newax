@@ -2,32 +2,21 @@ import { SetMetadata } from '@nestjs/common';
 import type { HttpSecurityContextMode } from '@newax/http-security';
 
 export const HTTP_CONTEXT_MODE_KEY = 'newax:http-security:context-mode';
-export const HTTP_REQUIRED_PERMISSIONS_KEY =
-  'newax:http-security:required-permissions';
-export const HTTP_AUTHENTICATION_SENSITIVE_KEY =
-  'newax:http-security:authentication-sensitive';
+export const HTTP_REQUIRED_PERMISSIONS_KEY = 'newax:http-security:required-permissions';
+export const HTTP_AUTHENTICATION_SENSITIVE_KEY = 'newax:http-security:authentication-sensitive';
 
 const PERMISSION_CODE_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/u;
 
 export function PublicEndpoint(): MethodDecorator & ClassDecorator {
-  return SetMetadata(
-    HTTP_CONTEXT_MODE_KEY,
-    'public' satisfies HttpSecurityContextMode,
-  );
+  return SetMetadata(HTTP_CONTEXT_MODE_KEY, 'public' satisfies HttpSecurityContextMode);
 }
 
 export function AccountContextEndpoint(): MethodDecorator & ClassDecorator {
-  return SetMetadata(
-    HTTP_CONTEXT_MODE_KEY,
-    'account' satisfies HttpSecurityContextMode,
-  );
+  return SetMetadata(HTTP_CONTEXT_MODE_KEY, 'account' satisfies HttpSecurityContextMode);
 }
 
 export function OrganizationContextEndpoint(): MethodDecorator & ClassDecorator {
-  return SetMetadata(
-    HTTP_CONTEXT_MODE_KEY,
-    'organization' satisfies HttpSecurityContextMode,
-  );
+  return SetMetadata(HTTP_CONTEXT_MODE_KEY, 'organization' satisfies HttpSecurityContextMode);
 }
 
 export function RequirePermissions(

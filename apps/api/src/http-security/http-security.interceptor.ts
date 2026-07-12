@@ -5,10 +5,7 @@ import {
   Logger,
   type NestInterceptor,
 } from '@nestjs/common';
-import {
-  SensitiveResponseRedactor,
-  type HttpSecurityAuditSink,
-} from '@newax/http-security';
+import { SensitiveResponseRedactor, type HttpSecurityAuditSink } from '@newax/http-security';
 import { from, lastValueFrom, type Observable } from 'rxjs';
 
 import { AsyncLocalStorageTrustedRequestContextStore } from '../request-context/node-request-context.infrastructure';
@@ -30,16 +27,9 @@ export class HttpSecurityInterceptor implements NestInterceptor {
     private readonly clock: SystemHttpSecurityClock,
   ) {}
 
-  intercept(
-    executionContext: ExecutionContext,
-    next: CallHandler,
-  ): Observable<unknown> {
-    const request = executionContext
-      .switchToHttp()
-      .getRequest<HttpSecurityRequestAdapter>();
-    const response = executionContext
-      .switchToHttp()
-      .getResponse<HttpSecurityResponseAdapter>();
+  intercept(executionContext: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const request = executionContext.switchToHttp().getRequest<HttpSecurityRequestAdapter>();
+    const response = executionContext.switchToHttp().getResponse<HttpSecurityResponseAdapter>();
     const context = request.trustedContext;
 
     const execute = async (): Promise<unknown> => {
@@ -49,11 +39,7 @@ export class HttpSecurityInterceptor implements NestInterceptor {
       return redacted;
     };
 
-    return from(
-      context === undefined
-        ? execute()
-        : this.contextStore.run(context, execute),
-    );
+    return from(context === undefined ? execute() : this.contextStore.run(context, execute));
   }
 
   private async auditCompleted(
@@ -75,8 +61,7 @@ export class HttpSecurityInterceptor implements NestInterceptor {
       await auditSink.record({
         requestId: securityRequest.requestId,
         actorUserId: context.userId,
-        organizationId:
-          context.scope === 'organization' ? context.organizationId : null,
+        organizationId: context.scope === 'organization' ? context.organizationId : null,
         action: 'http.request.completed',
         outcome: 'allowed',
         routeKey: securityRequest.routeKey,
@@ -86,11 +71,8 @@ export class HttpSecurityInterceptor implements NestInterceptor {
         userAgent: securityRequest.userAgent,
         metadata: {
           contextScope: context.scope,
-          membershipId:
-            context.scope === 'organization' ? context.membershipId : null,
-          requiredPermissions: [
-            ...(request.newaxRequiredPermissions ?? []),
-          ],
+          membershipId: context.scope === 'organization' ? context.membershipId : null,
+          requiredPermissions: [...(request.newaxRequiredPermissions ?? [])],
         },
         occurredAt: this.clock.now(),
       });

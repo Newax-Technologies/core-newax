@@ -1,9 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  type NestMiddleware,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, type NestMiddleware } from '@nestjs/common';
 import {
   SecurityHeadersPolicy,
   type HttpSecurityAuditSink,
@@ -16,10 +11,7 @@ import type {
   HttpSecurityResponseAdapter,
 } from './http-security-request';
 import { HTTP_SECURITY_POLICY } from './http-security.tokens';
-import {
-  HttpRequestIdFactory,
-  SystemHttpSecurityClock,
-} from './node-http-security.infrastructure';
+import { HttpRequestIdFactory, SystemHttpSecurityClock } from './node-http-security.infrastructure';
 import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
 
 const SUPPORTED_METHODS: ReadonlySet<string> = new Set([
@@ -60,17 +52,12 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
     response.setHeader('X-Request-Id', requestId);
 
     const isSecure = request.secure === true || request.protocol === 'https';
-    for (const [name, value] of Object.entries(
-      this.headersPolicy.headers(isSecure),
-    )) {
+    for (const [name, value] of Object.entries(this.headersPolicy.headers(isSecure))) {
       response.setHeader(name, value);
     }
 
     const method = request.method.toUpperCase();
-    if (
-      !SUPPORTED_METHODS.has(method) ||
-      request.headers['x-http-method-override'] !== undefined
-    ) {
+    if (!SUPPORTED_METHODS.has(method) || request.headers['x-http-method-override'] !== undefined) {
       await this.reject(
         request,
         response,
@@ -148,9 +135,7 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
     next();
   }
 
-  private contentLength(
-    header: string | readonly string[] | undefined,
-  ): number | null {
+  private contentLength(header: string | readonly string[] | undefined): number | null {
     if (header === undefined) {
       return 0;
     }
@@ -161,9 +146,7 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
     return Number.isSafeInteger(value) && value >= 0 ? value : null;
   }
 
-  private transferEncoding(
-    header: string | readonly string[] | undefined,
-  ): boolean | null | false {
+  private transferEncoding(header: string | readonly string[] | undefined): boolean | null | false {
     if (header === undefined) {
       return null;
     }
@@ -225,18 +208,14 @@ export class HttpBoundaryMiddleware implements NestMiddleware {
 
   private normalizeMethod(value: string): HttpSecurityMethod {
     const normalized = value.toUpperCase();
-    return SUPPORTED_METHODS.has(normalized)
-      ? (normalized as HttpSecurityMethod)
-      : 'GET';
+    return SUPPORTED_METHODS.has(normalized) ? (normalized as HttpSecurityMethod) : 'GET';
   }
 
   private safeIpAddress(value: string | undefined): string | null {
     return value === undefined ? null : value.slice(0, 64);
   }
 
-  private singleHeader(
-    value: string | readonly string[] | undefined,
-  ): string | null {
+  private singleHeader(value: string | readonly string[] | undefined): string | null {
     return typeof value === 'string' ? value.slice(0, 1_024) : null;
   }
 }

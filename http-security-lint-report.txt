@@ -1,0 +1,43 @@
+Warning: React version was set to "detect" in eslint-plugin-react settings, but the "react" package is not installed. Assuming latest React version for linting.
+Pages directory cannot be found at /home/runner/work/core-newax/core-newax/pages or /home/runner/work/core-newax/core-newax/src/pages. If using a custom path, please configure with the `no-html-link-for-pages` rule in your eslint config file.
+
+/home/runner/work/core-newax/core-newax/apps/api/src/config/http-security-environment.ts
+  228:32  error  Expected { after 'if' condition  curly
+  229:33  error  Expected { after 'if' condition  curly
+
+/home/runner/work/core-newax/core-newax/apps/api/src/http-security/http-security-exception.filter.ts
+    1:1   error  Imports "ArgumentsHost" are only used as type                             @typescript-eslint/consistent-type-imports
+   15:1   error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+   16:1   error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+  178:51  error  Expected { after 'if' condition                                           curly
+  179:29  error  Expected { after 'if' condition                                           curly
+  180:29  error  Expected { after 'if' condition                                           curly
+  181:29  error  Expected { after 'if' condition                                           curly
+  182:29  error  Expected { after 'if' condition                                           curly
+  183:29  error  Expected { after 'if' condition                                           curly
+  184:29  error  Expected { after 'if' condition                                           curly
+  185:29  error  Expected { after 'if' condition                                           curly
+  186:29  error  Expected { after 'if' condition                                           curly
+  194:29  error  Expected { after 'if' condition                                           curly
+  195:29  error  Expected { after 'if' condition                                           curly
+  196:29  error  Expected { after 'if' condition                                           curly
+  197:29  error  Expected { after 'if' condition                                           curly
+  201:29  error  Expected { after 'if' condition                                           curly
+  205:29  error  Expected { after 'if' condition                                           curly
+
+/home/runner/work/core-newax/core-newax/apps/api/src/http-security/http-security.guard.ts
+   1:1  error  Imports "CanActivate" and "ExecutionContext" are only used as type                                                                                  @typescript-eslint/consistent-type-imports
+   2:1  error  All imports in the declaration are only used as types. Use `import type`                                                                            @typescript-eslint/consistent-type-imports
+   3:1  error  Imports "CookieHeaderParser", "HttpRateLimiter", "RequestOriginPolicy", "SecureCookieTransport" and "SignedCsrfTokenService" are only used as type  @typescript-eslint/consistent-type-imports
+  15:1  error  All imports in the declaration are only used as types. Use `import type`                                                                            @typescript-eslint/consistent-type-imports
+
+/home/runner/work/core-newax/core-newax/apps/api/src/http-security/http-security.interceptor.ts
+   1:1  error  Imports "CallHandler" and "ExecutionContext" are only used as type        @typescript-eslint/consistent-type-imports
+   8:1  error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+  11:1  error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+  16:1  error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+  17:1  error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+
+✖ 29 problems (29 errors, 0 warnings)
+  29 errors and 0 warnings potentially fixable with the `--fix` option.
+

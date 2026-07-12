@@ -1,9 +1,6 @@
 import { isIP } from 'node:net';
 
-export type HttpSecurityNodeEnvironment =
-  | 'development'
-  | 'test'
-  | 'production';
+export type HttpSecurityNodeEnvironment = 'development' | 'test' | 'production';
 
 export interface HttpSecurityEnvironment {
   readonly HTTP_ALLOWED_ORIGINS: readonly string[];
@@ -19,8 +16,7 @@ export interface HttpSecurityEnvironment {
   readonly HTTP_HSTS_PRELOAD: boolean;
 }
 
-const DEVELOPMENT_CSRF_SECRET =
-  'development-only-http-csrf-secret-change-before-production';
+const DEVELOPMENT_CSRF_SECRET = 'development-only-http-csrf-secret-change-before-production';
 
 export function validateHttpSecurityEnvironment(
   configuration: Record<string, unknown>,
@@ -39,14 +35,8 @@ export function validateHttpSecurityEnvironment(
     configuration.HTTP_TRUSTED_PROXY_CIDRS,
     nodeEnvironment,
   );
-  if (
-    nodeEnvironment === 'production' &&
-    requireHttps &&
-    trustedProxyCidrs.length === 0
-  ) {
-    throw new Error(
-      'HTTP_TRUSTED_PROXY_CIDRS must identify the production TLS proxy network.',
-    );
+  if (nodeEnvironment === 'production' && requireHttps && trustedProxyCidrs.length === 0) {
+    throw new Error('HTTP_TRUSTED_PROXY_CIDRS must identify the production TLS proxy network.');
   }
 
   const hstsIncludeSubDomains = parseBoolean(
@@ -54,11 +44,7 @@ export function validateHttpSecurityEnvironment(
     'HTTP_HSTS_INCLUDE_SUBDOMAINS',
     nodeEnvironment === 'production',
   );
-  const hstsPreload = parseBoolean(
-    configuration.HTTP_HSTS_PRELOAD,
-    'HTTP_HSTS_PRELOAD',
-    false,
-  );
+  const hstsPreload = parseBoolean(configuration.HTTP_HSTS_PRELOAD, 'HTTP_HSTS_PRELOAD', false);
   const hstsMaxAgeSeconds = parseInteger(
     configuration.HTTP_HSTS_MAX_AGE_SECONDS,
     'HTTP_HSTS_MAX_AGE_SECONDS',
@@ -67,25 +53,15 @@ export function validateHttpSecurityEnvironment(
     126_144_000,
   );
   if (hstsPreload && !hstsIncludeSubDomains) {
-    throw new Error(
-      'HTTP_HSTS_PRELOAD requires HTTP_HSTS_INCLUDE_SUBDOMAINS=true.',
-    );
+    throw new Error('HTTP_HSTS_PRELOAD requires HTTP_HSTS_INCLUDE_SUBDOMAINS=true.');
   }
   if (hstsPreload && hstsMaxAgeSeconds < 31_536_000) {
-    throw new Error(
-      'HTTP_HSTS_PRELOAD requires HTTP_HSTS_MAX_AGE_SECONDS of at least 31536000.',
-    );
+    throw new Error('HTTP_HSTS_PRELOAD requires HTTP_HSTS_MAX_AGE_SECONDS of at least 31536000.');
   }
 
   return {
-    HTTP_ALLOWED_ORIGINS: parseOrigins(
-      configuration.HTTP_ALLOWED_ORIGINS,
-      nodeEnvironment,
-    ),
-    HTTP_CSRF_SECRET: parseSecret(
-      configuration.HTTP_CSRF_SECRET,
-      nodeEnvironment,
-    ),
+    HTTP_ALLOWED_ORIGINS: parseOrigins(configuration.HTTP_ALLOWED_ORIGINS, nodeEnvironment),
+    HTTP_CSRF_SECRET: parseSecret(configuration.HTTP_CSRF_SECRET, nodeEnvironment),
     HTTP_REQUIRE_HTTPS: requireHttps,
     HTTP_TRUSTED_PROXY_CIDRS: trustedProxyCidrs,
     HTTP_BODY_LIMIT_BYTES: parseInteger(
@@ -139,9 +115,7 @@ function parseOrigins(
     .filter((origin, index, all) => all.indexOf(origin) === index);
 
   if (origins.length === 0 || origins.length > 20) {
-    throw new Error(
-      'HTTP_ALLOWED_ORIGINS must contain between 1 and 20 origins.',
-    );
+    throw new Error('HTTP_ALLOWED_ORIGINS must contain between 1 and 20 origins.');
   }
   if (
     nodeEnvironment === 'production' &&
@@ -186,9 +160,7 @@ function parseTrustedProxyCidrs(
     .map((entry) => normalizeProxyNetwork(entry, nodeEnvironment))
     .filter((entry, index, all) => all.indexOf(entry) === index);
   if (entries.length === 0 || entries.length > 20) {
-    throw new Error(
-      'HTTP_TRUSTED_PROXY_CIDRS must contain between 1 and 20 networks.',
-    );
+    throw new Error('HTTP_TRUSTED_PROXY_CIDRS must contain between 1 and 20 networks.');
   }
   return entries;
 }
@@ -225,17 +197,12 @@ function normalizeProxyNetwork(
     prefix === 0 &&
     (address === '0.0.0.0' || address === '::')
   ) {
-    throw new Error(
-      'HTTP_TRUSTED_PROXY_CIDRS must not trust the entire internet in production.',
-    );
+    throw new Error('HTTP_TRUSTED_PROXY_CIDRS must not trust the entire internet in production.');
   }
   return `${address}/${String(prefix)}`;
 }
 
-function parseSecret(
-  value: unknown,
-  nodeEnvironment: HttpSecurityNodeEnvironment,
-): string {
+function parseSecret(value: unknown, nodeEnvironment: HttpSecurityNodeEnvironment): string {
   if (value === undefined) {
     if (nodeEnvironment === 'production') {
       throw new Error('HTTP_CSRF_SECRET is required in production.');
@@ -249,11 +216,7 @@ function parseSecret(
   return secret;
 }
 
-function parseBoolean(
-  value: unknown,
-  name: string,
-  defaultValue: boolean,
-): boolean {
+function parseBoolean(value: unknown, name: string, defaultValue: boolean): boolean {
   if (value === undefined) {
     return defaultValue;
   }
@@ -282,13 +245,8 @@ function parseInteger(
     throw new Error(`${name} must be a string or number.`);
   }
   const normalized = typeof value === 'string' ? value.trim() : value;
-  const parsed =
-    typeof normalized === 'number' ? normalized : Number(normalized);
-  if (
-    !Number.isInteger(parsed) ||
-    parsed < minimum ||
-    parsed > maximum
-  ) {
+  const parsed = typeof normalized === 'number' ? normalized : Number(normalized);
+  if (!Number.isInteger(parsed) || parsed < minimum || parsed > maximum) {
     throw new Error(
       `${name} must be an integer between ${String(minimum)} and ${String(maximum)}.`,
     );

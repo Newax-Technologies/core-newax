@@ -1,14 +1,10 @@
 import { HttpSecurityError } from '../errors/http-security-error';
-import type {
-  CsrfValidationInput,
-  IssuedCsrfToken,
-} from '../types/http-security';
+import type { CsrfValidationInput, IssuedCsrfToken } from '../types/http-security';
 import type { HttpSecurityCrypto } from './http-security-ports';
 
 const TOKEN_DOMAIN = 'newax-http-csrf-v1';
 const TOKEN_PART_PATTERN = /^[A-Za-z0-9_-]+$/u;
-const SESSION_ID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const SESSION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 const MAX_TOKEN_LENGTH = 256;
 
 export class SignedCsrfTokenService {
@@ -53,19 +49,14 @@ export class SignedCsrfTokenService {
       throw this.rejected();
     }
 
-    const expectedSignature = this.crypto.sign(
-      TOKEN_DOMAIN,
-      this.message(sessionId, randomValue),
-    );
+    const expectedSignature = this.crypto.sign(TOKEN_DOMAIN, this.message(sessionId, randomValue));
     if (!this.crypto.equals(providedSignature, expectedSignature)) {
       throw this.rejected();
     }
   }
 
   private message(sessionId: string, randomValue: string): string {
-    return `${String(sessionId.length)}!${sessionId}!${String(
-      randomValue.length,
-    )}!${randomValue}`;
+    return `${String(sessionId.length)}!${sessionId}!${String(randomValue.length)}!${randomValue}`;
   }
 
   private requireSessionId(sessionId: string): string {

@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { validateHttpSecurityEnvironment } from './http-security-environment';
 
-const productionSecret =
-  'production-http-csrf-secret-with-more-than-thirty-two-characters';
+const productionSecret = 'production-http-csrf-secret-with-more-than-thirty-two-characters';
 const productionBase = {
   HTTP_ALLOWED_ORIGINS: 'https://app.newax.test',
   HTTP_CSRF_SECRET: productionSecret,
@@ -13,10 +12,7 @@ const productionBase = {
 describe('validateHttpSecurityEnvironment', () => {
   it('uses safe development defaults without trusting forwarded headers', () => {
     expect(validateHttpSecurityEnvironment({}, 'development')).toMatchObject({
-      HTTP_ALLOWED_ORIGINS: [
-        'http://localhost:3000',
-        'http://localhost:3001',
-      ],
+      HTTP_ALLOWED_ORIGINS: ['http://localhost:3000', 'http://localhost:3001'],
       HTTP_REQUIRE_HTTPS: false,
       HTTP_TRUSTED_PROXY_CIDRS: [],
       HTTP_BODY_LIMIT_BYTES: 1_048_576,
@@ -47,9 +43,7 @@ describe('validateHttpSecurityEnvironment', () => {
         },
         'production',
       ),
-    ).toThrow(
-      'HTTP_TRUSTED_PROXY_CIDRS must identify the production TLS proxy network.',
-    );
+    ).toThrow('HTTP_TRUSTED_PROXY_CIDRS must identify the production TLS proxy network.');
   });
 
   it('requires explicit HTTPS origins and a CSRF secret in production', () => {
@@ -79,8 +73,7 @@ describe('validateHttpSecurityEnvironment', () => {
     expect(
       validateHttpSecurityEnvironment(
         {
-          HTTP_ALLOWED_ORIGINS:
-            ' https://app.newax.test,https://admin.newax.test ',
+          HTTP_ALLOWED_ORIGINS: ' https://app.newax.test,https://admin.newax.test ',
           HTTP_CSRF_SECRET: productionSecret,
           HTTP_TRUSTED_PROXY_CIDRS: ' 10.0.0.0/8,192.0.2.10 ',
           HTTP_HSTS_PRELOAD: 'true',
@@ -89,10 +82,7 @@ describe('validateHttpSecurityEnvironment', () => {
         'production',
       ),
     ).toMatchObject({
-      HTTP_ALLOWED_ORIGINS: [
-        'https://app.newax.test',
-        'https://admin.newax.test',
-      ],
+      HTTP_ALLOWED_ORIGINS: ['https://app.newax.test', 'https://admin.newax.test'],
       HTTP_CSRF_SECRET: productionSecret,
       HTTP_REQUIRE_HTTPS: true,
       HTTP_TRUSTED_PROXY_CIDRS: ['10.0.0.0/8', '192.0.2.10'],
@@ -108,10 +98,7 @@ describe('validateHttpSecurityEnvironment', () => {
       'https://*.newax.test',
     ]) {
       expect(() =>
-        validateHttpSecurityEnvironment(
-          { HTTP_ALLOWED_ORIGINS: origin },
-          'test',
-        ),
+        validateHttpSecurityEnvironment({ HTTP_ALLOWED_ORIGINS: origin }, 'test'),
       ).toThrow(/Invalid HTTP origin/);
     }
   });
@@ -119,10 +106,7 @@ describe('validateHttpSecurityEnvironment', () => {
   it('rejects malformed and internet-wide trusted proxy networks', () => {
     for (const network of ['proxy.internal', '10.0.0.0/33', '10.0.0.0/8/1']) {
       expect(() =>
-        validateHttpSecurityEnvironment(
-          { HTTP_TRUSTED_PROXY_CIDRS: network },
-          'test',
-        ),
+        validateHttpSecurityEnvironment({ HTTP_TRUSTED_PROXY_CIDRS: network }, 'test'),
       ).toThrow(/Invalid trusted proxy network/);
     }
 
@@ -134,9 +118,7 @@ describe('validateHttpSecurityEnvironment', () => {
         },
         'production',
       ),
-    ).toThrow(
-      'HTTP_TRUSTED_PROXY_CIDRS must not trust the entire internet in production.',
-    );
+    ).toThrow('HTTP_TRUSTED_PROXY_CIDRS must not trust the entire internet in production.');
   });
 
   it('requires preload to include subdomains and at least one year of HSTS', () => {
@@ -148,9 +130,7 @@ describe('validateHttpSecurityEnvironment', () => {
         },
         'test',
       ),
-    ).toThrow(
-      'HTTP_HSTS_PRELOAD requires HTTP_HSTS_INCLUDE_SUBDOMAINS=true.',
-    );
+    ).toThrow('HTTP_HSTS_PRELOAD requires HTTP_HSTS_INCLUDE_SUBDOMAINS=true.');
 
     expect(() =>
       validateHttpSecurityEnvironment(
@@ -161,8 +141,6 @@ describe('validateHttpSecurityEnvironment', () => {
         },
         'test',
       ),
-    ).toThrow(
-      'HTTP_HSTS_PRELOAD requires HTTP_HSTS_MAX_AGE_SECONDS of at least 31536000.',
-    );
+    ).toThrow('HTTP_HSTS_PRELOAD requires HTTP_HSTS_MAX_AGE_SECONDS of at least 31536000.');
   });
 });

@@ -1,22 +1,13 @@
 import { HttpSecurityError } from '../errors/http-security-error';
-import type {
-  HttpSecurityMethod,
-  HttpSecurityRequest,
-} from '../types/http-security';
+import type { HttpSecurityMethod, HttpSecurityRequest } from '../types/http-security';
 
-const SAFE_METHODS: ReadonlySet<HttpSecurityMethod> = new Set([
-  'GET',
-  'HEAD',
-  'OPTIONS',
-]);
+const SAFE_METHODS: ReadonlySet<HttpSecurityMethod> = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 export class RequestOriginPolicy {
   private readonly allowedOrigins: ReadonlySet<string>;
 
   constructor(allowedOrigins: readonly string[]) {
-    this.allowedOrigins = new Set(
-      allowedOrigins.map((origin) => this.normalizeOrigin(origin)),
-    );
+    this.allowedOrigins = new Set(allowedOrigins.map((origin) => this.normalizeOrigin(origin)));
     if (this.allowedOrigins.size === 0) {
       throw new Error('At least one allowed HTTP origin is required.');
     }
@@ -43,10 +34,7 @@ export class RequestOriginPolicy {
       throw this.originRejected();
     }
 
-    const sourceOrigin = this.resolveSourceOrigin(
-      request.origin,
-      request.referer,
-    );
+    const sourceOrigin = this.resolveSourceOrigin(request.origin, request.referer);
     if (sourceOrigin === null || !this.allowedOrigins.has(sourceOrigin)) {
       throw this.originRejected();
     }
@@ -60,10 +48,7 @@ export class RequestOriginPolicy {
     }
   }
 
-  private resolveSourceOrigin(
-    origin: string | null,
-    referer: string | null,
-  ): string | null {
+  private resolveSourceOrigin(origin: string | null, referer: string | null): string | null {
     if (origin !== null) {
       return this.tryNormalizeOrigin(origin);
     }
@@ -84,8 +69,7 @@ export class RequestOriginPolicy {
     const mediaType = contentType.split(';', 1)[0]?.trim().toLowerCase();
     return (
       mediaType === 'application/json' ||
-      (mediaType?.startsWith('application/') === true &&
-        mediaType.endsWith('+json'))
+      (mediaType?.startsWith('application/') === true && mediaType.endsWith('+json'))
     );
   }
 

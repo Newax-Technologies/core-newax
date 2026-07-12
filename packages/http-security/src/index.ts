@@ -1,7 +1,4 @@
-export {
-  HttpSecurityError,
-  type HttpSecurityErrorCode,
-} from './errors/http-security-error';
+export { HttpSecurityError, type HttpSecurityErrorCode } from './errors/http-security-error';
 export { CookieHeaderParser } from './services/cookie-header-parser';
 export { HttpRateLimiter } from './services/http-rate-limiter';
 export type {

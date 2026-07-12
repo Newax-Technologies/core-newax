@@ -1,12 +1,5 @@
 export type HttpSecurityContextMode = 'public' | 'account' | 'organization';
-export type HttpSecurityMethod =
-  | 'GET'
-  | 'HEAD'
-  | 'OPTIONS'
-  | 'POST'
-  | 'PUT'
-  | 'PATCH'
-  | 'DELETE';
+export type HttpSecurityMethod = 'GET' | 'HEAD' | 'OPTIONS' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface HttpSecurityPolicy {
   readonly allowedOrigins: readonly string[];

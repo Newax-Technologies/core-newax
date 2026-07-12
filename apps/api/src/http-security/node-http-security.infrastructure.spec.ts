@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  HttpRequestIdFactory,
-  NodeHttpSecurityCrypto,
-} from './node-http-security.infrastructure';
+import { HttpRequestIdFactory, NodeHttpSecurityCrypto } from './node-http-security.infrastructure';
 
-const secret =
-  'test-http-security-secret-with-more-than-thirty-two-characters';
+const secret = 'test-http-security-secret-with-more-than-thirty-two-characters';
 
 describe('NodeHttpSecurityCrypto', () => {
   it('issues URL-safe random values with the requested entropy', () => {

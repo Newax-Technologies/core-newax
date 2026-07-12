@@ -1,9 +1,4 @@
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const schemaPath = 'apps/api/prisma/schema.prisma';
 let schema = readFileSync(schemaPath, 'utf8');
@@ -67,9 +62,7 @@ const httpSecurity = {
   module_owner: 'NEWAX Engineering',
   description:
     'Protects HTTPS entry through proxy trust, request framing, origin and CSRF controls, distributed throttling, trusted context enforcement, response controls, and security auditing.',
-  dependencies: [
-    { module_key: 'request-context', version: '>=0.1.0' },
-  ],
+  dependencies: [{ module_key: 'request-context', version: '>=0.1.0' }],
   required_permissions: [],
   exposed_events: [],
   consumed_events: [],

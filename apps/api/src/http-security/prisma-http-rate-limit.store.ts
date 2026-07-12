@@ -31,9 +31,7 @@ export class PrismaHttpRateLimitStore implements HttpRateLimitStore {
   async consume(input: HttpRateLimitInput): Promise<HttpRateLimitResult> {
     this.validateInput(input);
     const keyHash = this.crypto.sign(RATE_LIMIT_KEY_DOMAIN, input.key);
-    const resetAt = new Date(
-      input.occurredAt.getTime() + input.windowMilliseconds,
-    );
+    const resetAt = new Date(input.occurredAt.getTime() + input.windowMilliseconds);
 
     const rows = await this.prisma.$queryRaw<readonly RateLimitRow[]>`
       INSERT INTO "core_http_rate_limit_buckets" (
@@ -76,9 +74,7 @@ export class PrismaHttpRateLimitStore implements HttpRateLimitStore {
 
     const remaining = Math.max(input.limit - row.request_count, 0);
     const retryAfterSeconds = Math.max(
-      Math.ceil(
-        (row.reset_at.getTime() - input.occurredAt.getTime()) / 1_000,
-      ),
+      Math.ceil((row.reset_at.getTime() - input.occurredAt.getTime()) / 1_000),
       1,
     );
     return {
@@ -96,24 +92,16 @@ export class PrismaHttpRateLimitStore implements HttpRateLimitStore {
     if (!Number.isInteger(input.limit) || input.limit < 1) {
       throw new Error('HTTP rate-limit maximum must be a positive integer.');
     }
-    if (
-      !Number.isInteger(input.windowMilliseconds) ||
-      input.windowMilliseconds < 1_000
-    ) {
+    if (!Number.isInteger(input.windowMilliseconds) || input.windowMilliseconds < 1_000) {
       throw new Error('HTTP rate-limit window must be at least one second.');
     }
-    if (
-      !(input.occurredAt instanceof Date) ||
-      Number.isNaN(input.occurredAt.getTime())
-    ) {
+    if (!(input.occurredAt instanceof Date) || Number.isNaN(input.occurredAt.getTime())) {
       throw new Error('HTTP rate-limit timestamp is invalid.');
     }
   }
 
   private async cleanupExpiredBuckets(occurredAt: Date): Promise<void> {
-    const cutoff = new Date(
-      occurredAt.getTime() - EXPIRED_BUCKET_RETENTION_MILLISECONDS,
-    );
+    const cutoff = new Date(occurredAt.getTime() - EXPIRED_BUCKET_RETENTION_MILLISECONDS);
     try {
       await this.prisma.$executeRaw`
         DELETE FROM "core_http_rate_limit_buckets"

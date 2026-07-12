@@ -20,9 +20,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false,
   });
-  const configuration = app.get<ConfigService<ApplicationEnvironment, true>>(
-    ConfigService,
-  );
+  const configuration = app.get<ConfigService<ApplicationEnvironment, true>>(ConfigService);
   const host = configuration.get('HOST', { infer: true });
   const port = configuration.get('PORT', { infer: true });
   const bodyLimitBytes = configuration.get('HTTP_BODY_LIMIT_BYTES', {
@@ -34,14 +32,9 @@ async function bootstrap(): Promise<void> {
   const trustedProxyCidrs = configuration.get('HTTP_TRUSTED_PROXY_CIDRS', {
     infer: true,
   });
-  const express = app
-    .getHttpAdapter()
-    .getInstance() as ExpressApplicationAdapter;
+  const express = app.getHttpAdapter().getInstance() as ExpressApplicationAdapter;
 
-  express.set(
-    'trust proxy',
-    trustedProxyCidrs.length === 0 ? false : trustedProxyCidrs,
-  );
+  express.set('trust proxy', trustedProxyCidrs.length === 0 ? false : trustedProxyCidrs);
   express.disable('x-powered-by');
 
   const boundary = app.get(HttpBoundaryMiddleware);
@@ -60,18 +53,11 @@ async function bootstrap(): Promise<void> {
       origin: string | undefined,
       callback: (error: Error | null, allowed?: boolean) => void,
     ): void => {
-      callback(
-        null,
-        origin === undefined || allowedOrigins.includes(origin),
-      );
+      callback(null, origin === undefined || allowedOrigins.includes(origin));
     },
     credentials: true,
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'content-type',
-      'x-newax-csrf',
-      'x-newax-membership-id',
-    ],
+    allowedHeaders: ['content-type', 'x-newax-csrf', 'x-newax-membership-id'],
     exposedHeaders: [
       'x-request-id',
       'ratelimit-limit',

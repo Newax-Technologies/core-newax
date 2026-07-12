@@ -46,14 +46,12 @@ import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
         bodyLimitBytes: configuration.get('HTTP_BODY_LIMIT_BYTES', {
           infer: true,
         }),
-        rateLimitWindowMilliseconds: configuration.get(
-          'HTTP_RATE_LIMIT_WINDOW_MILLISECONDS',
-          { infer: true },
-        ),
-        rateLimitMaximumRequests: configuration.get(
-          'HTTP_RATE_LIMIT_MAXIMUM_REQUESTS',
-          { infer: true },
-        ),
+        rateLimitWindowMilliseconds: configuration.get('HTTP_RATE_LIMIT_WINDOW_MILLISECONDS', {
+          infer: true,
+        }),
+        rateLimitMaximumRequests: configuration.get('HTTP_RATE_LIMIT_MAXIMUM_REQUESTS', {
+          infer: true,
+        }),
         authenticationRateLimitMaximumRequests: configuration.get(
           'HTTP_AUTH_RATE_LIMIT_MAXIMUM_REQUESTS',
           { infer: true },
@@ -61,10 +59,7 @@ import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
         hstsMaxAgeSeconds: configuration.get('HTTP_HSTS_MAX_AGE_SECONDS', {
           infer: true,
         }),
-        hstsIncludeSubDomains: configuration.get(
-          'HTTP_HSTS_INCLUDE_SUBDOMAINS',
-          { infer: true },
-        ),
+        hstsIncludeSubDomains: configuration.get('HTTP_HSTS_INCLUDE_SUBDOMAINS', { infer: true }),
         hstsPreload: configuration.get('HTTP_HSTS_PRELOAD', { infer: true }),
       }),
     },
@@ -81,9 +76,7 @@ import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
       useFactory: (
         configuration: ConfigService<ApplicationEnvironment, true>,
       ): NodeHttpSecurityCrypto =>
-        new NodeHttpSecurityCrypto(
-          configuration.get('HTTP_CSRF_SECRET', { infer: true }),
-        ),
+        new NodeHttpSecurityCrypto(configuration.get('HTTP_CSRF_SECRET', { infer: true })),
     },
     {
       provide: RequestOriginPolicy,
@@ -94,17 +87,12 @@ import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
     {
       provide: SignedCsrfTokenService,
       inject: [NodeHttpSecurityCrypto],
-      useFactory: (
-        crypto: NodeHttpSecurityCrypto,
-      ): SignedCsrfTokenService => new SignedCsrfTokenService(crypto),
+      useFactory: (crypto: NodeHttpSecurityCrypto): SignedCsrfTokenService =>
+        new SignedCsrfTokenService(crypto),
     },
     {
       provide: HttpRateLimiter,
-      inject: [
-        PrismaHttpRateLimitStore,
-        SystemHttpSecurityClock,
-        HTTP_SECURITY_POLICY,
-      ],
+      inject: [PrismaHttpRateLimitStore, SystemHttpSecurityClock, HTTP_SECURITY_POLICY],
       useFactory: (
         store: PrismaHttpRateLimitStore,
         clock: SystemHttpSecurityClock,

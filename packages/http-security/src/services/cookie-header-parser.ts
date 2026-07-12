@@ -2,8 +2,7 @@ import { HttpSecurityError } from '../errors/http-security-error';
 import type { HttpCookieValues } from '../types/http-security';
 
 const MAX_COOKIE_HEADER_LENGTH = 8_192;
-const COOKIE_VALUE_PATTERN =
-  /^[\x21\x23-\x2B\x2D-\x3A\x3C-\x5B\x5D-\x7E]+$/u;
+const COOKIE_VALUE_PATTERN = /^[\x21\x23-\x2B\x2D-\x3A\x3C-\x5B\x5D-\x7E]+$/u;
 
 export class CookieHeaderParser {
   constructor(
@@ -34,11 +33,7 @@ export class CookieHeaderParser {
       if (name !== this.sessionCookieName && name !== this.csrfCookieName) {
         continue;
       }
-      if (
-        value.length === 0 ||
-        !COOKIE_VALUE_PATTERN.test(value) ||
-        values.has(name)
-      ) {
+      if (value.length === 0 || !COOKIE_VALUE_PATTERN.test(value) || values.has(name)) {
         throw this.invalidCookieHeader();
       }
       values.set(name, value);

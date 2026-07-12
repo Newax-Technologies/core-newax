@@ -1,7 +1,4 @@
-import type {
-  HttpSecurityMethod,
-  HttpSecurityRequest,
-} from '@newax/http-security';
+import type { HttpSecurityMethod, HttpSecurityRequest } from '@newax/http-security';
 import type { TrustedRequestContext } from '@newax/request-context';
 
 export interface HttpSecurityRequestAdapter {
@@ -11,9 +8,7 @@ export interface HttpSecurityRequestAdapter {
   readonly ip?: string;
   readonly secure?: boolean;
   readonly protocol?: string;
-  readonly headers: Readonly<
-    Record<string, string | readonly string[] | undefined>
-  >;
+  readonly headers: Readonly<Record<string, string | readonly string[] | undefined>>;
   newaxRequestId?: string;
   newaxRouteKey?: string;
   newaxHasBody?: boolean;

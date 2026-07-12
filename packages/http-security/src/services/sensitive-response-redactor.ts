@@ -39,11 +39,7 @@ export class SensitiveResponseRedactor {
     if (typeof value === 'bigint') {
       return value.toString();
     }
-    if (
-      value === undefined ||
-      typeof value === 'function' ||
-      typeof value === 'symbol'
-    ) {
+    if (value === undefined || typeof value === 'function' || typeof value === 'symbol') {
       return null;
     }
     if (value instanceof Date) {

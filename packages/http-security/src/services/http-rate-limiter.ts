@@ -1,12 +1,6 @@
 import { HttpSecurityError } from '../errors/http-security-error';
-import type {
-  HttpRateLimitResult,
-  HttpSecurityPolicy,
-} from '../types/http-security';
-import type {
-  HttpRateLimitStore,
-  HttpSecurityClock,
-} from './http-security-ports';
+import type { HttpRateLimitResult, HttpSecurityPolicy } from '../types/http-security';
+import type { HttpRateLimitStore, HttpSecurityClock } from './http-security-ports';
 
 export class HttpRateLimiter {
   constructor(
@@ -15,10 +9,7 @@ export class HttpRateLimiter {
     private readonly policy: HttpSecurityPolicy,
   ) {}
 
-  async consume(
-    key: string,
-    authenticationSensitive = false,
-  ): Promise<HttpRateLimitResult> {
+  async consume(key: string, authenticationSensitive = false): Promise<HttpRateLimitResult> {
     const normalizedKey = key.trim();
     if (normalizedKey.length === 0 || normalizedKey.length > 512) {
       throw new HttpSecurityError(

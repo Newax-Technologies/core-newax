@@ -1,7 +1,4 @@
-import type {
-  HttpSecurityHeaders,
-  HttpSecurityPolicy,
-} from '../types/http-security';
+import type { HttpSecurityHeaders, HttpSecurityPolicy } from '../types/http-security';
 
 export class SecurityHeadersPolicy {
   constructor(private readonly policy: HttpSecurityPolicy) {}
@@ -27,9 +24,7 @@ export class SecurityHeadersPolicy {
     };
 
     if (isSecureRequest) {
-      const directives = [
-        `max-age=${String(this.policy.hstsMaxAgeSeconds)}`,
-      ];
+      const directives = [`max-age=${String(this.policy.hstsMaxAgeSeconds)}`];
       if (this.policy.hstsIncludeSubDomains) {
         directives.push('includeSubDomains');
       }

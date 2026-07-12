@@ -1,8 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type {
-  HttpAuditRecord,
-  HttpSecurityAuditSink,
-} from '@newax/http-security';
+import type { HttpAuditRecord, HttpSecurityAuditSink } from '@newax/http-security';
 
 import { PrismaService } from '../database/prisma.service';
 import type { Prisma } from '../generated/prisma/client';

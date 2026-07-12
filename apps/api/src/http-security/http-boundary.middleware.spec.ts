@@ -11,10 +11,7 @@ import type {
   HttpSecurityRequestAdapter,
   HttpSecurityResponseAdapter,
 } from './http-security-request';
-import {
-  HttpRequestIdFactory,
-  SystemHttpSecurityClock,
-} from './node-http-security.infrastructure';
+import { HttpRequestIdFactory, SystemHttpSecurityClock } from './node-http-security.infrastructure';
 
 const policy: HttpSecurityPolicy = {
   allowedOrigins: ['https://app.newax.test'],
@@ -61,9 +58,7 @@ class FakeResponse implements HttpSecurityResponseAdapter {
   }
 }
 
-function request(
-  overrides: Partial<HttpSecurityRequestAdapter> = {},
-): HttpSecurityRequestAdapter {
+function request(overrides: Partial<HttpSecurityRequestAdapter> = {}): HttpSecurityRequestAdapter {
   return {
     method: 'GET',
     path: '/api/health',
@@ -89,18 +84,12 @@ describe('HttpBoundaryMiddleware', () => {
     const response = new FakeResponse();
     let continued = false;
 
-    await middleware(new RecordingAuditSink()).use(
-      request(),
-      response,
-      () => {
-        continued = true;
-      },
-    );
+    await middleware(new RecordingAuditSink()).use(request(), response, () => {
+      continued = true;
+    });
 
     expect(continued).toBe(true);
-    expect(response.headers.get('X-Request-Id')).toMatch(
-      /^[0-9a-f-]{36}$/u,
-    );
+    expect(response.headers.get('X-Request-Id')).toMatch(/^[0-9a-f-]{36}$/u);
     expect(response.headers.get('Strict-Transport-Security')).toBe(
       'max-age=63072000; includeSubDomains',
     );

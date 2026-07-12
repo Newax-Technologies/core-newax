@@ -72,9 +72,7 @@ class RecordingRateLimitStore implements HttpRateLimitStore {
   }
 }
 
-function request(
-  overrides: Partial<HttpSecurityRequest> = {},
-): HttpSecurityRequest {
+function request(overrides: Partial<HttpSecurityRequest> = {}): HttpSecurityRequest {
   return {
     method: 'POST',
     routeKey: 'POST /api/people',
@@ -94,21 +92,15 @@ describe('CookieHeaderParser', () => {
   it('extracts only the security cookies and permits empty unrelated cookies', () => {
     const parser = new CookieHeaderParser();
     expect(
-      parser.parse(
-        'theme=; __Host-newax_session=session-token; __Host-newax_csrf=csrf-token',
-      ),
+      parser.parse('theme=; __Host-newax_session=session-token; __Host-newax_csrf=csrf-token'),
     ).toEqual({ sessionToken: 'session-token', csrfToken: 'csrf-token' });
   });
 
   it('rejects duplicate and malformed security cookies', () => {
     const parser = new CookieHeaderParser();
     expect(() =>
-      parser.parse(
-        '__Host-newax_session=first; __Host-newax_session=second',
-      ),
-    ).toThrowError(
-      expect.objectContaining({ code: 'HTTP_SECURITY_INVALID_COOKIE_HEADER' }),
-    );
+      parser.parse('__Host-newax_session=first; __Host-newax_session=second'),
+    ).toThrowError(expect.objectContaining({ code: 'HTTP_SECURITY_INVALID_COOKIE_HEADER' }));
     expect(() => parser.parse('__Host-newax_session="quoted"')).toThrowError(
       expect.objectContaining({ code: 'HTTP_SECURITY_INVALID_COOKIE_HEADER' }),
     );
@@ -133,9 +125,7 @@ describe('RequestOriginPolicy', () => {
 
   it('requires an exact allowed origin for state-changing requests', () => {
     const originPolicy = new RequestOriginPolicy(policy.allowedOrigins);
-    expect(() =>
-      originPolicy.validate(request({ origin: 'https://evil.example' })),
-    ).toThrowError(
+    expect(() => originPolicy.validate(request({ origin: 'https://evil.example' }))).toThrowError(
       expect.objectContaining({ code: 'HTTP_SECURITY_ORIGIN_REJECTED' }),
     );
   });
@@ -143,14 +133,10 @@ describe('RequestOriginPolicy', () => {
   it('requires JSON for state-changing request bodies', () => {
     const originPolicy = new RequestOriginPolicy(policy.allowedOrigins);
     expect(() =>
-      originPolicy.validate(
-        request({ contentType: 'application/x-www-form-urlencoded' }),
-      ),
+      originPolicy.validate(request({ contentType: 'application/x-www-form-urlencoded' })),
     ).toThrowError(expect.objectContaining({ statusCode: 415 }));
     expect(() =>
-      originPolicy.validate(
-        request({ method: 'DELETE', contentType: null, hasBody: false }),
-      ),
+      originPolicy.validate(request({ method: 'DELETE', contentType: null, hasBody: false })),
     ).not.toThrow();
   });
 });
@@ -180,18 +166,13 @@ describe('SignedCsrfTokenService', () => {
         cookieToken: issued.cookieValue,
         headerToken: issued.token,
       }),
-    ).toThrowError(
-      expect.objectContaining({ code: 'HTTP_SECURITY_CSRF_REJECTED' }),
-    );
+    ).toThrowError(expect.objectContaining({ code: 'HTTP_SECURITY_CSRF_REJECTED' }));
   });
 });
 
 describe('SecureCookieTransport', () => {
   it('creates a host-only secure HttpOnly session cookie', () => {
-    const cookie = new SecureCookieTransport().sessionCookie(
-      'session-token',
-      3_600,
-    );
+    const cookie = new SecureCookieTransport().sessionCookie('session-token', 3_600);
     expect(cookie).toContain('__Host-newax_session=session-token');
     expect(cookie).toContain('Path=/');
     expect(cookie).toContain('Secure');
@@ -202,31 +183,21 @@ describe('SecureCookieTransport', () => {
 
   it('keeps the CSRF cookie readable and expires cleared cookies', () => {
     const transport = new SecureCookieTransport();
-    expect(transport.csrfCookie('csrf-token', 3_600)).toContain(
-      'SameSite=Strict',
-    );
-    expect(transport.csrfCookie('csrf-token', 3_600)).not.toContain(
-      'HttpOnly',
-    );
-    expect(transport.clearSessionCookie()).toContain(
-      'Expires=Thu, 01 Jan 1970 00:00:00 GMT',
-    );
+    expect(transport.csrfCookie('csrf-token', 3_600)).toContain('SameSite=Strict');
+    expect(transport.csrfCookie('csrf-token', 3_600)).not.toContain('HttpOnly');
+    expect(transport.clearSessionCookie()).toContain('Expires=Thu, 01 Jan 1970 00:00:00 GMT');
   });
 });
 
 describe('SecurityHeadersPolicy', () => {
   it('adds strict API headers and HSTS only for secure requests', () => {
     const headersPolicy = new SecurityHeadersPolicy(policy);
-    expect(
-      headersPolicy.headers(false)['Strict-Transport-Security'],
-    ).toBeUndefined();
+    expect(headersPolicy.headers(false)['Strict-Transport-Security']).toBeUndefined();
     expect(headersPolicy.headers(true)['Strict-Transport-Security']).toBe(
       'max-age=63072000; includeSubDomains',
     );
     expect(headersPolicy.headers(true)['Referrer-Policy']).toBe('no-referrer');
-    expect(headersPolicy.headers(true)['X-Content-Type-Options']).toBe(
-      'nosniff',
-    );
+    expect(headersPolicy.headers(true)['X-Content-Type-Options']).toBe('nosniff');
   });
 });
 

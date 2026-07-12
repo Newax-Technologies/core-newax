@@ -524,6 +524,17 @@ model CoreFile {
   @@map("core_files")
 }
 
+model CoreHttpRateLimitBucket {
+  keyHash      String   @id @map("key_hash") @db.Char(64)
+  requestCount Int      @default(0) @map("request_count")
+  resetAt      DateTime @map("reset_at") @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([resetAt])
+  @@map("core_http_rate_limit_buckets")
+}
+
 model CoreAuditLog {
   id             String   @id @default(uuid()) @db.Uuid
   organizationId String?  @map("organization_id") @db.Uuid

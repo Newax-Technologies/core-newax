@@ -1,7 +1,6 @@
 import { HttpSecurityError } from '../errors/http-security-error';
 
-const COOKIE_VALUE_PATTERN =
-  /^[\x21\x23-\x2B\x2D-\x3A\x3C-\x5B\x5D-\x7E]+$/u;
+const COOKIE_VALUE_PATTERN = /^[\x21\x23-\x2B\x2D-\x3A\x3C-\x5B\x5D-\x7E]+$/u;
 const EXPIRED_COOKIE_DATE = 'Thu, 01 Jan 1970 00:00:00 GMT';
 
 export class SecureCookieTransport {
@@ -72,16 +71,8 @@ export class SecureCookieTransport {
   }
 
   private requireCookieValue(value: string): string {
-    if (
-      value.length === 0 ||
-      value.length > 1_024 ||
-      !COOKIE_VALUE_PATTERN.test(value)
-    ) {
-      throw new HttpSecurityError(
-        'HTTP_SECURITY_INVALID_INPUT',
-        'Cookie value is invalid.',
-        500,
-      );
+    if (value.length === 0 || value.length > 1_024 || !COOKIE_VALUE_PATTERN.test(value)) {
+      throw new HttpSecurityError('HTTP_SECURITY_INVALID_INPUT', 'Cookie value is invalid.', 500);
     }
     return value;
   }
