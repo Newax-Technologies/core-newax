@@ -39,6 +39,19 @@ jobs:
       - name: Install prepared workspace
         run: pnpm install --frozen-lockfile
 
+      - name: Apply lint fixes
+        run: |
+          pnpm exec eslint --fix \
+            apps/api/src/config/environment.ts \
+            apps/api/src/config/environment.spec.ts \
+            apps/api/src/config/http-security-environment.ts \
+            apps/api/src/config/http-security-environment.spec.ts \
+            apps/api/src/health/health.controller.ts \
+            apps/api/src/http-security \
+            apps/api/src/main.ts \
+            packages/http-security \
+            tooling/prepare-http-security.mjs
+
       - name: Format the HTTP security slice
         run: |
           pnpm --filter @newax/api db:format
