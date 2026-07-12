@@ -1,0 +1,11 @@
+$ eslint . --max-warnings 0
+Warning: React version was set to "detect" in eslint-plugin-react settings, but the "react" package is not installed. Assuming latest React version for linting.
+Pages directory cannot be found at /home/runner/work/core-newax/core-newax/pages or /home/runner/work/core-newax/core-newax/src/pages. If using a custom path, please configure with the `no-html-link-for-pages` rule in your eslint config file.
+
+/home/runner/work/core-newax/core-newax/apps/api/src/authentication-http/authentication-http.controller.spec.ts
+  3:1  error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+
+✖ 1 problem (1 error, 0 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+
+[ELIFECYCLE] Command failed with exit code 1.
