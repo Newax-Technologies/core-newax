@@ -10,13 +10,16 @@ Version: `0.1.0`
 
 The Trusted Request Context module converts a validated account session and a selected active membership into an immutable organization-scoped execution context.
 
-It connects Authentication, Memberships, and Access Control without allowing callers to declare their own user identity, organization identity, or permissions.
+It also provides bounded account membership discovery so an authenticated person can see the active memberships available for organization-context selection without supplying or receiving trusted authority.
+
+It connects Authentication, Memberships, Organizations, and Access Control without allowing callers to declare their own user identity, organization identity, or permissions.
 
 ## Core sequence
 
 ```text
 Session token
   -> authenticated user and person
+  -> active membership discovery
   -> selected membership
   -> membership ownership and status validation
   -> organization status validation
@@ -31,17 +34,20 @@ Authentication proves who controls the session. Memberships determine where that
 The package exports:
 
 - `TrustedRequestContextService`
+- `AccountMembershipDiscoveryService`
 - `TrustedRequestContextStore`
 - `ContextAuthorizer`
 - `ImmutablePermissionSet`
-- Session, membership, permission, clock, and request identifier ports
+- Session, membership, account-membership, permission, clock, and request identifier ports
 - Account and organization request-context contracts
+- Account membership discovery contracts
 - `RequestContextError`
 
 Core operations:
 
 ```text
 resolveAccountContext
+list available account memberships
 resolveOrganizationContext
 hasPermission
 requirePermission
@@ -76,6 +82,20 @@ An organization context adds:
 - Permission evaluation timestamp.
 
 The client selects a membership identifier. The server derives the organization identifier from the trusted membership record.
+
+## Account membership discovery
+
+Account membership discovery exists only to present valid organization-context choices to the authenticated account.
+
+Rules:
+
+- The person identifier comes from trusted account context.
+- Only active memberships in active, non-archived organizations are returned.
+- Archived people, ended memberships, suspended memberships, inactive organizations, and deleted organizations are excluded by persistence and verified again by the service boundary.
+- Membership records returned for another person fail closed as an integrity error.
+- Results are bounded and paginated.
+- The response excludes person identifiers, membership reference numbers, role names, permission codes, and other authority-bearing or unnecessary fields.
+- Discovery does not grant organization access. The selected membership must still pass full organization-context resolution.
 
 ## Trust rules
 
@@ -137,9 +157,15 @@ It reads trusted references from:
 
 ## HTTP exposure
 
-This slice does not expose public HTTP controllers, middleware, or guards.
+The API exposes one account-scoped discovery endpoint:
 
-Public request integration remains deferred until token transport, trusted membership selection, request throttling, CSRF policy, proxy handling, security headers, error mapping, audit persistence, and endpoint response controls are implemented together.
+```text
+GET /api/account/memberships
+```
+
+The endpoint requires trusted account context, accepts only bounded pagination fields, returns `Cache-Control: no-store`, and does not require organization permissions because it reveals only the authenticated person's active context choices.
+
+The caller may select a returned membership identifier in the existing `x-newax-membership-id` transport when requesting an organization-scoped endpoint. Selection alone grants nothing. The HTTP Security Boundary and Trusted Request Context must validate the membership again.
 
 ## Dependencies
 
@@ -147,6 +173,7 @@ The module depends on:
 
 - Authentication `>=0.1.0`
 - Memberships `>=0.1.0`
+- Organizations `>=0.1.0`
 - Access Control `>=0.1.0`
 
 ## Known limitations
@@ -156,8 +183,8 @@ The module depends on:
 - Platform operator context is deferred.
 - Context caching is not implemented.
 - Permission changes during an active request take effect on the next resolution.
-- Public NestJS guards and decorators are deferred.
 - Durable authorization-denial audit persistence is deferred.
+- Organization hierarchy presentation and preferred default membership selection are deferred.
 
 ## Related decisions
 
@@ -169,3 +196,6 @@ The module depends on:
 - ADR 0016: Build the Users Registry Service Foundation.
 - ADR 0017: Build the Authentication Service Foundation.
 - ADR 0018: Build the Trusted Request Context Foundation.
+- ADR 0019: Build the HTTP Security Boundary.
+- ADR 0020: Build Authentication HTTP Endpoints.
+- ADR 0021: Build Account Membership Discovery.
