@@ -129,6 +129,14 @@ export class AuthenticationHttpController {
     @Req() request: HttpSecurityRequestAdapter,
     @Res({ passthrough: true }) response: HttpSecurityResponseAdapter,
   ): Promise<void> {
+    if (request.newaxHasBody === true) {
+      throw new HttpSecurityError(
+        'HTTP_SECURITY_INVALID_INPUT',
+        'The logout request must not include a body.',
+        400,
+      );
+    }
+
     const cookies = this.cookieParser.parse(this.singleHeader(request.headers.cookie, 8_192));
     if (cookies.sessionToken === null) {
       throw new HttpSecurityError(
