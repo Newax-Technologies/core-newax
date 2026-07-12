@@ -50,10 +50,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0024](0024-build-current-person-read-api.md)                         | Accepted | Expose a bounded authenticated self-profile derived only from trusted account context without granting organization-wide `people.view`.          |
 | [ADR 0025](0025-build-organization-contacts-registry-foundation.md)       | Accepted | Establish permission-controlled organization email and phone contacts while deferring person-contact visibility until an explicit policy exists. |
 | [ADR 0026](0026-build-current-organization-contacts-http-api.md)          | Accepted | Expose bounded current-organization contact creation and listing through trusted context and explicit Contacts permissions.                      |
+| [ADR 0027](0027-separate-tenant-ownership-from-organizations.md)          | Accepted | Give every customer Tenant an independent ID and require Organizations, hierarchy, and relationships to remain inside that Tenant.               |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than twenty-six independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than twenty-seven independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -65,7 +66,8 @@ The ADRs form a deliberate sequence rather than twenty-six independent opinions 
 ### Access, Tenancy, and Identity
 
 - ADR 0002 establishes permission-based authorization.
-- ADR 0003 establishes organization-scoped multi-tenancy.
+- ADR 0003 establishes tenant-ready multi-tenancy and isolation.
+- ADR 0027 separates customer Tenant identity from legal and operating Organizations.
 - ADR 0008 establishes the Central Identity and Organization Registry.
 - ADR 0010 separates authentication, identity, users, memberships, roles, and permissions.
 
@@ -88,6 +90,7 @@ The ADRs form a deliberate sequence rather than twenty-six independent opinions 
 - ADR 0024 exposes the authenticated account's bounded person profile without client person selection or organization-wide People Registry authority.
 - ADR 0025 establishes organization-scoped contact creation and reads while deferring person-contact visibility, lifecycle, and verification policy.
 - ADR 0026 exposes those organization contact operations through strict trusted-context HTTP contracts without exposing registry internals.
+- ADR 0027 gives Tenant an independent customer identity and enforces same-Tenant Organization structure.
 
 ### Implementation Baseline
 
@@ -101,7 +104,7 @@ The accepted architecture currently means:
 - Foundation Modules remain independent from business domains.
 - The Central Registry owns shared people, organization, user, membership, object, contact, address, file, and audit foundation data.
 - Business domains own their domain-specific master data and transactions.
-- Organizations provide the initial tenant context.
+- Tenants provide the customer ownership and data-isolation boundary; Organizations provide legal and operating context inside a Tenant.
 - Business authorization uses explicit permissions grouped through roles.
 - Client customization remains separate from reusable core modules.
 - Module communication uses clear services, contracts, APIs, or events.

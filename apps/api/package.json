@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "nest build",
-    "build:foundation": "pnpm --filter @newax/organizations build && pnpm --filter @newax/people build && pnpm --filter @newax/contacts build && pnpm --filter @newax/memberships build && pnpm --filter @newax/access-control build && pnpm --filter @newax/users build && pnpm --filter @newax/auth build && pnpm --filter @newax/request-context build && pnpm --filter @newax/http-security build",
+    "build:foundation": "pnpm --filter @newax/tenants build && pnpm --filter @newax/organizations build && pnpm --filter @newax/people build && pnpm --filter @newax/contacts build && pnpm --filter @newax/memberships build && pnpm --filter @newax/access-control build && pnpm --filter @newax/users build && pnpm --filter @newax/auth build && pnpm --filter @newax/request-context build && pnpm --filter @newax/http-security build",
     "db:format": "prisma format",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -51,7 +51,8 @@
     "@prisma/client": "7.8.0",
     "pg": "8.22.0",
     "reflect-metadata": "0.2.2",
-    "rxjs": "7.8.1"
+    "rxjs": "7.8.1",
+    "@newax/tenants": "workspace:*"
   },
   "devDependencies": {
     "@nestjs/cli": "11.0.23",
