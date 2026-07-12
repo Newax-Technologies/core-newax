@@ -1,5 +1,6 @@
 import type {
   AccountMembershipDirectoryPage,
+  OrganizationContextConfirmationRecord,
   TrustedMembershipRecord,
   TrustedPermissionEvaluation,
   TrustedSessionRecord,
@@ -19,6 +20,12 @@ export interface AccountMembershipDirectory {
     offset: number,
     limit: number,
   ): Promise<AccountMembershipDirectoryPage>;
+}
+
+export interface OrganizationContextConfirmationDirectory {
+  findConfirmationRecord(
+    membershipId: string,
+  ): Promise<OrganizationContextConfirmationRecord | null>;
 }
 
 export interface TrustedPermissionEvaluator {
