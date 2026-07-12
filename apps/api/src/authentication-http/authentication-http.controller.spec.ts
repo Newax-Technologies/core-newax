@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type {
-  AuthenticationService,
-  PasswordLoginInput,
-  PasswordLoginResult,
-} from '@newax/auth';
+import type { AuthenticationService, PasswordLoginInput, PasswordLoginResult } from '@newax/auth';
 import {
   CookieHeaderParser,
   SecureCookieTransport,
