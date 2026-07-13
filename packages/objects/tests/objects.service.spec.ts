@@ -198,10 +198,10 @@ describe('ObjectsService', () => {
     const service = new ObjectsService(repository, new RecordingPublisher());
 
     await expect(
-      service.addCurrentOrganizationObject(
-        organizationContext(OBJECT_PERMISSIONS.create),
-        { objectTypeCode: 'vehicle', name: 'Vehicle 1' },
-      ),
+      service.addCurrentOrganizationObject(organizationContext(OBJECT_PERMISSIONS.create), {
+        objectTypeCode: 'vehicle',
+        name: 'Vehicle 1',
+      }),
     ).rejects.toMatchObject({ code });
   });
 
@@ -214,10 +214,10 @@ describe('ObjectsService', () => {
     const service = new ObjectsService(repository, new RecordingPublisher());
 
     await expect(
-      service.addCurrentOrganizationObject(
-        organizationContext(OBJECT_PERMISSIONS.create),
-        { objectTypeCode: 'connected.sensor', name: 'Sensor' },
-      ),
+      service.addCurrentOrganizationObject(organizationContext(OBJECT_PERMISSIONS.create), {
+        objectTypeCode: 'connected.sensor',
+        name: 'Sensor',
+      }),
     ).rejects.toMatchObject({ code: 'OBJECT_INTEGRITY_FAILURE' });
   });
 
@@ -256,18 +256,16 @@ describe('ObjectsService', () => {
     const service = new ObjectsService(repository, new RecordingPublisher());
 
     await expect(
-      service.listCurrentOrganizationObjects(
-        organizationContext(OBJECT_PERMISSIONS.view),
-        { limit: 101 },
-      ),
+      service.listCurrentOrganizationObjects(organizationContext(OBJECT_PERMISSIONS.view), {
+        limit: 101,
+      }),
     ).rejects.toMatchObject({ code: 'OBJECT_INVALID_INPUT' });
 
     repository.listResult = { status: 'cursor_invalid' };
     await expect(
-      service.listCurrentOrganizationObjects(
-        organizationContext(OBJECT_PERMISSIONS.view),
-        { afterId: OBJECT_ID },
-      ),
+      service.listCurrentOrganizationObjects(organizationContext(OBJECT_PERMISSIONS.view), {
+        afterId: OBJECT_ID,
+      }),
     ).rejects.toMatchObject({ code: 'OBJECT_CURSOR_INVALID' });
   });
 
@@ -276,18 +274,19 @@ describe('ObjectsService', () => {
     const service = new ObjectsService(repository, new RecordingPublisher());
 
     await expect(
-      service.addCurrentOrganizationObject(
-        organizationContext(OBJECT_PERMISSIONS.create),
-        { objectTypeCode: 'Not valid!', name: 'Sensor' },
-      ),
+      service.addCurrentOrganizationObject(organizationContext(OBJECT_PERMISSIONS.create), {
+        objectTypeCode: 'Not valid!',
+        name: 'Sensor',
+      }),
     ).rejects.toMatchObject({ code: 'OBJECT_INVALID_INPUT' });
     expect(repository.createInput).toBeNull();
 
     await expect(
-      service.addCurrentOrganizationObject(
-        organizationContext(OBJECT_PERMISSIONS.create),
-        { objectTypeCode: 'sensor', parentObjectId: 'not-a-uuid', name: 'Sensor' },
-      ),
+      service.addCurrentOrganizationObject(organizationContext(OBJECT_PERMISSIONS.create), {
+        objectTypeCode: 'sensor',
+        parentObjectId: 'not-a-uuid',
+        name: 'Sensor',
+      }),
     ).rejects.toMatchObject({ code: 'OBJECT_INVALID_INPUT' });
     expect(repository.createInput).toBeNull();
   });

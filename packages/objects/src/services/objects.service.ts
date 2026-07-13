@@ -239,11 +239,7 @@ export class ObjectsService {
         'object.objectTypeId',
         'OBJECT_INTEGRITY_FAILURE',
       ),
-      objectTypeCode: this.requireStoredCode(
-        record.objectTypeCode,
-        'object.objectTypeCode',
-        96,
-      ),
+      objectTypeCode: this.requireStoredCode(record.objectTypeCode, 'object.objectTypeCode', 96),
       parentObjectId:
         record.parentObjectId === null
           ? null
@@ -254,16 +250,8 @@ export class ObjectsService {
             ),
       name: this.requireStoredText(record.name, 'object.name', 255),
       referenceCode: this.requireStoredOptionalReferenceCode(record.referenceCode),
-      serialNumber: this.requireStoredOptionalText(
-        record.serialNumber,
-        'object.serialNumber',
-        128,
-      ),
-      description: this.requireStoredOptionalText(
-        record.description,
-        'object.description',
-        2_000,
-      ),
+      serialNumber: this.requireStoredOptionalText(record.serialNumber, 'object.serialNumber', 128),
+      description: this.requireStoredOptionalText(record.description, 'object.description', 2_000),
       createdAt: new Date(record.createdAt.getTime()),
     });
   }
@@ -288,11 +276,7 @@ export class ObjectsService {
   }
 
   private requireStoredCode(value: string, field: string, maxLength: number): string {
-    if (
-      value.length > maxLength ||
-      value !== value.toLowerCase() ||
-      !CODE_PATTERN.test(value)
-    ) {
+    if (value.length > maxLength || value !== value.toLowerCase() || !CODE_PATTERN.test(value)) {
       throw new ObjectModuleError('OBJECT_INTEGRITY_FAILURE', `${field} is invalid.`);
     }
     return value;
@@ -356,10 +340,7 @@ export class ObjectsService {
       return null;
     }
     if (value.length === 0 || value.length > 128 || value !== value.toUpperCase()) {
-      throw new ObjectModuleError(
-        'OBJECT_INTEGRITY_FAILURE',
-        'object.referenceCode is invalid.',
-      );
+      throw new ObjectModuleError('OBJECT_INTEGRITY_FAILURE', 'object.referenceCode is invalid.');
     }
     return value;
   }
@@ -376,10 +357,7 @@ export class ObjectsService {
     return normalized;
   }
 
-  private requireOptionalUuid(
-    value: string | null | undefined,
-    field: string,
-  ): string | null {
+  private requireOptionalUuid(value: string | null | undefined, field: string): string | null {
     if (value === undefined || value === null) {
       return null;
     }

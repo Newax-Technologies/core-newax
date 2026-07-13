@@ -53,10 +53,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0027](0027-separate-tenant-ownership-from-organizations.md)          | Accepted | Give every customer Tenant an independent ID and require Organizations, hierarchy, and relationships to remain inside that Tenant.               |
 | [ADR 0028](0028-build-organization-addresses-registry-foundation.md)      | Accepted | Build tenant-bound Organization address creation and listing while deferring Person-address visibility until explicit privacy policy exists.     |
 | [ADR 0029](0029-build-current-organization-addresses-http-api.md)         | Accepted | Expose bounded current-Organization address creation and listing without accepting client-supplied Tenant or Organization authority.             |
+| [ADR 0030](0030-build-object-registry-foundation.md)                      | Accepted | Establish Tenant-safe Object Type registration and current-Organization Object creation and listing.                                             |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than twenty-nine independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than thirty independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -95,6 +96,7 @@ The ADRs form a deliberate sequence rather than twenty-nine independent opinions
 - ADR 0027 gives Tenant an independent customer identity and enforces same-Tenant Organization structure.
 - ADR 0028 establishes Organization addresses with canonical reuse, primary-address integrity, and an explicit Person-address privacy deferral.
 - ADR 0029 exposes those Organization address operations through strict trusted-context HTTP contracts without exposing canonical-registry internals.
+- ADR 0030 establishes Tenant-safe Object identity and same-Tenant hierarchy while deferring assignments, locations, lifecycle operations, and HTTP exposure.
 
 ### Implementation Baseline
 

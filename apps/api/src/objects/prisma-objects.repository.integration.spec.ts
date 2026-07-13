@@ -71,11 +71,7 @@ describeWithDatabase('PrismaObjectsRepository PostgreSQL integration', () => {
         organizationType: 'company',
       },
     });
-    organizationIds.push(
-      parentOrganization.id,
-      childOrganization.id,
-      foreignOrganization.id,
-    );
+    organizationIds.push(parentOrganization.id, childOrganization.id, foreignOrganization.id);
 
     const typeCode = `connected.sensor-${String(RUN_ID)}`;
     const registered = await repository.registerObjectType({
