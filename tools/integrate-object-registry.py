@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 def replace_once(path: str, old: str, new: str) -> None:
     file = Path(path)
     text = file.read_text()
@@ -127,7 +128,7 @@ registry['modules'].insert(index, {
     'required_permissions': ['objects.types.manage', 'objects.create', 'objects.view'],
     'exposed_events': ['object.type_registered', 'object.created'],
     'consumed_events': [],
-    'configuration_options': ['object_type_policy', 'object_reference_code_policy'],
+    'configuration_options': [],
     'database_ownership': ['core_object_types', 'core_objects'],
     'tenant_scope': 'tenant_and_current_organization_scoped',
     'documentation_path': 'packages/objects/README.md',
@@ -138,8 +139,8 @@ registry_path.write_text(json.dumps(registry, indent=2) + '\n')
 
 replace_once(
     'docs/decisions/README.md',
-    '| [ADR 0029](0029-build-current-organization-addresses-http-api.md)         | Accepted | Expose bounded current-Organization address creation and listing without accepting client-supplied Tenant or Organization authority.              |\n',
-    '| [ADR 0029](0029-build-current-organization-addresses-http-api.md)         | Accepted | Expose bounded current-Organization address creation and listing without accepting client-supplied Tenant or Organization authority.              |\n| [ADR 0030](0030-build-object-registry-foundation.md)                     | Accepted | Establish Tenant-safe Object Type registration and current-Organization Object creation and listing.                                             |\n',
+    '| [ADR 0029](0029-build-current-organization-addresses-http-api.md)         | Accepted | Expose bounded current-Organization address creation and listing without accepting client-supplied Tenant or Organization authority.             |\n',
+    '| [ADR 0029](0029-build-current-organization-addresses-http-api.md)         | Accepted | Expose bounded current-Organization address creation and listing without accepting client-supplied Tenant or Organization authority.             |\n| [ADR 0030](0030-build-object-registry-foundation.md)                     | Accepted | Establish Tenant-safe Object Type registration and current-Organization Object creation and listing.                                             |\n',
 )
 replace_once(
     'docs/decisions/README.md',
@@ -151,4 +152,3 @@ replace_once(
     '- ADR 0029 exposes those Organization address operations through strict trusted-context HTTP contracts without exposing canonical-registry internals.\n',
     '- ADR 0029 exposes those Organization address operations through strict trusted-context HTTP contracts without exposing canonical-registry internals.\n- ADR 0030 establishes Tenant-safe Object identity and same-Tenant hierarchy while deferring assignments, locations, lifecycle operations, and HTTP exposure.\n',
 )
-
