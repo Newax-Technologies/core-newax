@@ -24,6 +24,7 @@ All notable changes to the NEWAX Contacts module are documented here.
 - Cross-organization repository results fail closed.
 - Contact values are excluded from event and logging payloads.
 - Person-contact access remains disabled until a visibility policy is approved.
+- Global contact-method verification is not inherited by Organization links; Organization-scoped results remain unverified until relationship-specific ownership and evidence rules are approved.
 
 ### Database
 
