@@ -55,10 +55,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0029](0029-build-current-organization-addresses-http-api.md)         | Accepted | Expose bounded current-Organization address creation and listing without accepting client-supplied Tenant or Organization authority.             |
 | [ADR 0030](0030-build-object-registry-foundation.md)                      | Accepted | Establish Tenant-safe Object Type registration and current-Organization Object creation and listing.                                             |
 | [ADR 0031](0031-build-current-organization-objects-http-api.md)           | Accepted | Expose bounded current-Organization Object creation and listing without accepting client-supplied Tenant or Organization authority.              |
+| [ADR 0032](0032-build-file-metadata-registry-foundation.md)               | Accepted | Establish Tenant-safe, provider-neutral File metadata registration and current-Organization listing without exposing storage locators.           |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than thirty independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than thirty-two independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -99,6 +100,7 @@ The ADRs form a deliberate sequence rather than thirty independent opinions wand
 - ADR 0029 exposes those Organization address operations through strict trusted-context HTTP contracts without exposing canonical-registry internals.
 - ADR 0030 establishes Tenant-safe Object identity and same-Tenant hierarchy while deferring assignments, locations, lifecycle operations, and HTTP exposure.
 - ADR 0031 exposes current-Organization Object creation and listing through strict trusted-context HTTP contracts without exposing internal ownership keys.
+- ADR 0032 establishes Tenant-safe File metadata registration and listing while keeping bytes, storage locators, access URLs, lifecycle operations, and Documents outside the initial boundary.
 
 ### Implementation Baseline
 

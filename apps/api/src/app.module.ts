@@ -9,6 +9,7 @@ import { AuthenticationModule } from './authentication/authentication.module';
 import { validateEnvironment } from './config/environment';
 import { ContactsModule } from './contacts/contacts.module';
 import { DatabaseModule } from './database/database.module';
+import { FilesModule } from './files/files.module';
 import { HealthController } from './health/health.controller';
 import { HttpSecurityModule } from './http-security/http-security.module';
 import { MembershipsModule } from './memberships/memberships.module';
@@ -34,6 +35,7 @@ import { UsersModule } from './users/users.module';
     ContactsModule,
     AddressesModule,
     ObjectsModule,
+    FilesModule,
     MembershipsModule,
     AccessControlModule,
     UsersModule,

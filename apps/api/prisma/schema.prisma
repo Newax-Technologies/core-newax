@@ -21,6 +21,7 @@ model CoreTenant {
   organizations             CoreOrganization[]
   organizationRelationships CoreOrganizationRelationship[]
   objects                   CoreObject[]
+  files                     CoreFile[]
 
   @@index([status])
   @@index([name])
@@ -531,6 +532,7 @@ model CoreObjectAddress {
 
 model CoreFile {
   id              String   @id @default(uuid()) @db.Uuid
+  tenantId        String   @map("tenant_id") @db.Uuid
   organizationId  String   @map("organization_id") @db.Uuid
   storageProvider String   @map("storage_provider") @db.VarChar(64)
   storageKey      String   @map("storage_key") @db.Text
@@ -542,11 +544,13 @@ model CoreFile {
   createdByUserId String?  @map("created_by_user_id") @db.Uuid
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  organization  CoreOrganization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  tenant        CoreTenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  organization  CoreOrganization @relation(fields: [tenantId, organizationId], references: [tenantId, id], onDelete: Restrict, onUpdate: Cascade)
   createdByUser CoreUser?        @relation("FileCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
+  @@unique([tenantId, id])
   @@unique([storageProvider, storageKey])
-  @@index([organizationId, status, createdAt])
+  @@index([tenantId, organizationId, status, createdAt])
   @@map("core_files")
 }
 
