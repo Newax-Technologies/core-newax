@@ -268,9 +268,14 @@ export class AuditService {
     return this.normalizeJsonObject(value, depth);
   }
 
-  private requireCode(value: string, field: string, maximumLength: number): string {
+  private requireCode(
+    value: string,
+    field: string,
+    maximumLength: number,
+    code: AuditErrorCode = 'AUDIT_INVALID_INPUT',
+  ): string {
     if (typeof value !== 'string') {
-      throw new AuditModuleError('AUDIT_INVALID_INPUT', field + ' is invalid.');
+      throw new AuditModuleError(code, field + ' is invalid.');
     }
     const normalized = value.trim().toLowerCase();
     if (
@@ -278,13 +283,13 @@ export class AuditService {
       normalized.length > maximumLength ||
       !CODE_PATTERN.test(normalized)
     ) {
-      throw new AuditModuleError('AUDIT_INVALID_INPUT', field + ' is invalid.');
+      throw new AuditModuleError(code, field + ' is invalid.');
     }
     return normalized;
   }
 
   private requireStoredCode(value: string, field: string, maximumLength: number): string {
-    const normalized = this.requireCode(value, field, maximumLength);
+    const normalized = this.requireCode(value, field, maximumLength, 'AUDIT_INTEGRITY_FAILURE');
     if (normalized !== value) {
       throw new AuditModuleError('AUDIT_INTEGRITY_FAILURE', field + ' is invalid.');
     }
@@ -295,12 +300,13 @@ export class AuditService {
     value: string | null | undefined,
     field: string,
     maximumLength: number,
+    code: AuditErrorCode = 'AUDIT_INVALID_INPUT',
   ): string | null {
     if (value == null) {
       return null;
     }
     if (typeof value !== 'string') {
-      throw new AuditModuleError('AUDIT_INVALID_INPUT', field + ' is invalid.');
+      throw new AuditModuleError(code, field + ' is invalid.');
     }
     const normalized = value.trim();
     if (
@@ -308,7 +314,7 @@ export class AuditService {
       normalized.length > maximumLength ||
       containsControlCharacter(normalized)
     ) {
-      throw new AuditModuleError('AUDIT_INVALID_INPUT', field + ' is invalid.');
+      throw new AuditModuleError(code, field + ' is invalid.');
     }
     return normalized;
   }
@@ -318,7 +324,12 @@ export class AuditService {
     field: string,
     maximumLength: number,
   ): string | null {
-    const normalized = this.requireOptionalText(value, field, maximumLength);
+    const normalized = this.requireOptionalText(
+      value,
+      field,
+      maximumLength,
+      'AUDIT_INTEGRITY_FAILURE',
+    );
     if (normalized !== value) {
       throw new AuditModuleError('AUDIT_INTEGRITY_FAILURE', field + ' is invalid.');
     }

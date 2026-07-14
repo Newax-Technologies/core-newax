@@ -246,6 +246,15 @@ describe('AuditService governance foundation', () => {
       service.listCurrentOrganizationEntries(context(AUDIT_PERMISSIONS.view)),
     ).rejects.toMatchObject({ code: 'AUDIT_INTEGRITY_FAILURE' });
 
+    repository.listResult = {
+      status: 'available',
+      items: [entry({ action: 'INVALID ACTION' })],
+      nextCursor: null,
+    };
+    await expect(
+      service.listCurrentOrganizationEntries(context(AUDIT_PERMISSIONS.view)),
+    ).rejects.toMatchObject({ code: 'AUDIT_INTEGRITY_FAILURE' });
+
     repository.listResult = { status: 'cursor_invalid' };
     await expect(
       service.listCurrentOrganizationEntries(context(AUDIT_PERMISSIONS.view)),
