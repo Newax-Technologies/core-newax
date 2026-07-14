@@ -25,7 +25,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 const CODE_PATTERN = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/u;
 const METADATA_KEY_PATTERN = /^[A-Za-z][A-Za-z0-9._-]{0,63}$/u;
 const SENSITIVE_METADATA_KEY_PATTERN =
-  /(authorization|cookie|credential|csrf|password|privatekey|recovery|secret|token)/u;
+  /(accesskey|apikey|authorization|bearer|cookie|credential|csrf|encryptionkey|password|privatekey|recovery|secret|signingkey|token)/u;
 const RESERVED_METADATA_KEY_PATTERN = /^(?:__proto__|constructor|prototype)$/u;
 
 interface ExpectedBoundary {

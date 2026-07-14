@@ -152,6 +152,9 @@ describe('AuditService governance foundation', () => {
       service.recordTrustedEntry(trustedInput({ metadata: { sessionToken: 'never-store-me' } })),
     ).rejects.toMatchObject({ code: 'AUDIT_INVALID_INPUT' });
     await expect(
+      service.recordTrustedEntry(trustedInput({ metadata: { apiKey: 'never-store-me' } })),
+    ).rejects.toMatchObject({ code: 'AUDIT_INVALID_INPUT' });
+    await expect(
       service.recordTrustedEntry(trustedInput({ metadata: { constructor: 'unsafe' } })),
     ).rejects.toMatchObject({ code: 'AUDIT_INVALID_INPUT' });
     await expect(

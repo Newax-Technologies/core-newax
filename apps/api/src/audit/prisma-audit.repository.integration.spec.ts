@@ -97,6 +97,25 @@ describeWithDatabase('PrismaAuditRepository PostgreSQL integration', () => {
     });
     userIds.push(actor.id);
 
+    const global = await repository.recordTrustedEntry(
+      recordInput({ action: 'integration.audit.global' }),
+    );
+    const tenantScoped = await repository.recordTrustedEntry(
+      recordInput({
+        tenantId: firstTenant.id,
+        action: 'integration.audit.tenant',
+      }),
+    );
+    if (global.status !== 'created' || tenantScoped.status !== 'created') {
+      throw new Error('Expected global and Tenant Audit entries.');
+    }
+    auditIds.push(global.entry.id, tenantScoped.entry.id);
+    expect(global.entry).toMatchObject({ tenantId: null, organizationId: null });
+    expect(tenantScoped.entry).toMatchObject({
+      tenantId: firstTenant.id,
+      organizationId: null,
+    });
+
     const older = await repository.recordTrustedEntry(
       recordInput({
         organizationId: firstOrganization.id,
@@ -198,6 +217,20 @@ describeWithDatabase('PrismaAuditRepository PostgreSQL integration', () => {
           organizationId: firstOrganization.id,
           moduleCode: 'integration',
           action: 'integration.audit.cross_tenant',
+          entityType: 'integration_record',
+          outcome: 'failed',
+          sensitivity: 'security',
+        },
+      }),
+    ).rejects.toThrow();
+
+    await expect(
+      prisma.coreAuditLog.create({
+        data: {
+          tenantId: null,
+          organizationId: firstOrganization.id,
+          moduleCode: 'integration',
+          action: 'integration.audit.missing_tenant',
           entityType: 'integration_record',
           outcome: 'failed',
           sensitivity: 'security',
