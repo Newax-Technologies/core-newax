@@ -48,6 +48,8 @@ The module owns all three registry tables, but this version exposes operations o
 - Global canonical addresses can be reused, but reads always begin from an Organization-owned link.
 - Cursors cannot cross Tenant or Organization boundaries.
 - At most one active primary address is allowed for each Organization and address type.
+- At most one active link is allowed for the same Organization, canonical address, and address type.
+- Removed links remain history and do not block creating a later active link for the same canonical address and type.
 - Events and structured logs contain IDs and address classification only. They do not contain street lines, city, region, postal code, or country code.
 - Organization membership is not automatic authority to view a Person's address.
 

@@ -27,6 +27,7 @@ The reusable Addresses module will:
 - Store Organization ownership through `core_organization_addresses`.
 - Support fixed address types: `registered`, `office`, `billing`, `shipping`, `mailing`, `campus`, `facility`, and `other`.
 - Allow at most one primary address for each Organization and address type.
+- Preserve removed Organization-address links as history while allowing the same canonical address and type to be added again as a new active link.
 - Publish metadata-only `address.created` events without street, locality, postal, or country values.
 - Keep all list cursors inside the trusted Tenant and Organization boundary.
 
@@ -50,9 +51,14 @@ The module does not claim postal deliverability, official country assignment, ge
 
 The service serializes primary assignment per Tenant, Organization, and address type with a PostgreSQL transaction-scoped advisory lock.
 
-A migration-owned partial unique index provides a database backstop so only one row can have `is_primary = true` for the same `(organization_id, address_type)`.
+Migration-owned partial unique indexes provide database backstops so:
 
-The migration stops if existing data already contains competing primary rows rather than selecting one silently.
+- only one row can have `is_primary = true` for the same `(organization_id, address_type)`; and
+- only one active link can exist for the same `(organization_id, address_id, address_type)`.
+
+Removed links are retained as immutable history and are excluded from active uniqueness. Re-adding the same canonical address and type creates a new active link instead of rewriting the removed record.
+
+The migrations stop if existing data already contains competing active rows rather than selecting one silently.
 
 ## Privacy boundary
 
@@ -73,7 +79,7 @@ Membership in an Organization is not automatic permission to view a Person's add
 ## Deferred capabilities
 
 - Public HTTP endpoints.
-- Address updates or non-destructive removal.
+- Address updates or non-destructive removal. This slice only handles pre-existing removed links safely during a later create request.
 - Address verification and evidence.
 - Geocoding and map-provider integration.
 - Delivery-zone validation.
@@ -88,7 +94,8 @@ Positive:
 - Organizations gain reusable operational location data.
 - Tenant isolation is enforced through trusted Organization ownership.
 - Equivalent global addresses can be reused without duplicating location records.
-- Primary-address races are controlled in both service logic and PostgreSQL.
+- Primary-address races and duplicate active links are controlled in PostgreSQL.
+- Removed link history no longer blocks a later active assignment of the same canonical address and type.
 - Personal privacy remains protected until policy exists.
 
 Cost:

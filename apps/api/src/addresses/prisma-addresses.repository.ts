@@ -95,13 +95,12 @@ export class PrismaAddressesRepository implements AddressRepository {
           });
         }
 
-        const existing = await transaction.coreOrganizationAddress.findUnique({
+        const existing = await transaction.coreOrganizationAddress.findFirst({
           where: {
-            organizationId_addressId_addressType: {
-              organizationId: input.organizationId,
-              addressId: address.id,
-              addressType: input.addressType,
-            },
+            organizationId: input.organizationId,
+            addressId: address.id,
+            addressType: input.addressType,
+            status: 'active',
           },
           select: { id: true },
         });
