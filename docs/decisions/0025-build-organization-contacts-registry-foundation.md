@@ -48,6 +48,7 @@ The service will:
 - support email and phone contact types;
 - normalize emails canonically and phones to E.164;
 - reuse one global contact-method row for the same type and normalized value;
+- never project global contact-method verification onto an organization-specific link;
 - create organization-specific link records;
 - reject duplicate active assignment inside one organization;
 - keep at most one active primary contact per type for an organization, including concurrent creation;
@@ -64,6 +65,8 @@ Organization contacts have a clear tenant boundary and can be implemented withou
 Starting with create and read operations delivers a useful, auditable foundation while leaving update, removal, and verification rules for separate decisions. This avoids defining destructive lifecycle behavior or verification ownership merely because columns happen to exist.
 
 The existing schema already separates globally normalized contact methods from organization links. Reusing it preserves one source of truth and avoids migration risk.
+
+Verification cannot safely be reused in the same way. A global contact method may have been verified for another Person or Organization relationship. Until NEWAX defines relationship-specific ownership, evidence, expiry, and audit rules, organization-scoped results must report `isVerified = false` and `verifiedAt = null`.
 
 ## 8. Alternatives Considered
 
@@ -129,6 +132,7 @@ No client-facing API is created by this decision.
 - Contact values and normalized values are excluded from event and logging payloads.
 - Person-contact access is deferred until a visibility policy exists.
 - Verification is deferred until evidence ownership and audit requirements are defined.
+- Global contact-method verification is never exposed as organization verification; the service fails closed if an adapter attempts to return it.
 
 ## 13. Scalability Considerations
 
