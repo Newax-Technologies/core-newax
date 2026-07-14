@@ -91,6 +91,17 @@ describeWithDatabase('PrismaContactsRepository PostgreSQL integration', () => {
     expect(duplicateResults.map((result) => result.status).sort()).toEqual(['conflict', 'created']);
     const firstCreated = duplicateResults.find((result) => result.status === 'created');
     expect(firstCreated?.status).toBe('created');
+    if (firstCreated?.status !== 'created') {
+      throw new Error('Expected the first organization contact to be created.');
+    }
+
+    await prisma.coreContactMethod.update({
+      where: { id: firstCreated.contact.contactMethodId },
+      data: {
+        isVerified: true,
+        verifiedAt: new Date('2026-07-12T10:00:00.000Z'),
+      },
+    });
 
     const shared = await repository.createOrganizationContact({
       organizationId: secondOrganization.id,
@@ -103,10 +114,26 @@ describeWithDatabase('PrismaContactsRepository PostgreSQL integration', () => {
       validUntil: null,
     });
     expect(shared.status).toBe('created');
-    if (firstCreated?.status !== 'created' || shared.status !== 'created') {
-      throw new Error('Expected both organization contacts to be created.');
+    if (shared.status !== 'created') {
+      throw new Error('Expected the second organization contact to be created.');
     }
     expect(shared.contact.contactMethodId).toBe(firstCreated.contact.contactMethodId);
+    expect(shared.contact.isVerified).toBe(false);
+    expect(shared.contact.verifiedAt).toBeNull();
+
+    const sharedPage = await repository.listOrganizationContacts({
+      organizationId: secondOrganization.id,
+      limit: 10,
+    });
+    expect(sharedPage.status).toBe('available');
+    if (sharedPage.status !== 'available') {
+      throw new Error('Expected shared organization contacts to be available.');
+    }
+    expect(sharedPage.items).toHaveLength(1);
+    expect(sharedPage.items[0]).toMatchObject({
+      isVerified: false,
+      verifiedAt: null,
+    });
 
     await prisma.coreOrganizationContactMethod.update({
       where: { id: shared.contact.id },

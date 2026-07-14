@@ -438,7 +438,8 @@ model CoreOrganizationAddress {
   organization CoreOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   address      CoreAddress      @relation(fields: [addressId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
-  @@unique([organizationId, addressId, addressType])
+  // Active-link uniqueness is enforced by a migration-owned partial index so
+  // removed links remain immutable history and do not block a later active link.
   @@index([organizationId, isPrimary, status])
   @@map("core_organization_addresses")
 }

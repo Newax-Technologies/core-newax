@@ -300,6 +300,25 @@ describe('ContactsService organization contact foundation', () => {
     ).rejects.toMatchObject({ code: 'CONTACT_INTEGRITY_FAILURE' });
   });
 
+  it('rejects global verification metadata at the organization contact boundary', async () => {
+    const repository = new FakeContactsRepository();
+    repository.listResult = {
+      status: 'available',
+      items: [
+        record({
+          isVerified: true,
+          verifiedAt: new Date('2026-07-12T10:00:00.000Z'),
+        }),
+      ],
+      nextCursor: null,
+    };
+    const service = new ContactsService(repository, new RecordingContactEventPublisher());
+
+    await expect(
+      service.listCurrentOrganizationContacts(context(CONTACT_PERMISSIONS.view)),
+    ).rejects.toMatchObject({ code: 'CONTACT_INTEGRITY_FAILURE' });
+  });
+
   it('classifies malformed stored contact types as repository integrity failures', async () => {
     const repository = new FakeContactsRepository();
     repository.listResult = {

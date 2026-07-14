@@ -28,8 +28,6 @@ interface OrganizationContactDatabaseRecord {
     readonly contactType: string;
     readonly contactValue: string;
     readonly normalizedValue: string;
-    readonly isVerified: boolean;
-    readonly verifiedAt: Date | null;
   };
 }
 
@@ -189,8 +187,11 @@ export class PrismaContactsRepository implements ContactsRepository {
       contactType: this.mapContactType(record.contactMethod.contactType),
       contactValue: record.contactMethod.contactValue,
       normalizedValue: record.contactMethod.normalizedValue,
-      isVerified: record.contactMethod.isVerified,
-      verifiedAt: record.contactMethod.verifiedAt,
+      // A globally reused contact method may have been verified for a different
+      // relationship. Organization verification remains unavailable until its
+      // ownership and evidence contract is implemented.
+      isVerified: false,
+      verifiedAt: null,
       label: record.label,
       isPrimary: record.isPrimary,
       status: this.mapStatus(record.status),
