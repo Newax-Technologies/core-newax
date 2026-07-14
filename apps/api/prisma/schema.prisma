@@ -22,6 +22,7 @@ model CoreTenant {
   organizationRelationships CoreOrganizationRelationship[]
   objects                   CoreObject[]
   files                     CoreFile[]
+  auditLogs                 CoreAuditLog[]
 
   @@index([status])
   @@index([name])
@@ -567,6 +568,7 @@ model CoreHttpRateLimitBucket {
 
 model CoreAuditLog {
   id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String?  @map("tenant_id") @db.Uuid
   organizationId String?  @map("organization_id") @db.Uuid
   actorUserId    String?  @map("actor_user_id") @db.Uuid
   moduleCode     String   @map("module_code") @db.VarChar(64)
@@ -584,10 +586,12 @@ model CoreAuditLog {
   userAgent      String?  @map("user_agent") @db.Text
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  organization CoreOrganization? @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  tenant       CoreTenant?       @relation(fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  organization CoreOrganization? @relation(fields: [tenantId, organizationId], references: [tenantId, id], onDelete: Restrict, onUpdate: Cascade)
   actorUser    CoreUser?         @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
-  @@index([organizationId, createdAt])
+  @@index([tenantId, organizationId, createdAt, id])
+  @@index([tenantId, createdAt])
   @@index([actorUserId, createdAt])
   @@index([moduleCode, action, createdAt])
   @@index([entityType, entityId])

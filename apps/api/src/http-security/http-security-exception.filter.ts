@@ -9,12 +9,12 @@ import {
 } from '@nestjs/common';
 import { HttpSecurityError, type HttpSecurityMethod } from '@newax/http-security';
 
+import { AuditHttpSecuritySink } from '../audit/http-security-audit.sink';
 import type {
   HttpSecurityRequestAdapter,
   HttpSecurityResponseAdapter,
 } from './http-security-request';
 import { SystemHttpSecurityClock } from './node-http-security.infrastructure';
-import { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
 
 interface CodedError {
   readonly code: string;
@@ -38,8 +38,8 @@ export class HttpSecurityExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpSecurityExceptionFilter.name);
 
   constructor(
-    @Inject(PrismaHttpSecurityAuditSink)
-    private readonly auditSink: PrismaHttpSecurityAuditSink,
+    @Inject(AuditHttpSecuritySink)
+    private readonly auditSink: AuditHttpSecuritySink,
     @Inject(SystemHttpSecurityClock)
     private readonly clock: SystemHttpSecurityClock,
   ) {}
