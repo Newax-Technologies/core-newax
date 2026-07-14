@@ -14,7 +14,7 @@ import type {
   HttpSecurityResponseAdapter,
 } from './http-security-request';
 import type { SystemHttpSecurityClock } from './node-http-security.infrastructure';
-import type { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
+import type { AuditHttpSecuritySink } from '../audit/http-security-audit.sink';
 
 const USER_ID = '00000000-0000-4000-8000-000000000001';
 const SESSION_ID = '00000000-0000-4000-8000-000000000002';
@@ -51,7 +51,7 @@ describe('HttpSecurityInterceptor', () => {
     const interceptor = new HttpSecurityInterceptor(
       {} as AsyncLocalStorageTrustedRequestContextStore,
       new SensitiveResponseRedactor(),
-      auditSink as unknown as PrismaHttpSecurityAuditSink,
+      auditSink as unknown as AuditHttpSecuritySink,
       { now: () => new Date('2026-07-12T00:00:00.000Z') } as SystemHttpSecurityClock,
     );
     const request: HttpSecurityRequestAdapter = {

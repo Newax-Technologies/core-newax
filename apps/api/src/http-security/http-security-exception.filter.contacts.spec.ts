@@ -8,7 +8,7 @@ import type {
   HttpSecurityResponseAdapter,
 } from './http-security-request';
 import type { SystemHttpSecurityClock } from './node-http-security.infrastructure';
-import type { PrismaHttpSecurityAuditSink } from './prisma-http-security-audit.sink';
+import type { AuditHttpSecuritySink } from '../audit/http-security-audit.sink';
 
 class RecordingAuditSink {
   readonly records: unknown[] = [];
@@ -78,7 +78,7 @@ function createHost(response: FakeResponse): ArgumentsHost {
 
 function createFilter(auditSink: RecordingAuditSink): HttpSecurityExceptionFilter {
   return new HttpSecurityExceptionFilter(
-    auditSink as unknown as PrismaHttpSecurityAuditSink,
+    auditSink as unknown as AuditHttpSecuritySink,
     new FixedClock() as unknown as SystemHttpSecurityClock,
   );
 }
