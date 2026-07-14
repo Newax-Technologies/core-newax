@@ -83,6 +83,8 @@ The `contact.created` event contains only actor, organization, contact identifie
 
 No public HTTP endpoint is included.
 
+Global contact-method verification is relationship-specific evidence, not proof that every Organization reusing the canonical method has verified it. Organization-scoped records therefore remain `isVerified: false` with `verifiedAt: null`; the service fails closed if a repository attempts to project global verification into this boundary.
+
 ## Deferred decisions
 
 - Person-contact visibility and organization access rules
@@ -98,4 +100,4 @@ No public HTTP endpoint is included.
 
 Unit tests cover normalization, authorization, pagination, foreign-cursor rejection, duplicate handling, organization availability, tenant-boundary integrity, persisted-data integrity, and sensitive event minimization.
 
-The API adapter includes PostgreSQL integration coverage for global method reuse, duplicate prevention, concurrent primary assignment, primary-contact replacement, foreign-cursor rejection, and organization-scoped reads.
+The API adapter includes PostgreSQL integration coverage for global method reuse without verification leakage, duplicate prevention, concurrent primary assignment, primary-contact replacement, foreign-cursor rejection, and organization-scoped reads.
