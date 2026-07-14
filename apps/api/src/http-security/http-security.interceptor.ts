@@ -73,7 +73,6 @@ export class HttpSecurityInterceptor implements NestInterceptor {
         metadata: {
           contextScope: context?.scope ?? 'public',
           membershipId: context?.scope === 'organization' ? context.membershipId : null,
-          authenticatedSessionId: request.newaxAuthenticatedSessionId ?? null,
           requiredPermissions: [...(request.newaxRequiredPermissions ?? [])],
         },
         occurredAt: this.clock.now(),

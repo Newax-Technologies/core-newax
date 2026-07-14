@@ -46,7 +46,7 @@ function executionContext(request: HttpSecurityRequestAdapter): ExecutionContext
 }
 
 describe('HttpSecurityInterceptor', () => {
-  it('audits a successful public login without retaining the session token', async () => {
+  it('audits a successful public login without retaining session material', async () => {
     const auditSink = new RecordingAuditSink();
     const interceptor = new HttpSecurityInterceptor(
       {} as AsyncLocalStorageTrustedRequestContextStore,
@@ -96,8 +96,8 @@ describe('HttpSecurityInterceptor', () => {
       outcome: 'allowed',
       metadata: {
         contextScope: 'public',
-        authenticatedSessionId: SESSION_ID,
       },
     });
+    expect(auditSink.records[0]?.metadata).not.toHaveProperty('authenticatedSessionId');
   });
 });

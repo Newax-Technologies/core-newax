@@ -111,8 +111,8 @@ The database already supports metadata, previous values, new values, IP address,
 correlation ID, and request ID. Only request ID is included in the initial summary contract.
 
 Metadata recording rejects keys associated with credentials, authorization, cookies, CSRF
-values, passwords, private keys, recovery material, secrets, and tokens. This is a defense in
-depth control; trusted emitters remain accountable for content.
+values, passwords, private keys, recovery material, secrets, session identifiers, and tokens.
+This is a defense in depth control; trusted emitters remain accountable for content.
 
 This foundation does not define a legal retention period, data-subject access policy, export
 policy, or legal-hold behavior.

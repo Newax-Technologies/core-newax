@@ -51,8 +51,8 @@ The operation validates and bounds:
 - JSON metadata depth, entry count, string size, total size, and keys.
 
 Metadata keys associated with credentials, authorization, cookies, CSRF values, passwords,
-private keys, recovery material, secrets, or tokens are rejected. Trusted emitters remain
-responsible for sending only data approved for durable audit storage.
+private keys, recovery material, secrets, session identifiers, or tokens are rejected. Trusted
+emitters remain responsible for sending only data approved for durable audit storage.
 
 Organization-scoped writes may omit Tenant identity. The persistence adapter resolves the
 Organization's canonical Tenant and stores both identifiers. If a Tenant is supplied, the

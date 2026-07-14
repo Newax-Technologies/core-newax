@@ -22,6 +22,8 @@ All notable changes to the NEWAX Audit module are recorded here.
 - Prevented cross-Tenant Organization attribution through a composite foreign key.
 - Kept metadata, value snapshots, IP addresses, user agents, and correlation IDs outside the
   summary read contract.
+- Removed session identifiers from HTTP completion metadata and reject session-related metadata
+  keys at the Audit boundary.
 - Preserved best-effort HTTP audit failure handling.
 
 ### Permissions

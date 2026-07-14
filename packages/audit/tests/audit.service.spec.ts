@@ -108,7 +108,6 @@ describe('AuditService governance foundation', () => {
         entityId: '  ObjectsController.list  ',
         metadata: {
           contextScope: 'organization',
-          authenticatedSessionId: 'session-id',
           detail: { requiredPermissions: ['objects.view'] },
         },
       }),
@@ -126,7 +125,6 @@ describe('AuditService governance foundation', () => {
       sensitivity: 'security',
       metadata: {
         contextScope: 'organization',
-        authenticatedSessionId: 'session-id',
         detail: { requiredPermissions: ['objects.view'] },
       },
       correlationId: null,
@@ -153,6 +151,11 @@ describe('AuditService governance foundation', () => {
     ).rejects.toMatchObject({ code: 'AUDIT_INVALID_INPUT' });
     await expect(
       service.recordTrustedEntry(trustedInput({ metadata: { apiKey: 'never-store-me' } })),
+    ).rejects.toMatchObject({ code: 'AUDIT_INVALID_INPUT' });
+    await expect(
+      service.recordTrustedEntry(
+        trustedInput({ metadata: { authenticatedSessionId: 'never-store-me' } }),
+      ),
     ).rejects.toMatchObject({ code: 'AUDIT_INVALID_INPUT' });
     await expect(
       service.recordTrustedEntry(trustedInput({ metadata: { constructor: 'unsafe' } })),
