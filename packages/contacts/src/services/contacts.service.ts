@@ -329,26 +329,19 @@ export class ContactsService {
       );
     }
 
-    if (typeof record.isVerified !== 'boolean' || typeof record.isPrimary !== 'boolean') {
+    if (typeof record.isPrimary !== 'boolean') {
       throw new ContactsModuleError(
         'CONTACT_INTEGRITY_FAILURE',
-        'The contacts repository returned invalid boolean metadata.',
+        'The contacts repository returned invalid primary metadata.',
       );
     }
-    if (record.isVerified && record.verifiedAt === null) {
+    if (record.isVerified !== false || record.verifiedAt !== null) {
       throw new ContactsModuleError(
         'CONTACT_INTEGRITY_FAILURE',
-        'The contacts repository returned incomplete verification metadata.',
-      );
-    }
-    if (!record.isVerified && record.verifiedAt !== null) {
-      throw new ContactsModuleError(
-        'CONTACT_INTEGRITY_FAILURE',
-        'The contacts repository returned contradictory verification metadata.',
+        'Organization contact verification is unavailable until ownership and evidence are defined.',
       );
     }
 
-    const verifiedAt = this.requireOptionalStoredDate(record.verifiedAt, 'contact.verifiedAt');
     const validFrom = this.requireOptionalStoredDate(record.validFrom, 'contact.validFrom');
     const validUntil = this.requireOptionalStoredDate(record.validUntil, 'contact.validUntil');
     this.validateStoredDateRange(validFrom, validUntil);
@@ -361,8 +354,8 @@ export class ContactsService {
       contactType,
       contactValue: normalized.contactValue,
       normalizedValue: normalized.normalizedValue,
-      isVerified: record.isVerified,
-      verifiedAt,
+      isVerified: false,
+      verifiedAt: null,
       label: this.requireStoredNullableText(record.label, 'contact.label', MAX_LABEL_LENGTH),
       isPrimary: record.isPrimary,
       status: 'active',
