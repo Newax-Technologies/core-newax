@@ -18,8 +18,14 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 const PROVIDER_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{0,62}[a-z0-9])?$/u;
 const MIME_TYPE_PATTERN = /^[!#$%&'*+.^_`|~0-9a-z-]+\/[!#$%&'*+.^_`|~0-9a-z-]+$/u;
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/u;
-const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/u;
 const PATH_SEPARATOR_PATTERN = /[\\/]/u;
+
+function containsControlCharacter(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const codePoint = character.codePointAt(0);
+    return codePoint !== undefined && (codePoint <= 0x1f || codePoint === 0x7f);
+  });
+}
 
 export class FilesService {
   constructor(
@@ -185,7 +191,7 @@ export class FilesService {
       typeof value !== 'string' ||
       value.length === 0 ||
       value.length > MAX_STORAGE_KEY_LENGTH ||
-      CONTROL_CHARACTER_PATTERN.test(value)
+      containsControlCharacter(value)
     ) {
       throw new FileModuleError('FILE_INVALID_INPUT', 'storageKey is invalid.');
     }
@@ -200,7 +206,7 @@ export class FilesService {
     if (
       normalized.length === 0 ||
       normalized.length > 255 ||
-      CONTROL_CHARACTER_PATTERN.test(normalized) ||
+      containsControlCharacter(normalized) ||
       PATH_SEPARATOR_PATTERN.test(normalized)
     ) {
       throw new FileModuleError('FILE_INVALID_INPUT', 'fileName is invalid.');
@@ -217,7 +223,7 @@ export class FilesService {
       value !== normalized ||
       value.length === 0 ||
       value.length > 255 ||
-      CONTROL_CHARACTER_PATTERN.test(value) ||
+      containsControlCharacter(value) ||
       PATH_SEPARATOR_PATTERN.test(value)
     ) {
       throw new FileModuleError('FILE_INTEGRITY_FAILURE', 'file.fileName is invalid.');
