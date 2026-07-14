@@ -1,5 +1,6 @@
 import type { ArgumentsHost } from '@nestjs/common';
 import { AddressModuleError } from '@newax/addresses';
+import { ObjectModuleError } from '@newax/objects';
 import { PeopleModuleError } from '@newax/people';
 import { describe, expect, it } from 'vitest';
 
@@ -173,6 +174,55 @@ describe('HttpSecurityExceptionFilter current-person error mapping', () => {
       },
     });
     expect(JSON.stringify(response.body)).not.toContain('another organization');
+    expect(auditSink.records).toHaveLength(1);
+  });
+
+  it('maps invalid object cursors to a generic invalid-request envelope', async () => {
+    const auditSink = new RecordingAuditSink();
+    const response = new FakeResponse();
+
+    await createFilter(auditSink).catch(
+      new ObjectModuleError(
+        'OBJECT_CURSOR_INVALID',
+        'The object cursor belongs to another organization.',
+      ),
+      createHost(response),
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({
+      error: {
+        code: 'INVALID_REQUEST',
+        message: 'The request is invalid.',
+        requestId: 'request-1',
+      },
+    });
+    expect(JSON.stringify(response.body)).not.toContain('another organization');
+    expect(auditSink.records).toHaveLength(1);
+  });
+
+  it('maps unavailable object relationships to a generic conflict envelope', async () => {
+    const auditSink = new RecordingAuditSink();
+    const response = new FakeResponse();
+
+    await createFilter(auditSink).catch(
+      new ObjectModuleError(
+        'OBJECT_PARENT_UNAVAILABLE',
+        'The parent object is unavailable in the current tenant.',
+      ),
+      createHost(response),
+    );
+
+    expect(response.statusCode).toBe(409);
+    expect(response.body).toEqual({
+      error: {
+        code: 'CONFLICT',
+        message: 'The request conflicts with the current resource state.',
+        requestId: 'request-1',
+      },
+    });
+    expect(JSON.stringify(response.body)).not.toContain('parent object');
+    expect(JSON.stringify(response.body)).not.toContain('current tenant');
     expect(auditSink.records).toHaveLength(1);
   });
 });

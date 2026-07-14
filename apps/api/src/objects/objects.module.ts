@@ -2,11 +2,14 @@ import { Module } from '@nestjs/common';
 import { ObjectsService } from '@newax/objects';
 
 import { DatabaseModule } from '../database/database.module';
+import { RequestContextModule } from '../request-context/request-context.module';
+import { CurrentOrganizationObjectsController } from './current-organization-objects.controller';
 import { LoggingObjectEventPublisher } from './logging-object-event.publisher';
 import { PrismaObjectsRepository } from './prisma-objects.repository';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, RequestContextModule],
+  controllers: [CurrentOrganizationObjectsController],
   providers: [
     PrismaObjectsRepository,
     LoggingObjectEventPublisher,

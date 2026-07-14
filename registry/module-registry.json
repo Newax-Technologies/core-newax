@@ -440,7 +440,7 @@
       "module_name": "Objects",
       "module_key": "objects",
       "module_layer": "foundation",
-      "module_version": "0.1.0",
+      "module_version": "0.2.0",
       "module_status": "draft",
       "module_owner": "NEWAX Engineering",
       "description": "Maintains Tenant-owned identity for individually identifiable non-human entities such as vehicles, devices, equipment, facilities, rooms, machines, sensors, and property units.",
@@ -462,7 +462,7 @@
       "tenant_scope": "tenant_and_current_organization_scoped",
       "documentation_path": "packages/objects/README.md",
       "changelog_path": "packages/objects/CHANGELOG.md",
-      "compatibility_notes": "Object Types are global reusable definitions. Object instances carry immutable tenant_id and owning_organization_id. Assignments, locations, transfers, lifecycle operations, domain extensions, and HTTP endpoints remain deferred."
+      "compatibility_notes": "Object Types are global reusable definitions. Object instances carry immutable tenant_id and owning_organization_id. Trusted current-Organization create and list HTTP endpoints are available. Assignments, locations, transfers, lifecycle operations, and domain extensions remain deferred."
     },
     {
       "module_name": "Audit",
