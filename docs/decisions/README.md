@@ -57,6 +57,7 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0031](0031-build-current-organization-objects-http-api.md)           | Accepted | Expose bounded current-Organization Object creation and listing without accepting client-supplied Tenant or Organization authority.              |
 | [ADR 0032](0032-build-file-metadata-registry-foundation.md)               | Accepted | Establish Tenant-safe, provider-neutral File metadata registration and current-Organization listing without exposing storage locators.           |
 | [ADR 0033](0033-build-audit-governance-foundation.md)                     | Accepted | Establish Tenant-aware Audit recording and permission-gated current-Organization summaries without exposing sensitive stored details.            |
+| [ADR 0034](0034-build-external-references-governance-foundation.md)       | Accepted | Establish Tenant-safe current-Organization external-identifier mappings without adding credentials, synchronization, or metadata disclosure.     |
 
 ## Decision Sequence
 
@@ -103,6 +104,7 @@ The ADRs form a deliberate sequence rather than thirty-two independent opinions 
 - ADR 0031 exposes current-Organization Object creation and listing through strict trusted-context HTTP contracts without exposing internal ownership keys.
 - ADR 0032 establishes Tenant-safe File metadata registration and listing while keeping bytes, storage locators, access URLs, lifecycle operations, and Documents outside the initial boundary.
 - ADR 0033 establishes Tenant-aware Audit recording and bounded current-Organization summaries while keeping sensitive details, export, retention, and event ingestion outside the initial boundary.
+- ADR 0034 establishes Tenant-safe External Reference registration and listing while keeping credentials, provider execution, synchronization, lifecycle operations, and metadata outside the initial boundary.
 
 ### Implementation Baseline
 
@@ -114,7 +116,7 @@ The accepted architecture currently means:
 
 - NEWAX Core begins as a modular monolith.
 - Foundation Modules remain independent from business domains.
-- The Central Registry owns shared people, organization, user, membership, object, contact, address, file, and audit foundation data.
+- The Central Registry owns shared people, organization, user, membership, object, contact, address, file, audit, and external-reference foundation data.
 - Business domains own their domain-specific master data and transactions.
 - Tenants provide the customer ownership and data-isolation boundary; Organizations provide legal and operating context inside a Tenant.
 - Business authorization uses explicit permissions grouped through roles.

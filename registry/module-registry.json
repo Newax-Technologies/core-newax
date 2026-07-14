@@ -1,7 +1,7 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.14",
+  "registry_version": "0.1.15",
   "registry_status": "draft",
   "last_updated": "2026-07-14",
   "owner": "NEWAX Engineering",
@@ -527,6 +527,38 @@
       "documentation_path": "packages/files/README.md",
       "changelog_path": "packages/files/CHANGELOG.md",
       "compatibility_notes": "This release is metadata-only. Provider, storage key, checksum, and creator identity remain internal. Binary transfer, URLs, scanning, lifecycle operations, versions, Documents, and HTTP endpoints remain deferred."
+    },
+    {
+      "module_name": "External References",
+      "module_key": "external-references",
+      "module_layer": "platform_service",
+      "module_version": "0.1.0",
+      "module_status": "draft",
+      "module_owner": "NEWAX Engineering",
+      "description": "Maps Tenant- and current-Organization-owned NEWAX entity identifiers to opaque identifiers assigned by external systems without storing credentials or integration execution state.",
+      "dependencies": [
+        {
+          "module_key": "tenants",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "organizations",
+          "version": ">=0.2.0"
+        },
+        {
+          "module_key": "users",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": ["external_references.register", "external_references.view"],
+      "exposed_events": ["external_reference.registered"],
+      "consumed_events": [],
+      "configuration_options": [],
+      "database_ownership": ["core_external_references"],
+      "tenant_scope": "tenant_and_current_organization_scoped_with_dormant_global_records",
+      "documentation_path": "packages/external-references/README.md",
+      "changelog_path": "packages/external-references/CHANGELOG.md",
+      "compatibility_notes": "This release supports trusted current-Organization registration and bounded listing only. Metadata, global and Tenant-only service operations, credentials, provider configuration, synchronization, reconciliation, lifecycle operations, and HTTP endpoints remain deferred."
     },
     {
       "module_name": "Notifications",

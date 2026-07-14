@@ -10,6 +10,7 @@ import { AuthenticationModule } from './authentication/authentication.module';
 import { validateEnvironment } from './config/environment';
 import { ContactsModule } from './contacts/contacts.module';
 import { DatabaseModule } from './database/database.module';
+import { ExternalReferencesModule } from './external-references/external-references.module';
 import { FilesModule } from './files/files.module';
 import { HealthController } from './health/health.controller';
 import { HttpSecurityModule } from './http-security/http-security.module';
@@ -38,6 +39,7 @@ import { UsersModule } from './users/users.module';
     AuditModule,
     ObjectsModule,
     FilesModule,
+    ExternalReferencesModule,
     MembershipsModule,
     AccessControlModule,
     UsersModule,

@@ -23,6 +23,7 @@ model CoreTenant {
   objects                   CoreObject[]
   files                     CoreFile[]
   auditLogs                 CoreAuditLog[]
+  externalReferences        CoreExternalReference[]
 
   @@index([status])
   @@index([name])
@@ -601,6 +602,7 @@ model CoreAuditLog {
 
 model CoreExternalReference {
   id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String?  @map("tenant_id") @db.Uuid
   organizationId String?  @map("organization_id") @db.Uuid
   domainCode     String   @map("domain_code") @db.VarChar(64)
   entityType     String   @map("entity_type") @db.VarChar(128)
@@ -611,9 +613,11 @@ model CoreExternalReference {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  organization CoreOrganization? @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  tenant       CoreTenant?       @relation(fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  organization CoreOrganization? @relation(fields: [tenantId, organizationId], references: [tenantId, id], onDelete: Restrict, onUpdate: Cascade)
 
-  @@unique([organizationId, externalSystem, externalKey])
-  @@index([domainCode, entityType, entityId])
+  @@unique([tenantId, organizationId, externalSystem, externalKey], map: "core_external_refs_scope_system_key_key")
+  @@index([tenantId, organizationId, domainCode, entityType, entityId], map: "core_external_refs_scope_entity_idx")
+  @@index([tenantId, organizationId, id], map: "core_external_refs_scope_cursor_idx")
   @@map("core_external_references")
 }
