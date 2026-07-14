@@ -180,13 +180,27 @@ describeWithDatabase('PrismaAddressesRepository PostgreSQL integration', () => {
     });
 
     const replacementAfterRemoval = await repository.createOrganizationAddress(
-      addressInput(firstTenant.id, firstOrganization.id, 'Replacement after removal'),
+      addressInput(firstTenant.id, firstOrganization.id, 'Shared'),
     );
     expect(replacementAfterRemoval.status).toBe('created');
     if (replacementAfterRemoval.status !== 'created') {
       throw new Error('Expected an active primary to replace a removed primary.');
     }
     addressIds.push(replacementAfterRemoval.address.addressId);
+    expect(replacementAfterRemoval.address.id).not.toBe(first.address.id);
+    expect(replacementAfterRemoval.address.addressId).toBe(first.address.addressId);
+
+    await expect(
+      prisma.coreOrganizationAddress.create({
+        data: {
+          organizationId: firstOrganization.id,
+          addressId: first.address.addressId,
+          addressType: 'office',
+          isPrimary: false,
+          status: 'active',
+        },
+      }),
+    ).rejects.toThrow();
 
     const afterRemoval = await repository.listOrganizationAddresses({
       tenantId: firstTenant.id,
