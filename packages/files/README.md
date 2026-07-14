@@ -57,7 +57,7 @@ Storage provider, storage key, checksum, and creator identity remain internal pe
 ## Validation and integrity
 
 - Provider identifiers use bounded lowercase stable codes.
-- Storage keys are bounded opaque values and may not contain control characters.
+- Storage keys are opaque values bounded to 2,048 UTF-8 bytes and may not contain control characters. The byte ceiling keeps the composite provider-and-key value inside PostgreSQL B-tree index limits.
 - Filenames are Unicode-normalized, whitespace-normalized, bounded, and may not contain path separators.
 - Media types are normalized lowercase `type/subtype` tokens without parameters.
 - File size must fit a non-negative PostgreSQL `bigint`.

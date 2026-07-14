@@ -1,3 +1,5 @@
+import { Buffer } from 'node:buffer';
+
 import type { FileRepository } from '../database/file-repository';
 import type { FileEventPublisher } from '../events/file-event';
 import { FileModuleError, type FileErrorCode } from '../errors/file-module-error';
@@ -13,6 +15,7 @@ import type {
 const DEFAULT_PAGE_SIZE = 50;
 const MAX_PAGE_SIZE = 100;
 const MAX_STORAGE_KEY_LENGTH = 2_048;
+const MAX_STORAGE_KEY_UTF8_BYTES = 2_048;
 const MAX_DATABASE_BIGINT = 9_223_372_036_854_775_807n;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 const PROVIDER_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{0,62}[a-z0-9])?$/u;
@@ -191,6 +194,7 @@ export class FilesService {
       typeof value !== 'string' ||
       value.length === 0 ||
       value.length > MAX_STORAGE_KEY_LENGTH ||
+      Buffer.byteLength(value, 'utf8') > MAX_STORAGE_KEY_UTF8_BYTES ||
       containsControlCharacter(value)
     ) {
       throw new FileModuleError('FILE_INVALID_INPUT', 'storageKey is invalid.');

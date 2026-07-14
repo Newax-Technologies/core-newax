@@ -20,6 +20,7 @@
 
 - Tenant and Organization authority comes only from trusted context.
 - Storage provider, storage key, checksum, and creator identity remain internal.
+- Storage keys are capped at 2,048 UTF-8 bytes to stay within PostgreSQL B-tree index limits.
 - Filenames cannot contain paths, checksums must be SHA-256, and list cursors are boundary-scoped.
 
 ### Deferred

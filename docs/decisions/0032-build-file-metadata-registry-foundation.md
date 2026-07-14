@@ -59,6 +59,7 @@ No File, Organization, Tenant, or User record is deleted. Existing provider-and-
 - Registration requires explicit `files.register`; listing requires `files.view`.
 - The repository revalidates active Tenant, Organization, User, and Person state.
 - Provider locators remain internal and never enter returned records, events, or structured logs.
+- Storage keys are limited to 2,048 UTF-8 bytes so the composite provider-and-key value remains safely indexable by PostgreSQL.
 - Filenames are treated as display metadata and cannot contain path separators.
 - Checksums must use an explicit SHA-256 format.
 - Pagination cursors must belong to the current Tenant and Organization.

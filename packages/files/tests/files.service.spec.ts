@@ -151,6 +151,7 @@ describe('FilesService metadata registry foundation', () => {
   it.each([
     ['storage provider', input({ storageProvider: 'ends-with-' })],
     ['storage key', input({ storageKey: 'bad\u0000key' })],
+    ['UTF-8 storage key byte length', input({ storageKey: '\u00e9'.repeat(1_025) })],
     ['file name', input({ fileName: '../secret.pdf' })],
     ['mime type', input({ mimeType: 'application/pdf; charset=utf-8' })],
     ['negative file size', input({ fileSize: -1n })],
