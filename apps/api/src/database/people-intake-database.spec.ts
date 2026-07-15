@@ -65,6 +65,15 @@ async function createDraft(client: PoolClient, value: Fixture): Promise<string> 
   return id;
 }
 
+async function submit(client: PoolClient, id: string): Promise<void> {
+  await client.query(
+    `UPDATE "core_people_intakes"
+     SET "status" = 'submitted', "submitted_at" = CURRENT_TIMESTAMP, "version" = 2
+     WHERE "id" = $1`,
+    [id],
+  );
+}
+
 describe.skipIf(!databaseUrl)('People Intake PostgreSQL integrity', () => {
   let pool: Pool;
 
@@ -92,12 +101,7 @@ describe.skipIf(!databaseUrl)('People Intake PostgreSQL integrity', () => {
     await transaction(async (client) => {
       const value = await fixture(client);
       const id = await createDraft(client, value);
-      await client.query(
-        `UPDATE "core_people_intakes"
-         SET "status" = 'submitted', "submitted_at" = CURRENT_TIMESTAMP, "version" = 2
-         WHERE "id" = $1`,
-        [id],
-      );
+      await submit(client, id);
       await client.query(
         `UPDATE "core_people_intakes"
          SET "status" = 'approved', "review_decision" = 'approved',
@@ -113,20 +117,15 @@ describe.skipIf(!databaseUrl)('People Intake PostgreSQL integrity', () => {
     });
   });
 
-  it('rejects self-review and rejected records without notes', async () => {
+  it('rejects self-review', async () => {
     await transaction(async (client) => {
       const value = await fixture(client);
       const id = await createDraft(client, value);
-      await client.query(
-        `UPDATE "core_people_intakes"
-         SET "status" = 'submitted', "submitted_at" = CURRENT_TIMESTAMP, "version" = 2
-         WHERE "id" = $1`,
-        [id],
-      );
+      await submit(client, id);
       await expect(
         client.query(
           `UPDATE "core_people_intakes"
-           SET "status" = 'rejected', "review_decision" = 'rejected',
+           SET "status" = 'approved', "review_decision" = 'approved',
                "reviewed_at" = CURRENT_TIMESTAMP, "reviewed_by_user_id" = $2, "version" = 3
            WHERE "id" = $1`,
           [id, value.creatorUserId],
@@ -135,16 +134,59 @@ describe.skipIf(!databaseUrl)('People Intake PostgreSQL integrity', () => {
     });
   });
 
-  it('makes submitted content immutable and requires exact version increments', async () => {
+  it('requires nonblank notes for rejection', async () => {
     await transaction(async (client) => {
       const value = await fixture(client);
       const id = await createDraft(client, value);
-      await client.query(
-        `UPDATE "core_people_intakes"
-         SET "status" = 'submitted', "submitted_at" = CURRENT_TIMESTAMP, "version" = 2
-         WHERE "id" = $1`,
-        [id],
-      );
+      await submit(client, id);
+      await expect(
+        client.query(
+          `UPDATE "core_people_intakes"
+           SET "status" = 'rejected', "review_decision" = 'rejected',
+               "reviewed_at" = CURRENT_TIMESTAMP, "reviewed_by_user_id" = $2,
+               "review_notes" = '   ', "version" = 3
+           WHERE "id" = $1`,
+          [id, value.reviewerUserId],
+        ),
+      ).rejects.toMatchObject({ code: '23514' });
+    });
+  });
+
+  it('keeps Tenant, Organization, and creator ownership immutable while draft', async () => {
+    await transaction(async (client) => {
+      const value = await fixture(client);
+      const id = await createDraft(client, value);
+      await expect(
+        client.query(
+          `UPDATE "core_people_intakes"
+           SET "created_by_user_id" = $2, "version" = 2
+           WHERE "id" = $1`,
+          [id, value.reviewerUserId],
+        ),
+      ).rejects.toMatchObject({ code: '23514' });
+    });
+  });
+
+  it('requires every update to increment the optimistic version exactly once', async () => {
+    await transaction(async (client) => {
+      const value = await fixture(client);
+      const id = await createDraft(client, value);
+      await expect(
+        client.query(
+          `UPDATE "core_people_intakes"
+           SET "title" = 'Skipped version', "version" = 3
+           WHERE "id" = $1`,
+          [id],
+        ),
+      ).rejects.toMatchObject({ code: '23514' });
+    });
+  });
+
+  it('makes submitted content immutable', async () => {
+    await transaction(async (client) => {
+      const value = await fixture(client);
+      const id = await createDraft(client, value);
+      await submit(client, id);
       await expect(
         client.query(
           `UPDATE "core_people_intakes"
