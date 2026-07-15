@@ -47,6 +47,8 @@ ON "core_person_relationships"("tenant_id", "target_person_id", "relationship_ty
 CREATE INDEX "core_person_relationships_verified_by_user_id_idx"
 ON "core_person_relationships"("verified_by_user_id");
 
+-- One active statement of the same relationship meaning is allowed per Tenant.
+-- A scheduled valid_until does not make an otherwise active relationship a different fact.
 CREATE UNIQUE INDEX "core_person_relationships_active_identity_key"
 ON "core_person_relationships"(
   "tenant_id",
@@ -56,7 +58,7 @@ ON "core_person_relationships"(
   "relationship_role",
   "relationship_basis"
 )
-WHERE "status" = 'active' AND "valid_until" IS NULL;
+WHERE "status" = 'active';
 
 ALTER TABLE "core_person_relationships"
 ADD CONSTRAINT "core_person_relationships_tenant_id_fkey"
