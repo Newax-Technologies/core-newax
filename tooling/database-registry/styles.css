@@ -17,7 +17,7 @@
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
-    "Segoe UI",
+    'Segoe UI',
     sans-serif;
 }
 * {
@@ -144,7 +144,7 @@ main {
   border: 1px solid var(--line);
   border-radius: 8px;
 }
-.tabs button[aria-selected="true"] {
+.tabs button[aria-selected='true'] {
   background: var(--navy);
   color: #fff;
   border-color: var(--navy);
