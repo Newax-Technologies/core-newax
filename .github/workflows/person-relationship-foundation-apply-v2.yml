@@ -1,0 +1,64 @@
+name: Apply Person Relationship Foundation V2 Temporary
+
+on:
+  pull_request:
+    types:
+      - synchronize
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: >-
+      github.head_ref == 'agent/person-relationship-foundation' &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v7
+        with:
+          ref: agent/person-relationship-foundation
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply reviewed foundation patch
+        run: python tooling/temp-apply-person-relationship.py
+
+      - name: Normalize and validate focused foundation
+        run: |
+          pnpm --filter @newax/api db:format
+          pnpm format
+          pnpm --filter @newax/api db:validate
+          pnpm database-registry:test
+          pnpm --filter @newax/api exec vitest run src/database/person-relationship-schema.spec.ts
+
+      - name: Commit foundation changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/api/prisma/schema.prisma \
+            apps/api/prisma/migrations/20260715190000_add_person_relationship_foundation/migration.sql \
+            apps/api/src/database/person-relationship-schema.spec.ts \
+            registry/module-registry.json \
+            packages/people/package.json \
+            packages/people/VERSION \
+            packages/people/README.md \
+            packages/people/CHANGELOG.md \
+            tooling/database-registry/explain.js
+          git commit -m "Add person relationship registry foundation"
+          git push origin HEAD:agent/person-relationship-foundation
