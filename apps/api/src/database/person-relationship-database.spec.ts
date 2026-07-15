@@ -218,6 +218,22 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
     });
   });
 
+  it('rejects a verified relationship with a blank verification source', async () => {
+    await withTransaction(async (client) => {
+      const fixture = await createFixture(client, 2);
+      const parentId = personIdAt(fixture, 0);
+      const childId = personIdAt(fixture, 1);
+
+      await expect(
+        insertParentRelationship(client, fixture, parentId, childId, {
+          isVerified: true,
+          verifiedAt: new Date().toISOString(),
+          verificationSource: '   ',
+        }),
+      ).rejects.toMatchObject({ code: '23514' });
+    });
+  });
+
   it('rejects an active parentage cycle', async () => {
     await withTransaction(async (client) => {
       const fixture = await createFixture(client, 3);
