@@ -41,6 +41,7 @@ jobs:
         run: |
           python tooling/temp-build-people-intake-backend.py
           python tooling/temp-build-people-intake-web.py
+          python tooling/temp-fix-people-intake-generated.py
 
       - name: Refresh workspace lockfile
         run: pnpm install --no-frozen-lockfile
