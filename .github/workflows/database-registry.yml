@@ -33,6 +33,16 @@ jobs:
           node-version-file: .node-version
           package-manager-cache: false
 
+      - name: Diagnose repository formatting
+        run: |
+          set +e
+          npx --yes prettier@3.9.0 --list-different . > /tmp/prettier-different.txt
+          status=$?
+          set -e
+          echo "PRETTIER_DIFFERENT_BEGIN"
+          cat /tmp/prettier-different.txt
+          echo "PRETTIER_DIFFERENT_END status=${status}"
+
       - name: Test database registry generator
         run: node --test tooling/database-registry/generate.test.mjs
 
