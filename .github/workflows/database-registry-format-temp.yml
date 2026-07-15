@@ -1,0 +1,43 @@
+name: Database Registry Format Temporary
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Format detailed registry sources
+        run: >-
+          npx --yes prettier@3.9.0 --write
+          tooling/database-registry/explain.js
+          tooling/database-registry/explain.css
+          tooling/database-registry/render.mjs
+
+      - name: Upload formatted sources
+        uses: actions/upload-artifact@v7
+        with:
+          name: formatted-database-registry-sources-${{ github.sha }}
+          path: |
+            tooling/database-registry/explain.js
+            tooling/database-registry/explain.css
+            tooling/database-registry/render.mjs
+          if-no-files-found: error
+          retention-days: 1
