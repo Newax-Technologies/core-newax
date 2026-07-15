@@ -1,0 +1,50 @@
+name: Database Registry Normalize Temporary
+
+on:
+  pull_request:
+
+jobs:
+  normalize:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out pull request branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Install dependencies quietly
+        run: pnpm install --frozen-lockfile > /tmp/install.log 2>&1
+
+      - name: Normalize detailed registry sources
+        run: |
+          pnpm exec eslint tooling/database-registry/explain.js tooling/database-registry/render.mjs --fix
+          pnpm exec prettier --write tooling/database-registry/explain.js tooling/database-registry/explain.css tooling/database-registry/render.mjs
+          pnpm exec eslint tooling/database-registry/explain.js tooling/database-registry/render.mjs --max-warnings=0
+          pnpm exec prettier --check tooling/database-registry/explain.js tooling/database-registry/explain.css tooling/database-registry/render.mjs
+
+      - name: Commit canonical source
+        run: |
+          if git diff --quiet; then
+            echo "Detailed registry source already canonical."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tooling/database-registry/explain.js tooling/database-registry/explain.css tooling/database-registry/render.mjs
+          git commit -m "Normalize detailed database registry source"
+          git push
