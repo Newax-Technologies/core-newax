@@ -38,6 +38,14 @@ async function createFixture(
   return { tenantId, personIds };
 }
 
+function personIdAt(fixture: RelationshipFixture, index: number): string {
+  const personId = fixture.personIds[index];
+  if (!personId) {
+    throw new Error(`Missing fixture person at index ${index}.`);
+  }
+  return personId;
+}
+
 async function insertParentRelationship(
   client: PoolClient,
   fixture: RelationshipFixture,
@@ -82,7 +90,9 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
   let pool: Pool;
 
   beforeAll(async () => {
-    pool = new Pool({ connectionString: databaseUrl });
+    pool = new Pool({
+      connectionString: databaseUrl ?? 'postgresql://invalid/invalid',
+    });
     await pool.query('SELECT 1');
   });
 
@@ -106,7 +116,8 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
   it('stores one verified parent relationship between two people', async () => {
     await withTransaction(async (client) => {
       const fixture = await createFixture(client, 2);
-      const [parentId, childId] = fixture.personIds;
+      const parentId = personIdAt(fixture, 0);
+      const childId = personIdAt(fixture, 1);
 
       await insertParentRelationship(client, fixture, parentId, childId, {
         isVerified: true,
@@ -133,7 +144,7 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
   it('rejects a relationship from a person to the same person', async () => {
     await withTransaction(async (client) => {
       const fixture = await createFixture(client, 1);
-      const [personId] = fixture.personIds;
+      const personId = personIdAt(fixture, 0);
 
       await expect(
         insertParentRelationship(client, fixture, personId, personId),
@@ -144,7 +155,8 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
   it('rejects duplicate active relationships even when an end date is scheduled', async () => {
     await withTransaction(async (client) => {
       const fixture = await createFixture(client, 2);
-      const [parentId, childId] = fixture.personIds;
+      const parentId = personIdAt(fixture, 0);
+      const childId = personIdAt(fixture, 1);
       const validUntil = new Date(Date.now() + 86_400_000)
         .toISOString()
         .slice(0, 10);
@@ -164,7 +176,8 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
   it('rejects a verified relationship without verification evidence', async () => {
     await withTransaction(async (client) => {
       const fixture = await createFixture(client, 2);
-      const [parentId, childId] = fixture.personIds;
+      const parentId = personIdAt(fixture, 0);
+      const childId = personIdAt(fixture, 1);
 
       await expect(
         insertParentRelationship(client, fixture, parentId, childId, {
@@ -177,7 +190,9 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
   it('rejects an active parentage cycle', async () => {
     await withTransaction(async (client) => {
       const fixture = await createFixture(client, 3);
-      const [firstPersonId, secondPersonId, thirdPersonId] = fixture.personIds;
+      const firstPersonId = personIdAt(fixture, 0);
+      const secondPersonId = personIdAt(fixture, 1);
+      const thirdPersonId = personIdAt(fixture, 2);
 
       await insertParentRelationship(
         client,
