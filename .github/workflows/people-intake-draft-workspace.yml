@@ -1,0 +1,58 @@
+name: Add People Intake Draft Workspace Temporary
+
+on:
+  pull_request:
+    types:
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: >-
+      github.head_ref == 'agent/family-intake-verification-dashboard' &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v7
+        with:
+          ref: agent/family-intake-verification-dashboard
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply reviewed draft workspace patch
+        run: python tooling/temp-add-people-intake-draft-workspace.py
+
+      - name: Verify web workspace
+        run: |
+          pnpm format
+          pnpm format:check
+          pnpm lint
+          pnpm --filter @newax/web typecheck
+          pnpm --filter @newax/web test
+          pnpm --filter @newax/web build
+
+      - name: Commit draft workspace
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/src/app/internal/people-intake/people-intake-dashboard.tsx
+          git commit -m "Add saved People Intake draft workspace"
+          git push origin HEAD:agent/family-intake-verification-dashboard
