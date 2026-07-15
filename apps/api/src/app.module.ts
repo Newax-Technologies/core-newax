@@ -17,6 +17,7 @@ import { HttpSecurityModule } from './http-security/http-security.module';
 import { MembershipsModule } from './memberships/memberships.module';
 import { ObjectsModule } from './objects/objects.module';
 import { OrganizationsModule } from './organizations/organizations.module';
+import { PeopleIntakeModule } from './people-intake/people-intake.module';
 import { PeopleModule } from './people/people.module';
 import { RequestContextModule } from './request-context/request-context.module';
 import { TenantsModule } from './tenants/tenants.module';
@@ -34,6 +35,7 @@ import { UsersModule } from './users/users.module';
     TenantsModule,
     OrganizationsModule,
     PeopleModule,
+    PeopleIntakeModule,
     ContactsModule,
     AddressesModule,
     AuditModule,

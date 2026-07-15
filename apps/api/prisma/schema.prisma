@@ -21,6 +21,7 @@ model CoreTenant {
   organizations             CoreOrganization[]
   organizationRelationships CoreOrganizationRelationship[]
   personRelationships       CorePersonRelationship[]
+  peopleIntakes             CorePeopleIntake[]
   objects                   CoreObject[]
   files                     CoreFile[]
   auditLogs                 CoreAuditLog[]
@@ -58,6 +59,7 @@ model CoreOrganization {
   files                 CoreFile[]
   auditLogs             CoreAuditLog[]
   externalReferences    CoreExternalReference[]
+  peopleIntakes         CorePeopleIntake[]
 
   @@unique([tenantId, id])
   @@index([tenantId, parentOrganizationId])
@@ -166,6 +168,40 @@ model CorePersonRelationship {
   @@map("core_person_relationships")
 }
 
+model CorePeopleIntake {
+  id                String    @id @default(uuid()) @db.Uuid
+  tenantId          String    @map("tenant_id") @db.Uuid
+  organizationId    String    @map("organization_id") @db.Uuid
+  title             String    @db.VarChar(128)
+  sourceType        String    @map("source_type") @db.VarChar(64)
+  sourceReference   String?   @map("source_reference") @db.VarChar(255)
+  status            String    @default("draft") @db.VarChar(32)
+  payload           Json      @db.JsonB
+  personCount       Int       @map("person_count")
+  relationshipCount Int       @map("relationship_count")
+  version           Int       @default(1)
+  createdByUserId   String    @map("created_by_user_id") @db.Uuid
+  submittedAt       DateTime? @map("submitted_at") @db.Timestamptz(6)
+  reviewedAt        DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  reviewedByUserId  String?   @map("reviewed_by_user_id") @db.Uuid
+  reviewDecision    String?   @map("review_decision") @db.VarChar(16)
+  reviewNotes       String?   @map("review_notes") @db.VarChar(2000)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant         CoreTenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  organization   CoreOrganization @relation(fields: [tenantId, organizationId], references: [tenantId, id], onDelete: Restrict, onUpdate: Cascade)
+  createdByUser  CoreUser         @relation("PeopleIntakeCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  reviewedByUser CoreUser?        @relation("PeopleIntakeReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // Workflow state, four-eye review, immutable submission, payload shape,
+  // and transition integrity are enforced by migration-owned PostgreSQL constraints.
+  @@index([tenantId, organizationId, status, submittedAt, id])
+  @@index([createdByUserId, status])
+  @@index([reviewedByUserId, reviewedAt])
+  @@map("core_people_intakes")
+}
+
 model CoreUser {
   id          String    @id @default(uuid()) @db.Uuid
   personId    String    @unique @map("person_id") @db.Uuid
@@ -188,6 +224,8 @@ model CoreUser {
   filesCreated                CoreFile[]                  @relation("FileCreatedBy")
   auditLogs                   CoreAuditLog[]              @relation("AuditActor")
   personRelationshipsVerified CorePersonRelationship[]    @relation("PersonRelationshipVerifiedBy")
+  peopleIntakesCreated        CorePeopleIntake[]          @relation("PeopleIntakeCreatedBy")
+  peopleIntakesReviewed       CorePeopleIntake[]          @relation("PeopleIntakeReviewedBy")
 
   @@index([status])
   @@map("core_users")
