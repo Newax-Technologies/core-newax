@@ -34,43 +34,44 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           parser_path = Path('tooling/database-registry/parsers.mjs')
           parser = parser_path.read_text()
 
-          old_prefix = """export function detectGlobalPrefix(source) {
-            const match = source.match(/\\.setGlobalPrefix\\(\\s*(['\"`])([^'\"`]*)\\1\\s*\\)/);
-            return match?.[2] ?? '';
-          }
-          """
-          new_prefix = """export function detectGlobalPrefix(source) {
-            const literalMatch = source.match(/\\.setGlobalPrefix\\(\\s*(['\"`])([^'\"`]*)\\1\\s*\\)/);
+          new_prefix = r'''export function detectGlobalPrefix(source) {
+            const literalMatch = source.match(/\.setGlobalPrefix\(\s*(['"`])([^'"`]*)\1\s*\)/);
             if (literalMatch) {
               return literalMatch[2];
             }
 
             const identifierMatch = source.match(
-              /\\.setGlobalPrefix\\(\\s*([A-Za-z_$][A-Za-z0-9_$]*)\\s*\\)/,
+              /\.setGlobalPrefix\(\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\)/,
             );
             if (!identifierMatch) {
               return '';
             }
 
-            const identifier = identifierMatch[1].replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
+            const identifier = identifierMatch[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const declarationPattern = new RegExp(
-              `\\\\b(?:const|let|var)\\\\s+${identifier}\\\\s*=\\\\s*(['\"\\`])([^'\"\\`]*)\\\\1`,
+              `\\b(?:const|let|var)\\s+${identifier}\\s*=\\s*(['"\`])([^'"\`]*)\\1`,
             );
             return source.match(declarationPattern)?.[2] ?? '';
-          }
-          """
-          if old_prefix not in parser:
-              raise SystemExit('detectGlobalPrefix target not found')
-          parser = parser.replace(old_prefix, new_prefix, 1)
+          }'''
+          prefix_pattern = re.compile(
+              r"export function detectGlobalPrefix\(source\) \{.*?\n\}\n\nexport function parseControllersFromFiles",
+              re.S,
+          )
+          parser, prefix_count = prefix_pattern.subn(
+              new_prefix + '\n\nexport function parseControllersFromFiles',
+              parser,
+              count=1,
+          )
+          if prefix_count != 1:
+              raise SystemExit(f'Expected one global-prefix function, changed {prefix_count}')
 
-          old_controller = """    const controllerPrefix = controllerMatch[2];
-            const routePattern =
-          """
-          new_controller = """    const controllerPrefix = controllerMatch[2];
+          controller_line = "    const controllerPrefix = controllerMatch[2];\n"
+          controller_block = r'''    const controllerPrefix = controllerMatch[2];
             const classDeclarationIndex = file.content.indexOf('export class', controllerMatch.index);
             const classDecoratorBlock =
               classDeclarationIndex === -1
@@ -84,52 +85,43 @@ jobs:
               classDecoratorBlock.includes('@PublicAuthenticationEndpoint')
                 ? 'public'
                 : 'unspecified';
-            const routePattern =
-          """
-          if old_controller not in parser:
-              raise SystemExit('controller target not found')
-          parser = parser.replace(old_controller, new_controller, 1)
+          '''
+          if parser.count(controller_line) != 1:
+              raise SystemExit('Expected one controller-prefix line')
+          parser = parser.replace(controller_line, controller_block, 1)
 
-          old_context = """      const context = decoratorBlock.includes('@OrganizationContextEndpoint')
-                ? 'organization'
-                : decoratorBlock.includes('@AccountContextEndpoint')
-                  ? 'account'
-                  : decoratorBlock.includes('@PublicEndpoint')
-                    ? 'public'
-                    : 'unspecified';
-          """
-          new_context = """      const context = decoratorBlock.includes('@OrganizationContextEndpoint')
+          new_context = r'''      const context = decoratorBlock.includes('@OrganizationContextEndpoint')
                 ? 'organization'
                 : decoratorBlock.includes('@AccountContextEndpoint')
                   ? 'account'
                   : decoratorBlock.includes('@PublicEndpoint') ||
                       decoratorBlock.includes('@PublicAuthenticationEndpoint')
                     ? 'public'
-                    : classContext;
-          """
-          if old_context not in parser:
-              raise SystemExit('context target not found')
-          parser = parser.replace(old_context, new_context, 1)
+                    : classContext;'''
+          context_pattern = re.compile(
+              r"      const context = decoratorBlock\.includes\('@OrganizationContextEndpoint'\).*?            : 'unspecified';",
+              re.S,
+          )
+          parser, context_count = context_pattern.subn(new_context, parser, count=1)
+          if context_count != 1:
+              raise SystemExit(f'Expected one endpoint-context block, changed {context_count}')
           parser_path.write_text(parser)
 
           test_path = Path('tooling/database-registry/generate.test.mjs')
           tests = test_path.read_text()
-
-          old_assertion = """  assert.equal(detectGlobalPrefix(\"app.setGlobalPrefix('api');\"), 'api');
-          """
-          new_assertion = """  assert.equal(detectGlobalPrefix(\"app.setGlobalPrefix('api');\"), 'api');
+          prefix_assertion = '  assert.equal(detectGlobalPrefix("app.setGlobalPrefix(\'api\');"), \'api\');\n'
+          expanded_assertion = '''  assert.equal(detectGlobalPrefix("app.setGlobalPrefix('api');"), 'api');
             assert.equal(
-              detectGlobalPrefix(\"const API_PREFIX = 'api';\\napp.setGlobalPrefix(API_PREFIX);\"),
+              detectGlobalPrefix("const API_PREFIX = 'api';\\napp.setGlobalPrefix(API_PREFIX);"),
               'api',
             );
-          """
-          if old_assertion not in tests:
-              raise SystemExit('prefix assertion target not found')
-          tests = tests.replace(old_assertion, new_assertion, 1)
+          '''
+          if tests.count(prefix_assertion) != 1:
+              raise SystemExit('Expected one direct-prefix assertion')
+          tests = tests.replace(prefix_assertion, expanded_assertion, 1)
 
-          marker = """test('classifies migration operations and fingerprints source', () => {
-          """
-          added_test = """test('recognizes class-level and authentication public endpoint decorators', () => {
+          marker = "test('classifies migration operations and fingerprints source', () => {\n"
+          added_test = '''test('recognizes class-level and authentication public endpoint decorators', () => {
             const endpoints = parseControllersFromFiles(
               [
                 {
@@ -174,9 +166,9 @@ jobs:
           });
 
           test('classifies migration operations and fingerprints source', () => {
-          """
-          if marker not in tests:
-              raise SystemExit('test insertion target not found')
+          '''
+          if tests.count(marker) != 1:
+              raise SystemExit('Expected one migration-test marker')
           tests = tests.replace(marker, added_test, 1)
           test_path.write_text(tests)
           PY
