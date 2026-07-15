@@ -99,8 +99,8 @@ describe('People Intake HTTP input parsing', () => {
     expect(() => assertEmptyPeopleIntakeQuery({ person_id: 'client-selected' })).toThrow(
       /unsupported field/u,
     );
-    expect(() =>
-      parseReviewPeopleIntakeBody({ expected_version: 2, decision: 'maybe' }),
-    ).toThrow(/approved or rejected/u);
+    expect(() => parseReviewPeopleIntakeBody({ expected_version: 2, decision: 'maybe' })).toThrow(
+      /approved or rejected/u,
+    );
   });
 });
