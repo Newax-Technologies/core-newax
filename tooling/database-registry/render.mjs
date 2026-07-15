@@ -1,21 +1,21 @@
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const SOURCE_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 
 export function safeJsonForHtml(value) {
   return JSON.stringify(value)
-    .replaceAll("<", "\\u003c")
-    .replaceAll(">", "\\u003e")
-    .replaceAll("&", "\\u0026")
-    .replaceAll("\u2028", "\\u2028")
-    .replaceAll("\u2029", "\\u2029");
+    .replaceAll('<', '\\u003c')
+    .replaceAll('>', '\\u003e')
+    .replaceAll('&', '\\u0026')
+    .replaceAll('\u2028', '\\u2028')
+    .replaceAll('\u2029', '\\u2029');
 }
 
 export function renderHtml(inventory) {
-  const styles = readFileSync(join(SOURCE_DIRECTORY, "styles.css"), "utf8");
-  const client = readFileSync(join(SOURCE_DIRECTORY, "client.js"), "utf8");
+  const styles = readFileSync(join(SOURCE_DIRECTORY, 'styles.css'), 'utf8');
+  const client = readFileSync(join(SOURCE_DIRECTORY, 'client.js'), 'utf8');
   return `<!doctype html>
 <html lang="en">
 <head>
