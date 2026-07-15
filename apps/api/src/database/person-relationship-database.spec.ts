@@ -100,9 +100,7 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
     await pool.end();
   });
 
-  async function withTransaction(
-    assertion: (client: PoolClient) => Promise<void>,
-  ): Promise<void> {
+  async function withTransaction(assertion: (client: PoolClient) => Promise<void>): Promise<void> {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
@@ -135,9 +133,7 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
         [fixture.tenantId],
       );
 
-      expect(result.rows).toEqual([
-        { relationship_type: 'parent_of', is_verified: true },
-      ]);
+      expect(result.rows).toEqual([{ relationship_type: 'parent_of', is_verified: true }]);
     });
   });
 
@@ -157,9 +153,7 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
       const fixture = await createFixture(client, 2);
       const parentId = personIdAt(fixture, 0);
       const childId = personIdAt(fixture, 1);
-      const validUntil = new Date(Date.now() + 86_400_000)
-        .toISOString()
-        .slice(0, 10);
+      const validUntil = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
 
       await insertParentRelationship(client, fixture, parentId, childId, {
         validUntil,
@@ -194,26 +188,11 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
       const secondPersonId = personIdAt(fixture, 1);
       const thirdPersonId = personIdAt(fixture, 2);
 
-      await insertParentRelationship(
-        client,
-        fixture,
-        firstPersonId,
-        secondPersonId,
-      );
-      await insertParentRelationship(
-        client,
-        fixture,
-        secondPersonId,
-        thirdPersonId,
-      );
+      await insertParentRelationship(client, fixture, firstPersonId, secondPersonId);
+      await insertParentRelationship(client, fixture, secondPersonId, thirdPersonId);
 
       await expect(
-        insertParentRelationship(
-          client,
-          fixture,
-          thirdPersonId,
-          firstPersonId,
-        ),
+        insertParentRelationship(client, fixture, thirdPersonId, firstPersonId),
       ).rejects.toMatchObject({ code: '23514' });
     });
   });
