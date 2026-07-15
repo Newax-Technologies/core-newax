@@ -1,0 +1,58 @@
+name: Fix People Intake Client UUID Validation Temporary
+
+on:
+  pull_request:
+    types:
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: >-
+      github.head_ref == 'agent/family-intake-verification-dashboard' &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v7
+        with:
+          ref: agent/family-intake-verification-dashboard
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply reviewed UUID validation fix
+        run: python tooling/temp-fix-people-intake-input-uuid.py
+
+      - name: Verify People Intake package
+        run: |
+          pnpm format
+          pnpm format:check
+          pnpm lint
+          pnpm --filter @newax/people-intake typecheck
+          pnpm --filter @newax/people-intake test
+
+      - name: Commit UUID validation fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/people-intake/src/services/people-intake.service.ts \
+            packages/people-intake/src/services/people-intake.service.spec.ts
+          git commit -m "Classify malformed People Intake IDs as invalid input"
+          git push origin HEAD:agent/family-intake-verification-dashboard
