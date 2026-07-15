@@ -38,6 +38,7 @@ interface IntakeSummary {
   readonly submitted_at: string | null;
   readonly reviewed_at: string | null;
   readonly review_notes: string | null;
+  readonly updated_at: string;
 }
 
 interface IntakeRecord extends IntakeSummary {
@@ -97,6 +98,7 @@ export function PeopleIntakeDashboard() {
   const issues = useMemo(() => validateFamilyIntakeDraft(draft), [draft]);
   const selectedMembership =
     memberships.find((item) => item.membership_id === membershipId) ?? null;
+  const savedDrafts = intakes.filter((item) => item.status === 'draft');
   const reviewQueue = intakes.filter((item) => item.status === 'submitted');
 
   const request = useCallback(
@@ -231,6 +233,21 @@ export function PeopleIntakeDashboard() {
     }));
   }
 
+  function changeMembership(nextMembershipId: string): void {
+    setMembershipId(nextMembershipId);
+    setIntakes([]);
+    setDraft(initialFamilyIntakeDraft());
+    setReviewRecord(null);
+    setReviewNotes('');
+    setMessage({
+      tone: 'neutral',
+      text:
+        nextMembershipId.length === 0
+          ? 'Select an organization to begin.'
+          : 'Organization changed. A new unsaved draft is ready.',
+    });
+  }
+
   async function saveDraft(): Promise<void> {
     if (issues.length > 0) {
       setMessage({ tone: 'error', text: 'Resolve the validation issues before saving.' });
@@ -282,6 +299,31 @@ export function PeopleIntakeDashboard() {
         text: 'Submitted for independent verification. The content is now immutable.',
       });
       await loadIntakes();
+    } catch (error) {
+      setMessage({ tone: 'error', text: messageFrom(error) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function openDraft(id: string): Promise<void> {
+    setBusy(true);
+    try {
+      const record = await request<IntakeRecord>(
+        `/api/core/organizations/current/people-intakes/${id}`,
+        {},
+        true,
+      );
+      if (record.status !== 'draft') {
+        throw new Error('Only draft intakes can be reopened for editing.');
+      }
+      setDraft(fromRecord(record));
+      setReviewRecord(null);
+      setReviewNotes('');
+      setMessage({
+        tone: 'success',
+        text: `Draft loaded at version ${String(record.version)}.`,
+      });
     } catch (error) {
       setMessage({ tone: 'error', text: messageFrom(error) });
     } finally {
@@ -369,7 +411,7 @@ export function PeopleIntakeDashboard() {
       <section className={styles.contextBar} aria-label="Organization context">
         <label>
           Organization
-          <select value={membershipId} onChange={(event) => setMembershipId(event.target.value)}>
+          <select value={membershipId} onChange={(event) => changeMembership(event.target.value)}>
             <option value="">Select organization</option>
             {memberships.map((membership) => (
               <option key={membership.membership_id} value={membership.membership_id}>
@@ -390,7 +432,7 @@ export function PeopleIntakeDashboard() {
           onClick={() => void loadIntakes()}
           disabled={busy || membershipId.length === 0}
         >
-          Refresh queue
+          Refresh workspace
         </button>
       </section>
 
@@ -799,6 +841,8 @@ export function PeopleIntakeDashboard() {
               disabled={busy}
               onClick={() => {
                 setDraft(initialFamilyIntakeDraft());
+                setReviewRecord(null);
+                setReviewNotes('');
                 setMessage({ tone: 'neutral', text: 'New unsaved draft started.' });
               }}
             >
@@ -877,6 +921,37 @@ export function PeopleIntakeDashboard() {
                 )),
               )}
             </div>
+          </section>
+
+          <section className={styles.panel}>
+            <div className={styles.blockHeader}>
+              <div>
+                <p className={styles.eyebrow}>Saved drafts</p>
+                <h2>{String(savedDrafts.length)} editable</h2>
+              </div>
+            </div>
+            {savedDrafts.length === 0 ? (
+              <p className={styles.empty}>No saved drafts in this organization.</p>
+            ) : (
+              <div className={styles.queueList}>
+                {savedDrafts.map((item) => (
+                  <button
+                    type="button"
+                    key={item.id}
+                    className={styles.queueItem}
+                    disabled={busy}
+                    onClick={() => void openDraft(item.id)}
+                  >
+                    <strong>{item.title}</strong>
+                    <span>
+                      {item.person_count} people · {item.relationship_count} relationships · version{' '}
+                      {item.version}
+                    </span>
+                    <small>Updated {new Date(item.updated_at).toLocaleString()}</small>
+                  </button>
+                ))}
+              </div>
+            )}
           </section>
 
           <section className={styles.panel}>
