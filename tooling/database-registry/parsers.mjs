@@ -241,8 +241,24 @@ export function parseModuleRegistry(source) {
 }
 
 export function detectGlobalPrefix(source) {
-  const match = source.match(/\.setGlobalPrefix\(\s*(['"`])([^'"`]*)\1\s*\)/);
-  return match?.[2] ?? '';
+  const literalMatch = source.match(/\.setGlobalPrefix\(\s*(['"`])([^'"`]*)\1\s*\)/);
+  if (literalMatch) {
+    return literalMatch[2];
+  }
+
+  const identifierMatch = source.match(/\.setGlobalPrefix\(\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\)/);
+  if (!identifierMatch) {
+    return '';
+  }
+
+  const declarationPattern =
+    /\b(?:const|let|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*(['"`])([^'"`]*)\2/g;
+  for (const declaration of source.matchAll(declarationPattern)) {
+    if (declaration[1] === identifierMatch[1]) {
+      return declaration[3];
+    }
+  }
+  return '';
 }
 
 export function parseControllersFromFiles(files, globalPrefix = '') {
@@ -255,6 +271,19 @@ export function parseControllersFromFiles(files, globalPrefix = '') {
     }
 
     const controllerPrefix = controllerMatch[2];
+    const classDeclarationIndex = file.content.indexOf('export class', controllerMatch.index);
+    const classDecoratorBlock =
+      classDeclarationIndex === -1
+        ? ''
+        : file.content.slice(
+            controllerMatch.index + controllerMatch[0].length,
+            classDeclarationIndex,
+          );
+    const classContext =
+      classDecoratorBlock.includes('@PublicEndpoint') ||
+      classDecoratorBlock.includes('@PublicAuthenticationEndpoint')
+        ? 'public'
+        : 'unspecified';
     const routePattern =
       /@(Get|Post|Put|Patch|Delete)\(([^)]*)\)([\s\S]*?)\n\s*(?:public\s+|protected\s+|private\s+)?(?:async\s+)?([A-Za-z0-9_]+)\s*\(/g;
     let routeMatch;
@@ -273,9 +302,10 @@ export function parseControllersFromFiles(files, globalPrefix = '') {
         ? 'organization'
         : decoratorBlock.includes('@AccountContextEndpoint')
           ? 'account'
-          : decoratorBlock.includes('@PublicEndpoint')
+          : decoratorBlock.includes('@PublicEndpoint') ||
+              decoratorBlock.includes('@PublicAuthenticationEndpoint')
             ? 'public'
-            : 'unspecified';
+            : classContext;
 
       endpoints.push({
         method: decorator.toUpperCase(),

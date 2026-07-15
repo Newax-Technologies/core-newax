@@ -165,6 +165,10 @@ test('parses module governance, dependencies and delivery state', () => {
 
 test('detects API prefix and controller routes without inventing permissions', () => {
   assert.equal(detectGlobalPrefix("app.setGlobalPrefix('api');"), 'api');
+  assert.equal(
+    detectGlobalPrefix("const API_PREFIX = 'api';\napp.setGlobalPrefix(API_PREFIX);"),
+    'api',
+  );
   const endpoints = parseControllersFromFiles(
     [{ path: 'controller.ts', content: CONTROLLER }],
     'api',
@@ -193,6 +197,50 @@ test('detects API prefix and controller routes without inventing permissions', (
         permissions: [],
         successCode: 202,
       },
+    ],
+  );
+});
+
+test('recognizes class-level and authentication public endpoint decorators', () => {
+  const endpoints = parseControllersFromFiles(
+    [
+      {
+        path: 'health.controller.ts',
+        content: `
+@Controller('health')
+@PublicEndpoint()
+export class HealthController {
+  @Get()
+  getHealth() {}
+}
+`,
+      },
+      {
+        path: 'authentication.controller.ts',
+        content: `
+@Controller('auth')
+export class AuthenticationController {
+  @Post('login')
+  @HttpCode(200)
+  @PublicAuthenticationEndpoint()
+  login() {}
+}
+`,
+      },
+    ],
+    'api',
+  );
+
+  assert.deepEqual(
+    endpoints.map(({ method, path, context, successCode }) => ({
+      method,
+      path,
+      context,
+      successCode,
+    })),
+    [
+      { method: 'POST', path: '/api/auth/login', context: 'public', successCode: 200 },
+      { method: 'GET', path: '/api/health', context: 'public', successCode: 200 },
     ],
   );
 });
