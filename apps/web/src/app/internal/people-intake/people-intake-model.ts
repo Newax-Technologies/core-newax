@@ -97,13 +97,18 @@ export function emptyRelationship(
 
 export function validateFamilyIntakeDraft(draft: FamilyIntakeDraft): readonly DraftIssue[] {
   const issues: DraftIssue[] = [];
-  if (draft.title.trim().length === 0) issues.push(issue('title', 'Add a clear intake title.'));
+  if (draft.title.trim().length === 0) {
+    issues.push(issue('title', 'Add a clear intake title.'));
+  }
   if (!/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/u.test(draft.sourceType.trim().toLowerCase())) {
     issues.push(issue('sourceType', 'Use a stable source code such as manual or nadra_crc.'));
   }
-  if (draft.people.length < 1) issues.push(issue('people', 'Add at least one person.'));
-  if (draft.people.length > 50)
+  if (draft.people.length < 1) {
+    issues.push(issue('people', 'Add at least one person.'));
+  }
+  if (draft.people.length > 50) {
     issues.push(issue('people', 'An intake can contain at most 50 people.'));
+  }
 
   const keys = new Set<string>();
   const identifiers = new Set<string>();
@@ -118,10 +123,12 @@ export function validateFamilyIntakeDraft(draft: FamilyIntakeDraft): readonly Dr
       issues.push(issue(`${prefix}.clientKey`, 'Each person key must be unique.'));
     }
     keys.add(key);
-    if (person.firstName.trim().length === 0)
+    if (person.firstName.trim().length === 0) {
       issues.push(issue(`${prefix}.firstName`, 'First name is required.'));
-    if (person.lastName.trim().length === 0)
+    }
+    if (person.lastName.trim().length === 0) {
       issues.push(issue(`${prefix}.lastName`, 'Last name is required.'));
+    }
     if (person.dateOfBirth.length > 0) {
       const date = new Date(`${person.dateOfBirth}T00:00:00.000Z`);
       if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== person.dateOfBirth) {
@@ -142,8 +149,9 @@ export function validateFamilyIntakeDraft(draft: FamilyIntakeDraft): readonly Dr
         identifier.issuingAuthority.trim().toUpperCase(),
         identifier.identifierValue.toUpperCase().replace(/[\s-]/gu, ''),
       ].join('|');
-      if (identifiers.has(normalized))
+      if (identifiers.has(normalized)) {
         issues.push(issue(field, 'This identifier is repeated in the intake.'));
+      }
       identifiers.add(normalized);
     }
   }
@@ -154,9 +162,12 @@ export function validateFamilyIntakeDraft(draft: FamilyIntakeDraft): readonly Dr
     const field = `relationships.${String(index + 1)}`;
     const source = relationship.sourcePersonKey.trim().toLowerCase();
     const target = relationship.targetPersonKey.trim().toLowerCase();
-    if (!keys.has(source) || !keys.has(target))
+    if (!keys.has(source) || !keys.has(target)) {
       issues.push(issue(field, 'Both relationship people must exist in this draft.'));
-    if (source === target) issues.push(issue(field, 'A person cannot be related to themselves.'));
+    }
+    if (source === target) {
+      issues.push(issue(field, 'A person cannot be related to themselves.'));
+    }
     const relationKey = [
       source,
       target,
@@ -166,8 +177,9 @@ export function validateFamilyIntakeDraft(draft: FamilyIntakeDraft): readonly Dr
     ]
       .map((value) => value.trim().toLowerCase())
       .join('|');
-    if (relationKeys.has(relationKey))
+    if (relationKeys.has(relationKey)) {
       issues.push(issue(field, 'This relationship is duplicated.'));
+    }
     relationKeys.add(relationKey);
     if (relationship.relationshipType.trim().toLowerCase() === 'parent_of') {
       const targets = parentGraph.get(source) ?? [];
@@ -175,14 +187,17 @@ export function validateFamilyIntakeDraft(draft: FamilyIntakeDraft): readonly Dr
       parentGraph.set(source, targets);
     }
   }
-  if (hasCycle(parentGraph))
+  if (hasCycle(parentGraph)) {
     issues.push(issue('relationships', 'Parent relationships cannot form an ancestry cycle.'));
+  }
   return issues;
 }
 
 export function maskIdentifier(value: string): string {
   const trimmed = value.trim();
-  if (trimmed.length <= 4) return '•'.repeat(trimmed.length);
+  if (trimmed.length <= 4) {
+    return '•'.repeat(trimmed.length);
+  }
   return `${'•'.repeat(Math.min(8, trimmed.length - 4))}${trimmed.slice(-4)}`;
 }
 
@@ -232,14 +247,26 @@ function hasCycle(graph: ReadonlyMap<string, readonly string[]>): boolean {
   const visiting = new Set<string>();
   const visited = new Set<string>();
   const visit = (node: string): boolean => {
-    if (visiting.has(node)) return true;
-    if (visited.has(node)) return false;
+    if (visiting.has(node)) {
+      return true;
+    }
+    if (visited.has(node)) {
+      return false;
+    }
     visiting.add(node);
-    for (const target of graph.get(node) ?? []) if (visit(target)) return true;
+    for (const target of graph.get(node) ?? []) {
+      if (visit(target)) {
+        return true;
+      }
+    }
     visiting.delete(node);
     visited.add(node);
     return false;
   };
-  for (const node of graph.keys()) if (visit(node)) return true;
+  for (const node of graph.keys()) {
+    if (visit(node)) {
+      return true;
+    }
+  }
   return false;
 }

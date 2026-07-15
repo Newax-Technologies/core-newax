@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import styles from './people-intake-dashboard.module.css';
@@ -102,15 +103,20 @@ export function PeopleIntakeDashboard() {
     async <T,>(path: string, init: RequestInit = {}, requiresMembership = false): Promise<T> => {
       const headers = new Headers(init.headers);
       headers.set('Accept', 'application/json');
-      if (init.body !== undefined) headers.set('Content-Type', 'application/json');
+      if (init.body !== undefined) {
+        headers.set('Content-Type', 'application/json');
+      }
       if (requiresMembership) {
-        if (membershipId.length === 0) throw new Error('Select an organization first.');
+        if (membershipId.length === 0) {
+          throw new Error('Select an organization first.');
+        }
         headers.set('x-newax-membership-id', membershipId);
       }
       if (init.method !== undefined && init.method !== 'GET' && init.method !== 'HEAD') {
         const csrf = csrfCookie();
-        if (csrf === null)
+        if (csrf === null) {
           throw new Error('Your secure session is missing its CSRF token. Sign in again.');
+        }
         headers.set('x-newax-csrf', csrf);
       }
       const response = await fetch(path, {
@@ -129,18 +135,10 @@ export function PeopleIntakeDashboard() {
     [membershipId],
   );
 
-  const loadMemberships = useCallback(async () => {
-    try {
-      const response = await request<readonly Membership[]>('/api/account/memberships');
-      setMemberships(response);
-      setMembershipId((current) => current || response[0]?.membership_id || '');
-    } catch (error) {
-      setMessage({ tone: 'error', text: messageFrom(error) });
-    }
-  }, [request]);
-
   const loadIntakes = useCallback(async () => {
-    if (membershipId.length === 0) return;
+    if (membershipId.length === 0) {
+      return;
+    }
     try {
       const response = await request<{ readonly items: readonly IntakeSummary[] }>(
         '/api/core/organizations/current/people-intakes?limit=100',
@@ -154,12 +152,46 @@ export function PeopleIntakeDashboard() {
   }, [membershipId, request]);
 
   useEffect(() => {
-    void loadMemberships();
-  }, [loadMemberships]);
+    const controller = new AbortController();
+    void request<readonly Membership[]>('/api/account/memberships', {
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!controller.signal.aborted) {
+          setMemberships(response);
+          setMembershipId((current) => current || response[0]?.membership_id || '');
+        }
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) {
+          setMessage({ tone: 'error', text: messageFrom(error) });
+        }
+      });
+    return () => controller.abort();
+  }, [request]);
 
   useEffect(() => {
-    void loadIntakes();
-  }, [loadIntakes]);
+    if (membershipId.length === 0) {
+      return undefined;
+    }
+    const controller = new AbortController();
+    void request<{ readonly items: readonly IntakeSummary[] }>(
+      '/api/core/organizations/current/people-intakes?limit=100',
+      { signal: controller.signal },
+      true,
+    )
+      .then((response) => {
+        if (!controller.signal.aborted) {
+          setIntakes(response.items);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) {
+          setMessage({ tone: 'error', text: messageFrom(error) });
+        }
+      });
+    return () => controller.abort();
+  }, [membershipId, request]);
 
   function updatePerson(localIdValue: string, patch: Partial<DraftPerson>): void {
     setDraft((current) => ({
@@ -275,7 +307,9 @@ export function PeopleIntakeDashboard() {
   }
 
   async function decide(decision: 'approved' | 'rejected'): Promise<void> {
-    if (reviewRecord === null) return;
+    if (reviewRecord === null) {
+      return;
+    }
     if (decision === 'rejected' && reviewNotes.trim().length === 0) {
       setMessage({ tone: 'error', text: 'Add reviewer notes before rejecting.' });
       return;
@@ -316,9 +350,9 @@ export function PeopleIntakeDashboard() {
     <main className={styles.shell}>
       <header className={styles.header}>
         <div>
-          <a className={styles.brand} href="/">
+          <Link className={styles.brand} href="/">
             NEWAX
-          </a>
+          </Link>
           <p className={styles.kicker}>People Intake · Internal Operations</p>
           <h1>Family data entry and verification</h1>
           <p className={styles.lead}>
@@ -999,9 +1033,13 @@ function csrfCookie(): string | null {
 }
 
 function errorMessage(payload: unknown): string | null {
-  if (typeof payload !== 'object' || payload === null || !('error' in payload)) return null;
+  if (typeof payload !== 'object' || payload === null || !('error' in payload)) {
+    return null;
+  }
   const error = (payload as { readonly error?: unknown }).error;
-  if (typeof error !== 'object' || error === null || !('message' in error)) return null;
+  if (typeof error !== 'object' || error === null || !('message' in error)) {
+    return null;
+  }
   const message = (error as { readonly message?: unknown }).message;
   return typeof message === 'string' ? message : null;
 }
@@ -1012,7 +1050,9 @@ function messageFrom(error: unknown): string {
 
 function personLabel(people: readonly DraftPerson[], key: string): string {
   const person = people.find((item) => item.clientKey === key);
-  if (person === undefined) return key || 'Unknown person';
+  if (person === undefined) {
+    return key || 'Unknown person';
+  }
   return [person.firstName, person.lastName].filter(Boolean).join(' ') || person.clientKey;
 }
 
