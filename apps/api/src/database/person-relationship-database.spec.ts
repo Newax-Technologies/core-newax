@@ -46,6 +46,14 @@ function personIdAt(fixture: RelationshipFixture, index: number): string {
   return personId;
 }
 
+function postgresErrorCode(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null) {
+    return undefined;
+  }
+  const code = (error as { readonly code?: unknown }).code;
+  return typeof code === 'string' ? code : undefined;
+}
+
 async function insertParentRelationship(
   client: PoolClient,
   fixture: RelationshipFixture,
@@ -109,6 +117,37 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
       await client.query('ROLLBACK');
       client.release();
     }
+  }
+
+  async function waitForAdvisoryLockWait(backendPid: number): Promise<void> {
+    const deadline = Date.now() + 3_000;
+    while (Date.now() < deadline) {
+      const result = await pool.query<{ waiting: boolean }>(
+        `SELECT EXISTS (
+           SELECT 1
+           FROM pg_locks
+           WHERE pid = $1
+             AND locktype = 'advisory'
+             AND granted = false
+         ) AS "waiting"`,
+        [backendPid],
+      );
+      if (result.rows[0]?.waiting) {
+        return;
+      }
+      await new Promise<void>((resolve) => setTimeout(resolve, 25));
+    }
+    throw new Error('The competing relationship write did not wait on the Tenant advisory lock.');
+  }
+
+  async function deleteCommittedFixture(fixture: RelationshipFixture): Promise<void> {
+    await pool.query(`DELETE FROM "core_person_relationships" WHERE "tenant_id" = $1`, [
+      fixture.tenantId,
+    ]);
+    await pool.query(`DELETE FROM "core_people" WHERE "id" = ANY($1::uuid[])`, [
+      fixture.personIds,
+    ]);
+    await pool.query(`DELETE FROM "core_tenants" WHERE "id" = $1`, [fixture.tenantId]);
   }
 
   it('stores one verified parent relationship between two people', async () => {
@@ -195,5 +234,76 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
         insertParentRelationship(client, fixture, thirdPersonId, firstPersonId),
       ).rejects.toMatchObject({ code: '23514' });
     });
+  });
+
+  it('serializes concurrent inverse parent links and rejects the second cycle', async () => {
+    let fixture: RelationshipFixture | undefined;
+    const setupClient = await pool.connect();
+    try {
+      fixture = await createFixture(setupClient, 2);
+    } finally {
+      setupClient.release();
+    }
+
+    const firstClient = await pool.connect();
+    const secondClient = await pool.connect();
+    let firstTransactionEnded = false;
+    let secondTransactionEnded = false;
+
+    try {
+      const firstPersonId = personIdAt(fixture, 0);
+      const secondPersonId = personIdAt(fixture, 1);
+
+      await firstClient.query('BEGIN');
+      await secondClient.query('BEGIN');
+      const secondBackend = await secondClient.query<{ pid: number }>(
+        'SELECT pg_backend_pid() AS "pid"',
+      );
+      const secondBackendPid = secondBackend.rows[0]?.pid;
+      if (!secondBackendPid) {
+        throw new Error('Could not resolve the competing PostgreSQL backend PID.');
+      }
+
+      await insertParentRelationship(
+        firstClient,
+        fixture,
+        firstPersonId,
+        secondPersonId,
+      );
+
+      const inverseAttempt = insertParentRelationship(
+        secondClient,
+        fixture,
+        secondPersonId,
+        firstPersonId,
+      ).then(
+        () => ({ status: 'fulfilled' as const }),
+        (error: unknown) => ({ status: 'rejected' as const, error }),
+      );
+
+      await waitForAdvisoryLockWait(secondBackendPid);
+      await firstClient.query('COMMIT');
+      firstTransactionEnded = true;
+
+      const inverseResult = await inverseAttempt;
+      expect(inverseResult.status).toBe('rejected');
+      if (inverseResult.status !== 'rejected') {
+        throw new Error('The concurrent inverse parent relationship unexpectedly succeeded.');
+      }
+      expect(postgresErrorCode(inverseResult.error)).toBe('23514');
+
+      await secondClient.query('ROLLBACK');
+      secondTransactionEnded = true;
+    } finally {
+      if (!firstTransactionEnded) {
+        await firstClient.query('ROLLBACK').catch(() => undefined);
+      }
+      if (!secondTransactionEnded) {
+        await secondClient.query('ROLLBACK').catch(() => undefined);
+      }
+      firstClient.release();
+      secondClient.release();
+      await deleteCommittedFixture(fixture);
+    }
   });
 });
