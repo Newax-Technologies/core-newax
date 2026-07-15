@@ -312,11 +312,18 @@
       legalName: 'The formal legal name.',
       metadata: 'Additional structured data governed by the owning module.',
     };
-    if (exact[field.name]) {return exact[field.name];}
-    if (field.relation) {return `Relationship to ${guideFor(field.baseType).plainName}.`;}
-    if (field.name.endsWith('Id'))
-      {return `Reference identifier for ${humanize(field.name.slice(0, -2)).toLowerCase()}.`;}
-    if (/At$/.test(field.name)) {return `Date and time for ${humanize(field.name).toLowerCase()}.`;}
+    if (exact[field.name]) {
+      return exact[field.name];
+    }
+    if (field.relation) {
+      return `Relationship to ${guideFor(field.baseType).plainName}.`;
+    }
+    if (field.name.endsWith('Id')) {
+      return `Reference identifier for ${humanize(field.name.slice(0, -2)).toLowerCase()}.`;
+    }
+    if (/At$/.test(field.name)) {
+      return `Date and time for ${humanize(field.name).toLowerCase()}.`;
+    }
     return `Stores ${humanize(field.name).toLowerCase()} for this record.`;
   }
 
@@ -350,8 +357,9 @@
       'CoreRolePermission.createdByUser':
         'A role-permission link may record which user created it.',
     };
-    if (overrides[`${relation.source}.${relation.field}`])
-      {return overrides[`${relation.source}.${relation.field}`];}
+    if (overrides[`${relation.source}.${relation.field}`]) {
+      return overrides[`${relation.source}.${relation.field}`];
+    }
     const source = guideFor(relation.source).plainName;
     const target = guideFor(relation.target).plainName;
     return `${article(source)} ${lowerFirst(source)} ${relation.optional ? 'may link to' : 'must link to'} one ${lowerFirst(target)}.`;
@@ -501,11 +509,15 @@
 
   function showModel(modelName, switchTab = false) {
     const model = modelByName.get(modelName);
-    if (!model) {return;}
+    if (!model) {
+      return;
+    }
     const guide = guideFor(modelName);
     const related = relationsFor(modelName);
     const select = document.getElementById('explain-model-select');
-    if (select) {select.value = modelName;}
+    if (select) {
+      select.value = modelName;
+    }
 
     document.getElementById('explain-focus-summary').innerHTML =
       `<div><p class="eyebrow">Selected record</p><h2>${escapeText(guide.plainName)}</h2><p class="focus-purpose">${escapeText(guide.purpose)}</p><p><strong>Simple example:</strong> ${escapeText(guide.example)}</p></div><dl><div><dt>Technical model</dt><dd><code>${escapeText(model.name)}</code></dd></div><div><dt>Database table</dt><dd><code>${escapeText(model.tableName)}</code></dd></div><div><dt>Module owner</dt><dd>${escapeText(model.owner.moduleName)} · ${escapeText(model.owner.governanceStatus)}</dd></div><div><dt>Contents</dt><dd>${model.scalarFieldCount} stored fields and ${model.relationFieldCount} direct relationship fields</dd></div></dl>`;
@@ -564,7 +576,9 @@
     const lines = [...document.querySelectorAll('#database-map .relation-line')];
     lines.forEach((line, index) => {
       const relation = inventory.database.relations[index];
-      if (!relation) {return;}
+      if (!relation) {
+        return;
+      }
       line.dataset.source = relation.source;
       line.dataset.target = relation.target;
       line.classList.toggle('optional-link', relation.optional);
@@ -574,8 +588,12 @@
   function highlightMap(modelName) {
     const connected = new Set([modelName]);
     inventory.database.relations.forEach((relation) => {
-      if (relation.source === modelName) {connected.add(relation.target);}
-      if (relation.target === modelName) {connected.add(relation.source);}
+      if (relation.source === modelName) {
+        connected.add(relation.target);
+      }
+      if (relation.target === modelName) {
+        connected.add(relation.source);
+      }
     });
     document.querySelectorAll('#database-map .model-node').forEach((node) => {
       node.classList.toggle('explain-selected', node.dataset.model === modelName);
@@ -597,11 +615,17 @@
 
   document.addEventListener('click', (event) => {
     const opener = event.target.closest('[data-explain-model]');
-    if (opener) {showModel(opener.dataset.explainModel, true);}
+    if (opener) {
+      showModel(opener.dataset.explainModel, true);
+    }
     const mapNode = event.target.closest('#database-map .model-node');
-    if (mapNode) {showModel(mapNode.dataset.model);}
+    if (mapNode) {
+      showModel(mapNode.dataset.model);
+    }
   });
 
   const initial = modelByName.has('CoreTenant') ? 'CoreTenant' : inventory.database.models[0]?.name;
-  if (initial) {showModel(initial);}
+  if (initial) {
+    showModel(initial);
+  }
 })();
