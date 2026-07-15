@@ -4,18 +4,19 @@ on:
   pull_request:
 
 jobs:
-  lint-diagnostic:
+  lint-fix:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: read
+      contents: write
 
     steps:
-      - name: Check out repository
+      - name: Check out pull request branch
         uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 1
-          persist-credentials: false
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -29,17 +30,17 @@ jobs:
       - name: Install dependencies quietly
         run: pnpm install --frozen-lockfile > /tmp/install.log 2>&1
 
-      - name: Capture focused lint output
-        run: |
-          set +e
-          pnpm exec eslint tooling/database-registry/explain.js tooling/database-registry/render.mjs --max-warnings=0 2>&1 | tee /tmp/registry-lint.txt
-          echo "Focused lint exit status: ${PIPESTATUS[0]}"
-          exit 0
+      - name: Apply focused lint fixes
+        run: pnpm exec eslint tooling/database-registry/explain.js tooling/database-registry/render.mjs --fix --max-warnings=0
 
-      - name: Upload focused lint output
-        uses: actions/upload-artifact@v7
-        with:
-          name: detailed-registry-lint-${{ github.sha }}
-          path: /tmp/registry-lint.txt
-          if-no-files-found: error
-          retention-days: 1
+      - name: Commit lint fixes
+        run: |
+          if git diff --quiet; then
+            echo "Focused lint already clean."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tooling/database-registry/explain.js tooling/database-registry/render.mjs
+          git commit -m "Fix detailed database registry lint"
+          git push
