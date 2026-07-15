@@ -1,0 +1,198 @@
+name: Database Registry Review Fix Temporary
+
+on:
+  pull_request:
+
+jobs:
+  fix-review:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out pull request branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Install dependencies quietly
+        run: pnpm install --frozen-lockfile > /tmp/install.log 2>&1
+
+      - name: Apply reviewed parser fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          parser_path = Path('tooling/database-registry/parsers.mjs')
+          parser = parser_path.read_text()
+
+          old_prefix = """export function detectGlobalPrefix(source) {
+            const match = source.match(/\\.setGlobalPrefix\\(\\s*(['\"`])([^'\"`]*)\\1\\s*\\)/);
+            return match?.[2] ?? '';
+          }
+          """
+          new_prefix = """export function detectGlobalPrefix(source) {
+            const literalMatch = source.match(/\\.setGlobalPrefix\\(\\s*(['\"`])([^'\"`]*)\\1\\s*\\)/);
+            if (literalMatch) {
+              return literalMatch[2];
+            }
+
+            const identifierMatch = source.match(
+              /\\.setGlobalPrefix\\(\\s*([A-Za-z_$][A-Za-z0-9_$]*)\\s*\\)/,
+            );
+            if (!identifierMatch) {
+              return '';
+            }
+
+            const identifier = identifierMatch[1].replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
+            const declarationPattern = new RegExp(
+              `\\\\b(?:const|let|var)\\\\s+${identifier}\\\\s*=\\\\s*(['\"\\`])([^'\"\\`]*)\\\\1`,
+            );
+            return source.match(declarationPattern)?.[2] ?? '';
+          }
+          """
+          if old_prefix not in parser:
+              raise SystemExit('detectGlobalPrefix target not found')
+          parser = parser.replace(old_prefix, new_prefix, 1)
+
+          old_controller = """    const controllerPrefix = controllerMatch[2];
+            const routePattern =
+          """
+          new_controller = """    const controllerPrefix = controllerMatch[2];
+            const classDeclarationIndex = file.content.indexOf('export class', controllerMatch.index);
+            const classDecoratorBlock =
+              classDeclarationIndex === -1
+                ? ''
+                : file.content.slice(
+                    controllerMatch.index + controllerMatch[0].length,
+                    classDeclarationIndex,
+                  );
+            const classContext =
+              classDecoratorBlock.includes('@PublicEndpoint') ||
+              classDecoratorBlock.includes('@PublicAuthenticationEndpoint')
+                ? 'public'
+                : 'unspecified';
+            const routePattern =
+          """
+          if old_controller not in parser:
+              raise SystemExit('controller target not found')
+          parser = parser.replace(old_controller, new_controller, 1)
+
+          old_context = """      const context = decoratorBlock.includes('@OrganizationContextEndpoint')
+                ? 'organization'
+                : decoratorBlock.includes('@AccountContextEndpoint')
+                  ? 'account'
+                  : decoratorBlock.includes('@PublicEndpoint')
+                    ? 'public'
+                    : 'unspecified';
+          """
+          new_context = """      const context = decoratorBlock.includes('@OrganizationContextEndpoint')
+                ? 'organization'
+                : decoratorBlock.includes('@AccountContextEndpoint')
+                  ? 'account'
+                  : decoratorBlock.includes('@PublicEndpoint') ||
+                      decoratorBlock.includes('@PublicAuthenticationEndpoint')
+                    ? 'public'
+                    : classContext;
+          """
+          if old_context not in parser:
+              raise SystemExit('context target not found')
+          parser = parser.replace(old_context, new_context, 1)
+          parser_path.write_text(parser)
+
+          test_path = Path('tooling/database-registry/generate.test.mjs')
+          tests = test_path.read_text()
+
+          old_assertion = """  assert.equal(detectGlobalPrefix(\"app.setGlobalPrefix('api');\"), 'api');
+          """
+          new_assertion = """  assert.equal(detectGlobalPrefix(\"app.setGlobalPrefix('api');\"), 'api');
+            assert.equal(
+              detectGlobalPrefix(\"const API_PREFIX = 'api';\\napp.setGlobalPrefix(API_PREFIX);\"),
+              'api',
+            );
+          """
+          if old_assertion not in tests:
+              raise SystemExit('prefix assertion target not found')
+          tests = tests.replace(old_assertion, new_assertion, 1)
+
+          marker = """test('classifies migration operations and fingerprints source', () => {
+          """
+          added_test = """test('recognizes class-level and authentication public endpoint decorators', () => {
+            const endpoints = parseControllersFromFiles(
+              [
+                {
+                  path: 'health.controller.ts',
+                  content: `
+          @Controller('health')
+          @PublicEndpoint()
+          export class HealthController {
+            @Get()
+            getHealth() {}
+          }
+          `,
+                },
+                {
+                  path: 'authentication.controller.ts',
+                  content: `
+          @Controller('auth')
+          export class AuthenticationController {
+            @Post('login')
+            @HttpCode(200)
+            @PublicAuthenticationEndpoint()
+            login() {}
+          }
+          `,
+                },
+              ],
+              'api',
+            );
+
+            assert.deepEqual(
+              endpoints.map(({ method, path, context, successCode }) => ({
+                method,
+                path,
+                context,
+                successCode,
+              })),
+              [
+                { method: 'POST', path: '/api/auth/login', context: 'public', successCode: 200 },
+                { method: 'GET', path: '/api/health', context: 'public', successCode: 200 },
+              ],
+            );
+          });
+
+          test('classifies migration operations and fingerprints source', () => {
+          """
+          if marker not in tests:
+              raise SystemExit('test insertion target not found')
+          tests = tests.replace(marker, added_test, 1)
+          test_path.write_text(tests)
+          PY
+
+      - name: Normalize and verify parser fixes
+        run: |
+          pnpm exec eslint tooling/database-registry/parsers.mjs tooling/database-registry/generate.test.mjs --fix
+          pnpm exec prettier --write tooling/database-registry/parsers.mjs tooling/database-registry/generate.test.mjs
+          pnpm exec eslint tooling/database-registry/parsers.mjs tooling/database-registry/generate.test.mjs --max-warnings=0
+          pnpm exec prettier --check tooling/database-registry/parsers.mjs tooling/database-registry/generate.test.mjs
+          node --test tooling/database-registry/generate.test.mjs
+
+      - name: Commit reviewed fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tooling/database-registry/parsers.mjs tooling/database-registry/generate.test.mjs
+          git commit -m "Fix database registry API discovery accuracy"
+          git push
