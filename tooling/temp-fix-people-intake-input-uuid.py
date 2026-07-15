@@ -24,52 +24,26 @@ service = replace_exact(
     1,
     "cursor identifier validation",
 )
-anchor = """  private uuid(value: string, field: string): string {
-    if (typeof value !== 'string' || !UUID_PATTERN.test(value)) {
-      throw new PeopleIntakeModuleError(
-        'PEOPLE_INTAKE_INTEGRITY_FAILURE',
-        `${field} must be a UUID.`,
-        { field },
-      );
-    }
-    return value.toLowerCase();
-  }
-"""
-replacement = """  private inputUuid(value: string, field: string): string {
+method_anchor = "  private uuid(value: string, field: string): string {"
+if service.count(method_anchor) != 1:
+    raise SystemExit("UUID helper insertion: expected one trusted UUID helper")
+input_helper = """  private inputUuid(value: string, field: string): string {
     if (typeof value !== 'string' || !UUID_PATTERN.test(value)) {
       this.invalid(field, `${field} must be a UUID.`);
     }
     return value.toLowerCase();
   }
 
-  private uuid(value: string, field: string): string {
-    if (typeof value !== 'string' || !UUID_PATTERN.test(value)) {
-      throw new PeopleIntakeModuleError(
-        'PEOPLE_INTAKE_INTEGRITY_FAILURE',
-        `${field} must be a UUID.`,
-        { field },
-      );
-    }
-    return value.toLowerCase();
-  }
 """
-service = replace_exact(service, anchor, replacement, 1, "UUID helper insertion")
+service = service.replace(method_anchor, input_helper + method_anchor, 1)
 service_path.write_text(service)
 
 spec_path = Path("packages/people-intake/src/services/people-intake.service.spec.ts")
 spec = spec_path.read_text()
-anchor_test = """    it('requires an explicit create permission', async () => {
-      const service = new PeopleIntakeService(repository());
-      await expect(
-        service.createDraft(context(), {
-          title: 'Forbidden',
-          sourceType: 'manual',
-          payload: payload(),
-        }),
-      ).rejects.toMatchObject({ code: 'PEOPLE_INTAKE_FORBIDDEN' });
-    });
-"""
-replacement_test = anchor_test + """
+closing_anchor = "  });\n});\n"
+if spec.count(closing_anchor) != 1:
+    raise SystemExit("invalid intake ID regression test: expected one suite closing anchor")
+regression_test = """
 
     it('classifies malformed client intake identifiers as invalid input', async () => {
       const service = new PeopleIntakeService(repository());
@@ -78,5 +52,5 @@ replacement_test = anchor_test + """
       ).rejects.toMatchObject({ code: 'PEOPLE_INTAKE_INVALID_INPUT' });
     });
 """
-spec = replace_exact(spec, anchor_test, replacement_test, 1, "invalid intake ID regression test")
+spec = spec.replace(closing_anchor, regression_test + "\n" + closing_anchor, 1)
 spec_path.write_text(spec)
