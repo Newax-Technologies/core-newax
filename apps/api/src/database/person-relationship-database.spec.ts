@@ -144,9 +144,7 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
     await pool.query(`DELETE FROM "core_person_relationships" WHERE "tenant_id" = $1`, [
       fixture.tenantId,
     ]);
-    await pool.query(`DELETE FROM "core_people" WHERE "id" = ANY($1::uuid[])`, [
-      fixture.personIds,
-    ]);
+    await pool.query(`DELETE FROM "core_people" WHERE "id" = ANY($1::uuid[])`, [fixture.personIds]);
     await pool.query(`DELETE FROM "core_tenants" WHERE "id" = $1`, [fixture.tenantId]);
   }
 
@@ -264,12 +262,7 @@ describe.skipIf(!databaseUrl)('person relationship PostgreSQL integrity', () => 
         throw new Error('Could not resolve the competing PostgreSQL backend PID.');
       }
 
-      await insertParentRelationship(
-        firstClient,
-        fixture,
-        firstPersonId,
-        secondPersonId,
-      );
+      await insertParentRelationship(firstClient, fixture, firstPersonId, secondPersonId);
 
       const inverseAttempt = insertParentRelationship(
         secondClient,
