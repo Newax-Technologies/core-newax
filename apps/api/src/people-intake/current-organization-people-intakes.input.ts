@@ -69,12 +69,15 @@ export function parseUpdatePeopleIntakeBody(body: unknown): UpdatePeopleIntakeDr
     ['expected_version', 'title', 'source_type', 'source_reference', 'payload'],
     'body',
   );
-  const base = parseCreatePeopleIntakeBody({
+  const createBody: ObjectValue = {
     title: object.title,
     source_type: object.source_type,
-    source_reference: object.source_reference,
     payload: object.payload,
-  });
+  };
+  if ('source_reference' in object) {
+    createBody.source_reference = object.source_reference;
+  }
+  const base = parseCreatePeopleIntakeBody(createBody);
   return { ...base, expectedVersion: integerValue(object.expected_version, 'expected_version') };
 }
 
@@ -159,15 +162,22 @@ function personValue(value: unknown, index: number) {
     firstName: stringValue(object.first_name, `${field}.first_name`),
     lastName: stringValue(object.last_name, `${field}.last_name`),
   };
-  if ('middle_name' in object)
+  if ('middle_name' in object) {
     result.middleName = nullableString(object.middle_name, `${field}.middle_name`);
-  if ('preferred_name' in object)
+  }
+  if ('preferred_name' in object) {
     result.preferredName = nullableString(object.preferred_name, `${field}.preferred_name`);
-  if ('date_of_birth' in object)
+  }
+  if ('date_of_birth' in object) {
     result.dateOfBirth = nullableString(object.date_of_birth, `${field}.date_of_birth`);
-  if ('gender' in object) result.gender = nullableString(object.gender, `${field}.gender`);
+  }
+  if ('gender' in object) {
+    result.gender = nullableString(object.gender, `${field}.gender`);
+  }
   if ('identifiers' in object) {
-    if (!Array.isArray(object.identifiers)) invalid(`${field}.identifiers must be an array.`);
+    if (!Array.isArray(object.identifiers)) {
+      invalid(`${field}.identifiers must be an array.`);
+    }
     result.identifiers = object.identifiers.map((identifier, identifierIndex) =>
       identifierValue(identifier, index, identifierIndex),
     );
@@ -192,16 +202,18 @@ function identifierValue(value: unknown, personIndex: number, identifierIndex: n
     identifierType: stringValue(object.identifier_type, `${field}.identifier_type`),
     identifierValue: stringValue(object.identifier_value, `${field}.identifier_value`),
   };
-  if ('issuing_authority' in object)
+  if ('issuing_authority' in object) {
     result.issuingAuthority = nullableString(
       object.issuing_authority,
       `${field}.issuing_authority`,
     );
-  if ('issuing_country_code' in object)
+  }
+  if ('issuing_country_code' in object) {
     result.issuingCountryCode = nullableString(
       object.issuing_country_code,
       `${field}.issuing_country_code`,
     );
+  }
   return result;
 }
 
@@ -238,23 +250,30 @@ function objectValue(value: unknown, field: string): ObjectValue {
 function allowed(object: ObjectValue, keys: readonly string[], field: string): void {
   const allowedKeys = new Set(keys);
   for (const key of Object.keys(object)) {
-    if (!allowedKeys.has(key)) invalid(`${field} contains unsupported field ${key}.`);
+    if (!allowedKeys.has(key)) {
+      invalid(`${field} contains unsupported field ${key}.`);
+    }
   }
 }
 
 function stringValue(value: unknown, field: string): string {
-  if (typeof value !== 'string') invalid(`${field} must be text.`);
+  if (typeof value !== 'string') {
+    invalid(`${field} must be text.`);
+  }
   return value;
 }
 
 function nullableString(value: unknown, field: string): string | null {
-  if (value === null) return null;
+  if (value === null) {
+    return null;
+  }
   return stringValue(value, field);
 }
 
 function integerValue(value: unknown, field: string): number {
-  if (typeof value !== 'number' || !Number.isInteger(value))
+  if (typeof value !== 'number' || !Number.isInteger(value)) {
     invalid(`${field} must be an integer.`);
+  }
   return value;
 }
 
