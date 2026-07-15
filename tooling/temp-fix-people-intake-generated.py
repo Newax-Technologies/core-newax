@@ -1,9 +1,13 @@
 from pathlib import Path
 
 
-path = Path("packages/people-intake/src/services/people-intake.service.spec.ts")
-lines = path.read_text().splitlines()
-start_matches = [index for index, line in enumerate(lines) if "const duplicate = payload();" in line]
+service_spec_path = Path(
+    "packages/people-intake/src/services/people-intake.service.spec.ts"
+)
+lines = service_spec_path.read_text().splitlines()
+start_matches = [
+    index for index, line in enumerate(lines) if "const duplicate = payload();" in line
+]
 if len(start_matches) != 1:
     raise SystemExit(
         f"duplicate identifier fixture: expected one start anchor, found {len(start_matches)}"
@@ -44,4 +48,14 @@ replacement = [
     f"{indent}}};",
 ]
 lines[start:end] = replacement
-path.write_text("\n".join(lines) + "\n")
+service_spec_path.write_text("\n".join(lines) + "\n")
+
+web_spec_path = Path(
+    "apps/web/src/app/internal/people-intake/people-intake-model.spec.ts"
+)
+web_spec = web_spec_path.read_text()
+old_expectation = "expect(maskIdentifier('12345-1234567-1')).toBe('••••••••567-1');"
+new_expectation = "expect(maskIdentifier('12345-1234567-1')).toBe('••••••••67-1');"
+if web_spec.count(old_expectation) != 1:
+    raise SystemExit("identifier mask expectation: expected exactly one old assertion")
+web_spec_path.write_text(web_spec.replace(old_expectation, new_expectation, 1))
