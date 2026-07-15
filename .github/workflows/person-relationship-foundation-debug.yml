@@ -1,0 +1,59 @@
+name: Capture Person Relationship Patch Failure Temporary
+
+on:
+  pull_request:
+    types:
+      - synchronize
+
+permissions:
+  contents: read
+
+jobs:
+  debug:
+    if: github.head_ref == 'agent/person-relationship-foundation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v7
+        with:
+          ref: agent/person-relationship-foundation
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Extract reviewed patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          workflow = Path('.github/workflows/person-relationship-foundation-apply.yml').read_text().splitlines()
+          start = workflow.index('      - name: Apply person relationship foundation')
+          run_line = workflow.index('        run: |', start)
+          end = workflow.index('      - name: Normalize generated and source files', run_line)
+          script = []
+          for line in workflow[run_line + 1:end]:
+              if line.startswith('          '):
+                  script.append(line[10:])
+              elif line.strip():
+                  raise SystemExit(f'Unexpected indentation in reviewed patch: {line!r}')
+              else:
+                  script.append('')
+          Path('/tmp/apply-person-relationship.sh').write_text('\n'.join(script) + '\n')
+          PY
+
+      - name: Run and capture reviewed patch
+        run: |
+          set +e
+          bash /tmp/apply-person-relationship.sh > /tmp/person-relationship-patch.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/person-relationship-patch.log
+          echo "exit_status=${status}" >> /tmp/person-relationship-patch.log
+
+      - name: Upload diagnostic
+        uses: actions/upload-artifact@v7
+        with:
+          name: person-relationship-patch-diagnostic-${{ github.sha }}
+          path: /tmp/person-relationship-patch.log
+          if-no-files-found: error
+          retention-days: 1
