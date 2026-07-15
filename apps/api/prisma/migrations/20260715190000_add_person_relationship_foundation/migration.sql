@@ -28,7 +28,12 @@ CREATE TABLE "core_person_relationships" (
       CHECK (
         ("is_verified" = false AND "verified_at" IS NULL AND "verified_by_user_id" IS NULL)
         OR
-        ("is_verified" = true AND "verified_at" IS NOT NULL AND "verification_source" IS NOT NULL)
+        (
+          "is_verified" = true
+          AND "verified_at" IS NOT NULL
+          AND "verification_source" IS NOT NULL
+          AND btrim("verification_source") <> ''
+        )
       ),
     CONSTRAINT "core_person_relationships_type_not_blank_check"
       CHECK (btrim("relationship_type") <> ''),
