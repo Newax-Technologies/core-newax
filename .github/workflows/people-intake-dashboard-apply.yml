@@ -50,14 +50,47 @@ jobs:
           pnpm --filter @newax/api db:format
           pnpm format
 
-      - name: Run focused verification
+      - name: Prepare diagnostic directory
+        run: mkdir -p /tmp/people-intake-verification
+
+      - name: Validate Prisma schema
         run: |
-          pnpm --filter @newax/api db:validate
-          pnpm --filter @newax/people-intake typecheck
-          pnpm --filter @newax/people-intake test
-          pnpm --filter @newax/web typecheck
-          pnpm --filter @newax/web test
-          pnpm database-registry:test
+          set -o pipefail
+          pnpm --filter @newax/api db:validate 2>&1 | tee /tmp/people-intake-verification/prisma-validate.log
+
+      - name: Type-check People Intake package
+        run: |
+          set -o pipefail
+          pnpm --filter @newax/people-intake typecheck 2>&1 | tee /tmp/people-intake-verification/people-intake-typecheck.log
+
+      - name: Test People Intake package
+        run: |
+          set -o pipefail
+          pnpm --filter @newax/people-intake test 2>&1 | tee /tmp/people-intake-verification/people-intake-test.log
+
+      - name: Type-check web dashboard
+        run: |
+          set -o pipefail
+          pnpm --filter @newax/web typecheck 2>&1 | tee /tmp/people-intake-verification/web-typecheck.log
+
+      - name: Test web dashboard
+        run: |
+          set -o pipefail
+          pnpm --filter @newax/web test 2>&1 | tee /tmp/people-intake-verification/web-test.log
+
+      - name: Test database registry generator
+        run: |
+          set -o pipefail
+          pnpm database-registry:test 2>&1 | tee /tmp/people-intake-verification/database-registry-test.log
+
+      - name: Upload focused verification diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: people-intake-verification-${{ github.sha }}
+          path: /tmp/people-intake-verification
+          if-no-files-found: warn
+          retention-days: 1
 
       - name: Commit implementation
         run: |
