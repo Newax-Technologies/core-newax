@@ -33,24 +33,6 @@ jobs:
           node-version-file: .node-version
           package-manager-cache: false
 
-      - name: Diagnose repository formatting
-        run: |
-          set +e
-          npx --yes prettier@3.9.0 --list-different . > /tmp/prettier-different.txt
-          status=$?
-          set -e
-          echo "PRETTIER_DIFFERENT_BEGIN"
-          cat /tmp/prettier-different.txt
-          echo "PRETTIER_DIFFERENT_END status=${status}"
-
-      - name: Upload formatting diagnostic
-        uses: actions/upload-artifact@v7
-        with:
-          name: prettier-diagnostic-${{ github.sha }}
-          path: /tmp/prettier-different.txt
-          if-no-files-found: error
-          retention-days: 1
-
       - name: Test database registry generator
         run: node --test tooling/database-registry/generate.test.mjs
 
