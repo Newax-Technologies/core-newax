@@ -119,7 +119,7 @@ Database rules:
 - `relationship_type` defines direction, such as `parent_of`, `guardian_of`, `spouse_of`, `sibling_of`, or `dependent_of`.
 - `relationship_role` adds human meaning where needed, such as `father`, `mother`, `parent`, or `legal_guardian`.
 - `relationship_basis` records the basis, such as `biological`, `adoptive`, `step`, `legal`, or `declared`.
-- One current active duplicate of the same directed relationship, role, and basis is allowed.
+- At most one active record may express the same directed relationship, role, and basis within one Tenant, even when an end date is scheduled.
 - Validity end dates cannot precede start dates.
 - Verified relationships require a verification time and source; unverified relationships cannot claim a verification actor or time.
 - Active `parent_of` relationships cannot create ancestry cycles, including concurrent writes within the same Tenant.
@@ -179,7 +179,7 @@ Arbitrary person lookup, search, administration, identifiers, contacts, addresse
 
 ## Testing
 
-Unit tests cover:
+Tests cover:
 
 - Permission rejection for organization-wide operations.
 - Person input normalization.
@@ -188,6 +188,8 @@ Unit tests cover:
 - Cross-person identifier conflict handling.
 - Identifier verification and event publication.
 - Person-relationship schema ownership and migration constraint coverage.
+- Successful verified parent-relationship persistence against PostgreSQL.
+- PostgreSQL rejection of self-links, duplicate active links, unverifiable claims, and active parentage cycles.
 - Successful current-person self-profile retrieval without `people.view`.
 - Trusted actor and linked-person UUID integrity.
 - Missing linked-person context.
