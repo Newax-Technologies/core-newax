@@ -1,0 +1,86 @@
+name: Apply People Intake Dashboard Temporary
+
+on:
+  pull_request:
+    types:
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: >-
+      github.head_ref == 'agent/family-intake-verification-dashboard' &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v7
+        with:
+          ref: agent/family-intake-verification-dashboard
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Install existing dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply reviewed backend and dashboard builders
+        run: |
+          python tooling/temp-build-people-intake-backend.py
+          python tooling/temp-build-people-intake-web.py
+
+      - name: Refresh workspace lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Normalize Prisma and repository sources
+        run: |
+          pnpm --filter @newax/api db:format
+          pnpm format
+
+      - name: Run focused verification
+        run: |
+          pnpm --filter @newax/api db:validate
+          pnpm --filter @newax/people-intake typecheck
+          pnpm --filter @newax/people-intake test
+          pnpm --filter @newax/web typecheck
+          pnpm --filter @newax/web test
+          pnpm database-registry:test
+
+      - name: Commit implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md \
+            apps/api/package.json \
+            apps/api/prisma/schema.prisma \
+            apps/api/prisma/migrations/20260716213000_add_people_intake_verification/migration.sql \
+            apps/api/src/app.module.ts \
+            apps/api/src/database/people-intake-database.spec.ts \
+            apps/api/src/database/people-intake-schema.spec.ts \
+            apps/api/src/http-security/http-security-exception.filter.ts \
+            apps/api/src/people-intake \
+            apps/web/.env.example \
+            apps/web/next.config.ts \
+            apps/web/src/app/internal/people-intake \
+            apps/web/src/config/environment.spec.ts \
+            apps/web/src/config/environment.ts \
+            docs/decisions/0025-stage-and-verify-people-intake-before-canonical-application.md \
+            packages/people-intake \
+            pnpm-lock.yaml \
+            registry/module-registry.json \
+            tooling/database-registry/explain.js
+          git commit -m "Build People Intake verification foundation"
+          git push origin HEAD:agent/family-intake-verification-dashboard
