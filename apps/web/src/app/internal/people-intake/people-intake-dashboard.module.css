@@ -183,16 +183,16 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.85rem;
 }
-label {
+.shell label {
   display: grid;
   color: #53646f;
   font-size: 0.78rem;
   font-weight: 750;
   gap: 0.35rem;
 }
-input,
-select,
-textarea {
+.shell input,
+.shell select,
+.shell textarea {
   width: 100%;
   min-height: 44px;
   padding: 0.65rem 0.75rem;
@@ -202,19 +202,19 @@ textarea {
   color: #10202c;
   font: inherit;
 }
-textarea {
+.shell textarea {
   min-height: 110px;
   resize: vertical;
 }
-input:focus,
-select:focus,
-textarea:focus {
+.shell input:focus,
+.shell select:focus,
+.shell textarea:focus {
   outline: 3px solid rgb(41 115 151 / 18%);
   border-color: #297397;
 }
-input:disabled,
-select:disabled,
-textarea:disabled {
+.shell input:disabled,
+.shell select:disabled,
+.shell textarea:disabled {
   background: #eef2f4;
   color: #657680;
 }
@@ -254,7 +254,7 @@ textarea:disabled {
   gap: 0.6rem;
 }
 
-button {
+.shell button {
   min-height: 42px;
   padding: 0.65rem 1rem;
   border: 1px solid #174e6b;
@@ -265,10 +265,10 @@ button {
   font-weight: 800;
   cursor: pointer;
 }
-button:hover:not(:disabled) {
+.shell button:hover:not(:disabled) {
   background: #103b52;
 }
-button:disabled {
+.shell button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -385,7 +385,7 @@ button:disabled {
   border-bottom: 1px solid #e0e6ea;
   gap: 1rem;
 }
-code {
+.shell code {
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 .queueItem {
