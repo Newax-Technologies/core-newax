@@ -6,16 +6,18 @@ const SOURCE_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 
 export function safeJsonForHtml(value) {
   return JSON.stringify(value)
-    .replaceAll('<', '\\u003c')
-    .replaceAll('>', '\\u003e')
-    .replaceAll('&', '\\u0026')
-    .replaceAll('\u2028', '\\u2028')
-    .replaceAll('\u2029', '\\u2029');
+    .replaceAll('<', '\u003c')
+    .replaceAll('>', '\u003e')
+    .replaceAll('&', '\u0026')
+    .replaceAll('\u2028', '\u2028')
+    .replaceAll('\u2029', '\u2029');
 }
 
 export function renderHtml(inventory) {
   const styles = readFileSync(join(SOURCE_DIRECTORY, 'styles.css'), 'utf8');
+  const explanationStyles = readFileSync(join(SOURCE_DIRECTORY, 'explain.css'), 'utf8');
   const client = readFileSync(join(SOURCE_DIRECTORY, 'client.js'), 'utf8');
+  const explanations = readFileSync(join(SOURCE_DIRECTORY, 'explain.js'), 'utf8');
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -23,7 +25,7 @@ export function renderHtml(inventory) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>NEWAX Core Database Registry</title>
-  <style>${styles}</style>
+  <style>${styles}\n${explanationStyles}</style>
 </head>
 <body>
   <header class="hero">
@@ -92,6 +94,7 @@ export function renderHtml(inventory) {
 
   <script id="registry-inventory" type="application/json">${safeJsonForHtml(inventory)}</script>
   <script>${client}</script>
+  <script>${explanations}</script>
 </body>
 </html>\n`;
 }
