@@ -1,64 +1,64 @@
-import { createHash } from "node:crypto";
-import { existsSync, readdirSync } from "node:fs";
-import { join, sep } from "node:path";
+import { createHash } from 'node:crypto';
+import { existsSync, readdirSync } from 'node:fs';
+import { join, sep } from 'node:path';
 
 const SCALAR_TYPES = new Set([
-  "BigInt",
-  "Boolean",
-  "Bytes",
-  "DateTime",
-  "Decimal",
-  "Float",
-  "Int",
-  "Json",
-  "String",
+  'BigInt',
+  'Boolean',
+  'Bytes',
+  'DateTime',
+  'Decimal',
+  'Float',
+  'Int',
+  'Json',
+  'String',
 ]);
-const HTTP_METHODS = new Set(["Get", "Post", "Put", "Patch", "Delete"]);
+const HTTP_METHODS = new Set(['Get', 'Post', 'Put', 'Patch', 'Delete']);
 const EXCLUDED_DIRECTORIES = new Set([
-  ".git",
-  ".next",
-  ".pnpm-store",
-  "build",
-  "coverage",
-  "dist",
-  "generated",
-  "node_modules",
-  "out",
-  "test-results",
+  '.git',
+  '.next',
+  '.pnpm-store',
+  'build',
+  'coverage',
+  'dist',
+  'generated',
+  'node_modules',
+  'out',
+  'test-results',
 ]);
 
 export function normalizePath(path) {
-  return path.split(sep).join("/");
+  return path.split(sep).join('/');
 }
 
 export function sha256(value) {
-  return createHash("sha256").update(value).digest("hex");
+  return createHash('sha256').update(value).digest('hex');
 }
 
 export function titleFromSlug(value) {
   return value
-    .replace(/^\d+_?/, "")
+    .replace(/^\d+_?/, '')
     .split(/[_-]+/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+    .join(' ');
 }
 
 function stripTypeModifiers(type) {
-  return type.replace(/\[\]$/, "").replace(/\?$/, "");
+  return type.replace(/\[\]$/, '').replace(/\?$/, '');
 }
 
 function joinRoute(...segments) {
   const parts = segments
-    .flatMap((part) => String(part ?? "").split("/"))
+    .flatMap((part) => String(part ?? '').split('/'))
     .map((part) => part.trim())
     .filter(Boolean);
-  return `/${parts.join("/")}`;
+  return `/${parts.join('/')}`;
 }
 
 function routeArgument(value) {
   const match = value.match(/^\s*(['"`])([^'"`]*)\1\s*$/);
-  return match?.[2] ?? "";
+  return match?.[2] ?? '';
 }
 
 export function walkFiles(root, predicate) {
@@ -100,39 +100,35 @@ export function parsePrismaSchema(source) {
     const fields = [];
     const indexes = [];
 
-    for (const rawLine of body.split("\n")) {
+    for (const rawLine of body.split('\n')) {
       const line = rawLine.trim();
-      if (!line || line.startsWith("//")) {
+      if (!line || line.startsWith('//')) {
         continue;
       }
-      if (line.startsWith("@@")) {
+      if (line.startsWith('@@')) {
         indexes.push(line);
         continue;
       }
-      if (line.startsWith("@")) {
+      if (line.startsWith('@')) {
         continue;
       }
 
-      const fieldMatch = line.match(
-        /^(\w+)\s+([A-Za-z][A-Za-z0-9_]*(?:\[\])?\??)(?:\s+(.+))?$/,
-      );
+      const fieldMatch = line.match(/^(\w+)\s+([A-Za-z][A-Za-z0-9_]*(?:\[\])?\??)(?:\s+(.+))?$/);
       if (!fieldMatch) {
         continue;
       }
 
-      const [, fieldName, type, attributes = ""] = fieldMatch;
+      const [, fieldName, type, attributes = ''] = fieldMatch;
       const baseType = stripTypeModifiers(type);
-      const columnName =
-        attributes.match(/@map\("([^"]+)"\)/)?.[1] ?? fieldName;
-      const relationName =
-        attributes.match(/@relation\("([^"]+)"/)?.[1] ?? null;
+      const columnName = attributes.match(/@map\("([^"]+)"\)/)?.[1] ?? fieldName;
+      const relationName = attributes.match(/@relation\("([^"]+)"/)?.[1] ?? null;
       fields.push({
         name: fieldName,
         columnName,
         type,
         baseType,
-        optional: type.endsWith("?"),
-        list: type.endsWith("[]"),
+        optional: type.endsWith('?'),
+        list: type.endsWith('[]'),
         scalar: SCALAR_TYPES.has(baseType),
         relation: modelNames.has(baseType),
         relationName,
@@ -154,10 +150,8 @@ export function parsePrismaSchema(source) {
   const relationIndexes = new Map();
   const relations = [];
   for (const model of models) {
-    for (const field of model.fields.filter(
-      (candidate) => candidate.relation,
-    )) {
-      const pair = [model.name, field.baseType].sort().join("::");
+    for (const field of model.fields.filter((candidate) => candidate.relation)) {
+      const pair = [model.name, field.baseType].sort().join('::');
       const key = field.relationName ? `${pair}::${field.relationName}` : pair;
       const relation = {
         source: model.name,
@@ -202,7 +196,7 @@ export function parseModuleRegistry(source) {
     owner: module.module_owner,
     description: module.description,
     dependencies: (module.dependencies ?? []).map((dependency) =>
-      typeof dependency === "string"
+      typeof dependency === 'string'
         ? { key: dependency, version: null }
         : { key: dependency.module_key, version: dependency.version ?? null },
     ),
@@ -211,17 +205,17 @@ export function parseModuleRegistry(source) {
     consumedEvents: module.consumed_events ?? [],
     configurationOptions: module.configuration_options ?? [],
     databaseOwnership: module.database_ownership ?? [],
-    tenantScope: module.tenant_scope ?? "unspecified",
+    tenantScope: module.tenant_scope ?? 'unspecified',
     documentationPath: module.documentation_path ?? null,
     changelogPath: module.changelog_path ?? null,
-    compatibilityNotes: module.compatibility_notes ?? "",
+    compatibilityNotes: module.compatibility_notes ?? '',
     deliveryState:
-      module.module_status === "active"
-        ? "active"
-        : module.module_status === "draft"
-          ? "implemented_draft"
-          : module.module_status === "planned"
-            ? "planned"
+      module.module_status === 'active'
+        ? 'active'
+        : module.module_status === 'draft'
+          ? 'implemented_draft'
+          : module.module_status === 'planned'
+            ? 'planned'
             : module.module_status,
   }));
 
@@ -248,16 +242,14 @@ export function parseModuleRegistry(source) {
 
 export function detectGlobalPrefix(source) {
   const match = source.match(/\.setGlobalPrefix\(\s*(['"`])([^'"`]*)\1\s*\)/);
-  return match?.[2] ?? "";
+  return match?.[2] ?? '';
 }
 
-export function parseControllersFromFiles(files, globalPrefix = "") {
+export function parseControllersFromFiles(files, globalPrefix = '') {
   const endpoints = [];
 
   for (const file of files) {
-    const controllerMatch = file.content.match(
-      /@Controller\(\s*(['"`])([^'"`]*)\1\s*\)/,
-    );
+    const controllerMatch = file.content.match(/@Controller\(\s*(['"`])([^'"`]*)\1\s*\)/);
     if (!controllerMatch) {
       continue;
     }
@@ -272,20 +264,18 @@ export function parseControllersFromFiles(files, globalPrefix = "") {
         continue;
       }
       const suffix = routeArgument(rawPath);
-      const permissions = [
-        ...decoratorBlock.matchAll(/@RequirePermissions\(([^)]*)\)/g),
-      ]
-        .flatMap((permissionMatch) => permissionMatch[1].split(","))
+      const permissions = [...decoratorBlock.matchAll(/@RequirePermissions\(([^)]*)\)/g)]
+        .flatMap((permissionMatch) => permissionMatch[1].split(','))
         .map((permission) => permission.trim())
         .filter(Boolean);
       const httpCode = decoratorBlock.match(/@HttpCode\((\d+)\)/)?.[1];
-      const context = decoratorBlock.includes("@OrganizationContextEndpoint")
-        ? "organization"
-        : decoratorBlock.includes("@AccountContextEndpoint")
-          ? "account"
-          : decoratorBlock.includes("@PublicEndpoint")
-            ? "public"
-            : "unspecified";
+      const context = decoratorBlock.includes('@OrganizationContextEndpoint')
+        ? 'organization'
+        : decoratorBlock.includes('@AccountContextEndpoint')
+          ? 'account'
+          : decoratorBlock.includes('@PublicEndpoint')
+            ? 'public'
+            : 'unspecified';
 
       endpoints.push({
         method: decorator.toUpperCase(),
@@ -294,11 +284,7 @@ export function parseControllersFromFiles(files, globalPrefix = "") {
         handler,
         context,
         permissions,
-        successCode: httpCode
-          ? Number(httpCode)
-          : decorator === "Post"
-            ? 201
-            : 200,
+        successCode: httpCode ? Number(httpCode) : decorator === 'Post' ? 201 : 200,
         sourcePath: file.path,
       });
     }
@@ -326,12 +312,9 @@ export function parseMigrations(entries) {
       const operationCounts = {
         createTable: (entry.content.match(/\bCREATE\s+TABLE\b/gi) ?? []).length,
         alterTable: (entry.content.match(/\bALTER\s+TABLE\b/gi) ?? []).length,
-        createIndex: (
-          entry.content.match(/\bCREATE(?:\s+UNIQUE)?\s+INDEX\b/gi) ?? []
-        ).length,
+        createIndex: (entry.content.match(/\bCREATE(?:\s+UNIQUE)?\s+INDEX\b/gi) ?? []).length,
         dropIndex: (entry.content.match(/\bDROP\s+INDEX\b/gi) ?? []).length,
-        dataBackfill: (entry.content.match(/\bUPDATE\s+["`]?core_/gi) ?? [])
-          .length,
+        dataBackfill: (entry.content.match(/\bUPDATE\s+["`]?core_/gi) ?? []).length,
       };
       return {
         id: entry.id,
@@ -340,7 +323,7 @@ export function parseMigrations(entries) {
         tables: uniqueTables,
         operationCounts,
         checksum: sha256(entry.content),
-        sourceState: "defined_in_repository",
+        sourceState: 'defined_in_repository',
       };
     })
     .sort((left, right) => left.id.localeCompare(right.id));
