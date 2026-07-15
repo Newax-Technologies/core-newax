@@ -96,6 +96,14 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
+  IF NEW."tenant_id" IS DISTINCT FROM OLD."tenant_id"
+    OR NEW."organization_id" IS DISTINCT FROM OLD."organization_id"
+    OR NEW."created_by_user_id" IS DISTINCT FROM OLD."created_by_user_id"
+  THEN
+    RAISE EXCEPTION 'People Intake ownership is immutable'
+      USING ERRCODE = '23514';
+  END IF;
+
   IF OLD."status" IN ('approved', 'rejected') THEN
     RAISE EXCEPTION 'Reviewed People Intake records are immutable'
       USING ERRCODE = '23514';
@@ -112,15 +120,12 @@ BEGIN
   END IF;
 
   IF OLD."status" <> 'draft' AND (
-    NEW."tenant_id" IS DISTINCT FROM OLD."tenant_id"
-    OR NEW."organization_id" IS DISTINCT FROM OLD."organization_id"
-    OR NEW."title" IS DISTINCT FROM OLD."title"
+    NEW."title" IS DISTINCT FROM OLD."title"
     OR NEW."source_type" IS DISTINCT FROM OLD."source_type"
     OR NEW."source_reference" IS DISTINCT FROM OLD."source_reference"
     OR NEW."payload" IS DISTINCT FROM OLD."payload"
     OR NEW."person_count" IS DISTINCT FROM OLD."person_count"
     OR NEW."relationship_count" IS DISTINCT FROM OLD."relationship_count"
-    OR NEW."created_by_user_id" IS DISTINCT FROM OLD."created_by_user_id"
   ) THEN
     RAISE EXCEPTION 'Submitted People Intake content is immutable'
       USING ERRCODE = '23514';
