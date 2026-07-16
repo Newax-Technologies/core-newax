@@ -76,9 +76,7 @@ test('identifies the common ancestor across the current and existing ledger occu
 
   assert.equal(context.primaryCommonAncestorId, 'cause:ROOT-DEPENDENCY-LOCKFILE-OUTDATED');
   assert.deepEqual(context.relatedIssueNumbers, [10]);
-  assert.deepEqual(context.lowestCommonAncestorIds, [
-    'cause:ROOT-DEPENDENCY-LOCKFILE-OUTDATED',
-  ]);
+  assert.deepEqual(context.lowestCommonAncestorIds, ['cause:ROOT-DEPENDENCY-LOCKFILE-OUTDATED']);
   assert.ok(context.rootAncestorIds.includes('cause:ROOT-DEPENDENCY-LOCKFILE-OUTDATED'));
 });
 
@@ -92,7 +90,10 @@ test('renders durable graph metadata and verified chains', () => {
   assert.match(section, /Nearest verified common ancestor/);
   assert.match(section, /Verified causal chains/);
   assert.match(section, /Deployment blocked/);
-  assert.equal(impactNodeIdForEvent(current, 'deployment-blocked').includes('deployment-blocked'), true);
+  assert.equal(
+    impactNodeIdForEvent(current, 'deployment-blocked').includes('deployment-blocked'),
+    true,
+  );
 });
 
 test('replaces an existing graph section without duplicating it', () => {
