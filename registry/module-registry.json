@@ -1,9 +1,9 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.16",
+  "registry_version": "0.1.17",
   "registry_status": "draft",
-  "last_updated": "2026-07-15",
+  "last_updated": "2026-07-16",
   "owner": "NEWAX Engineering",
   "purpose": "Internal source of truth for planned, draft, active, deprecated, replaced, and archived NEWAX modules.",
   "governance": {
@@ -65,6 +65,56 @@
       "documentation_path": "packages/people/README.md",
       "changelog_path": "packages/people/CHANGELOG.md",
       "compatibility_notes": "Shared identity and relationship foundation. Domain modules must reference people through person_id, keep CNIC and CRC values in person identifiers, and use governed relationship records instead of duplicating parent, guardian, spouse, sibling, or dependent names."
+    },
+    {
+      "module_name": "People Intake",
+      "module_key": "people-intake",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "draft",
+      "module_owner": "NEWAX Engineering",
+      "description": "Stages and independently verifies proposed people, identifiers, and person relationships before canonical People Registry application.",
+      "dependencies": [
+        {
+          "module_key": "tenants",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "organizations",
+          "version": ">=0.2.0"
+        },
+        {
+          "module_key": "people",
+          "version": ">=0.2.0"
+        },
+        {
+          "module_key": "users",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "audit",
+          "version": ">=0.1.0"
+        }
+      ],
+      "required_permissions": [
+        "people_intake.view",
+        "people_intake.create",
+        "people_intake.update",
+        "people_intake.submit",
+        "people_intake.review"
+      ],
+      "exposed_events": [],
+      "consumed_events": [],
+      "configuration_options": [
+        "people_intake_max_people",
+        "people_intake_max_relationships",
+        "people_intake_review_policy"
+      ],
+      "database_ownership": ["core_people_intakes"],
+      "tenant_scope": "organization_scoped_staging",
+      "documentation_path": "packages/people-intake/README.md",
+      "changelog_path": "packages/people-intake/CHANGELOG.md",
+      "compatibility_notes": "Draft and reviewed intake records are not canonical People Registry records. Applying an approved intake remains a separate controlled capability."
     },
     {
       "module_name": "Organizations",

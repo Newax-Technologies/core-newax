@@ -36,6 +36,12 @@
       'people',
     ],
 
+    CorePeopleIntake: [
+      'People intake',
+      'A versioned draft and independent-review record for proposed people, identifiers, and relationships before canonical application.',
+      'A family certificate entered as a draft, submitted for checking, and approved or rejected without creating people yet.',
+      'people-intake',
+    ],
     CorePersonRelationship: [
       'Person relationship',
       'A governed connection between two real people, stored once without copying either person or their official identifiers.',
