@@ -51,7 +51,10 @@ const focusNodeIds =
     ? Array.isArray(input.focusNodeIds)
       ? input.focusNodeIds
       : []
-    : argumentsMap.focus.split(',').map((value) => value.trim()).filter(Boolean);
+    : argumentsMap.focus
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
 const analysis = analyzeErrorRelationshipGraph(graph, focusNodeIds, {
   verifiedOnly: argumentsMap['include-candidates'] !== 'true',
 });
