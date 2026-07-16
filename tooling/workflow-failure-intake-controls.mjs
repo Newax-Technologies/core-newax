@@ -5,12 +5,7 @@ import { fileURLToPath } from 'node:url';
 const CURRENT_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 const WORKFLOW_DIRECTORY = resolve(CURRENT_DIRECTORY, '../.github/workflows');
 const INTAKE_FILENAME = 'engineering-failure-intake.yml';
-const EXEMPT_FILENAMES = new Set([
-  INTAKE_FILENAME,
-  'engineering-external-intake.yml',
-  'engineering-failure-audit.yml',
-  'engineering-issue-normalization.yml',
-]);
+const EXEMPT_FILENAMES = new Set([INTAKE_FILENAME]);
 
 export const MAX_CLASSIFICATION_LOG_CHARACTERS = 2_000_000;
 
@@ -144,5 +139,5 @@ if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(
     process.exit(1);
   }
 
-  console.log('Every non-exempt GitHub Actions workflow is covered by failure intake.');
+  console.log('Every GitHub Actions workflow except the intake workflow itself is covered.');
 }
