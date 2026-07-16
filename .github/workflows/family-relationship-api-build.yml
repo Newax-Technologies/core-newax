@@ -88,19 +88,33 @@ jobs:
       - name: Apply migrations
         run: pnpm --filter @newax/api db:migrate:deploy
 
-      - name: Verify focused slice
+      - name: Verify formatting
+        run: pnpm format:check
+
+      - name: Verify lint
+        run: pnpm lint
+
+      - name: Type-check People module
+        run: pnpm --filter @newax/people typecheck
+
+      - name: Test People module
+        run: pnpm --filter @newax/people test
+
+      - name: Type-check API
+        run: pnpm --filter @newax/api typecheck
+
+      - name: Test focused API and PostgreSQL behavior
         run: |
-          pnpm format:check
-          pnpm lint
-          pnpm --filter @newax/people typecheck
-          pnpm --filter @newax/people test
-          pnpm --filter @newax/api typecheck
           pnpm --filter @newax/api exec vitest run \
             src/people/current-organization-family-relationships.input.spec.ts \
             src/database/person-relationship-operations-schema.spec.ts \
             src/database/person-relationship-operations-database.spec.ts
-          pnpm database-registry:test
-          pnpm --filter @newax/api build
+
+      - name: Test database registry generator
+        run: pnpm database-registry:test
+
+      - name: Build API
+        run: pnpm --filter @newax/api build
 
       - name: Commit implementation
         run: |
