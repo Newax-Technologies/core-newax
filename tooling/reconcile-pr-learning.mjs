@@ -114,7 +114,7 @@ async function listPullRequestRuns(pullRequestNumber) {
 }
 
 async function listPullRequestLearningIssues(pullRequestNumber) {
-  const issues = await listAll('/issues?state=all&labels=engineering-learning');
+  const issues = await listAll('/issues?state=all');
   return issues.filter((issue) => {
     if (issue.pull_request !== undefined) {
       return false;
