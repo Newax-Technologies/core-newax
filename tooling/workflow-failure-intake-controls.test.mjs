@@ -23,10 +23,7 @@ test('creates a safe symptom without copying raw logs', () => {
     workflowName: 'Continuous Integration',
     jobName: 'Verify monorepo',
     stepName: 'Install dependencies',
-    matchedSignatures: [
-      'ERR_PNPM_OUTDATED_LOCKFILE',
-      'ERR_PNPM_OUTDATED_LOCKFILE',
-    ],
+    matchedSignatures: ['ERR_PNPM_OUTDATED_LOCKFILE', 'ERR_PNPM_OUTDATED_LOCKFILE'],
   });
 
   assert.equal(
@@ -48,7 +45,9 @@ test('extracts quoted and unquoted workflow names', () => {
 });
 
 test('extracts the workflow_run monitoring list', () => {
-  const names = extractMonitoredWorkflowNames(`on:\n  workflow_run:\n    workflows:\n      - Continuous Integration\n      - 'Database Registry Map'\n    types:\n      - completed\n`);
+  const names = extractMonitoredWorkflowNames(
+    `on:\n  workflow_run:\n    workflows:\n      - Continuous Integration\n      - 'Database Registry Map'\n    types:\n      - completed\n`,
+  );
 
   assert.deepEqual(names, ['Continuous Integration', 'Database Registry Map']);
 });
