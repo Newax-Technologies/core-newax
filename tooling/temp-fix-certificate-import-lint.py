@@ -52,6 +52,12 @@ repository = replace_once(
 )
 repository = replace_once(
     repository,
+    '              payload,\n              personCount: payload.people.length,',
+    '              payload: payload as unknown as Prisma.InputJsonValue,\n              personCount: payload.people.length,',
+    'Prisma JSON payload conversion',
+)
+repository = replace_once(
+    repository,
     '  private evidence(record: any): EvidenceFileSummary {',
     '  private evidence(record: EvidenceWithFileAndImport): EvidenceFileSummary {',
     'repository evidence payload type',
