@@ -51,8 +51,7 @@ if (input === undefined || input === null || typeof input !== 'object' || Array.
   throw new TypeError('Provide one root-cause evidence object through --file, --json, or stdin.');
 }
 
-const catalog =
-  argumentsMap.catalog === undefined ? loadCatalog() : readJson(argumentsMap.catalog);
+const catalog = argumentsMap.catalog === undefined ? loadCatalog() : readJson(argumentsMap.catalog);
 const assessment = analyzeRootCause(input, catalog);
 const comparison =
   argumentsMap.compare === undefined
