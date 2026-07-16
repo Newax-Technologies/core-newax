@@ -223,11 +223,7 @@
       "category": "unit-integration-tests",
       "confidence": "high",
       "deterministic": false,
-      "signatures": [
-        "nearest common ancestor",
-        "canonical common root",
-        "lowestCommonAncestorIds"
-      ],
+      "signatures": ["nearest common ancestor", "canonical common root", "lowestCommonAncestorIds"],
       "rootCause": "A relationship-graph test treated the nearest shared predecessor and the original shared root cause as the same graph level.",
       "unsuccessfulMethod": "Use one expected ancestor value for nearest-common-ancestor and common-root-ancestor assertions.",
       "successfulMethod": "Build a multi-level causal chain and assert nearest and canonical-root ancestry independently.",
