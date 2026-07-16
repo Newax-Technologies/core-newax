@@ -20,14 +20,23 @@ function fail(messages) {
   process.exit(1);
 }
 
+function parseLastField(body, label) {
+  const matches = String(body ?? '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith(label));
+  const last = matches.at(-1);
+  return last === undefined ? null : last.slice(label.length).trim().replaceAll('`', '');
+}
+
 function parseResolution(body) {
   return {
-    confirmedRootCause: parsePullRequestField(body, '- Confirmed root cause:'),
-    fixCommit: parsePullRequestField(body, '- Fix commit:'),
-    resolutionStatus: parsePullRequestField(body, '- Resolution status:'),
-    reviewerConfirmation: parsePullRequestField(body, '- Reviewer confirmation:'),
-    rootCauseStatus: parsePullRequestField(body, '- Root-cause status:'),
-    successfulVerification: parsePullRequestField(body, '- Successful verification:'),
+    confirmedRootCause: parseLastField(body, '- Confirmed root cause:'),
+    fixCommit: parseLastField(body, '- Fix commit:'),
+    resolutionStatus: parseLastField(body, '- Resolution status:'),
+    reviewerConfirmation: parseLastField(body, '- Reviewer confirmation:'),
+    rootCauseStatus: parseLastField(body, '- Root-cause status:'),
+    successfulVerification: parseLastField(body, '- Successful verification:'),
   };
 }
 
@@ -35,7 +44,7 @@ async function validateConfirmedResolution(issue, pullRequestCommitShas, errors)
   const resolution = parseResolution(issue.body ?? '');
 
   if (resolution.rootCauseStatus !== 'confirmed') {
-    errors.push(`Issue #${issue.number} does not mark its root cause as confirmed.`);
+    errors.push(`Issue #${issue.number} does not mark its final root cause as confirmed.`);
   }
   if (
     resolution.confirmedRootCause === null ||
@@ -337,8 +346,11 @@ for (const learningIssueNumber of learningIssueNumbers) {
   const catalogEntry = catalog.rootCauses.find(
     (rootCause) => rootCause.id === metadata['root-cause-id'],
   );
-  if (catalogEntry === undefined && !metadata['root-cause-id'].startsWith('ROOT-UNCLASSIFIED-')) {
+  if (catalogEntry === undefined) {
     errors.push(`Issue #${learningIssueNumber} root-cause ID is absent from the catalog.`);
+  }
+  if (metadata['root-cause-id'].startsWith('ROOT-UNCLASSIFIED-')) {
+    errors.push(`Issue #${learningIssueNumber} still has an unclassified root cause.`);
   }
 
   if (metadata['root-cause-status'] === 'machine-supported') {
