@@ -243,6 +243,20 @@ test('receiver accepts one signed event and rejects an invalid signature', async
   }
 });
 
+test('browser reporter rejects cross-origin relay endpoints', () => {
+  const windowObject = { location: { href: 'https://app.example.test/page' } };
+
+  assert.throws(
+    () =>
+      createBrowserEngineeringReporter({
+        endpoint: 'https://collector.example.test/engineering-events',
+        windowObject,
+        fetchImplementation: async () => ({ ok: true }),
+      }),
+    /same-origin endpoint/,
+  );
+});
+
 test('browser reporter sends sanitized same-origin payloads without repository credentials', async () => {
   const requests = [];
   const listeners = new Map();
