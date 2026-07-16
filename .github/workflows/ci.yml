@@ -68,7 +68,25 @@ jobs:
         run: pnpm --filter @newax/api exec prisma migrate status
 
       - name: Check formatting
+        id: formatting
         run: pnpm format:check
+
+      - name: Prepare formatter-corrected diagnostic
+        if: failure() && steps.formatting.outcome == 'failure'
+        run: |
+          pnpm format
+          git diff --name-only --diff-filter=ACM > /tmp/formatted-files.txt
+          test -s /tmp/formatted-files.txt
+          tar -czf "formatted-source-${GITHUB_SHA}.tar.gz" -T /tmp/formatted-files.txt
+
+      - name: Upload formatter-corrected diagnostic
+        if: failure() && steps.formatting.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: formatted-source-${{ github.sha }}
+          path: formatted-source-${{ github.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Lint
         run: pnpm lint
