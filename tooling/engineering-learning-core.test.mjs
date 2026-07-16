@@ -63,6 +63,31 @@ test('normalization removes volatile identifiers from fingerprints', () => {
   assert.equal(first, second);
 });
 
+test('normalization redacts secret assignments before storing evidence', () => {
+  const normalized = normalizeText('Request failed with token=supersecretvalue and status 401.');
+
+  assert.equal(normalized, 'Request failed with token=<redacted> and status 401.');
+  assert.equal(normalized.includes('supersecretvalue'), false);
+});
+
+test('engineering events redact secrets from metadata and method fields', () => {
+  const event = createEngineeringEvent({
+    sourceType: 'external-tool',
+    sourceId: 'operation password=hunter2',
+    stepName: 'Deploy with api_key=secretvalue',
+    logText: 'Unknown external failure.',
+    unsuccessfulMethod: 'Retried with token=privatevalue',
+    successfulMethod: 'Removed password=anothersecret',
+    preventionControl: 'Never persist secret=hiddenvalue',
+  });
+
+  assert.equal(event.sourceId, 'operation password=<redacted>');
+  assert.equal(event.stepName, 'Deploy with api_key=<redacted>');
+  assert.equal(event.unsuccessfulMethod, 'Retried with token=<redacted>');
+  assert.equal(event.successfulMethod, 'Removed password=<redacted>');
+  assert.equal(event.preventionControl, 'Never persist secret=<redacted>');
+});
+
 test('creates stable machine-readable issue metadata', () => {
   const event = createEngineeringEvent({
     sourceType: 'ci-workflow',
