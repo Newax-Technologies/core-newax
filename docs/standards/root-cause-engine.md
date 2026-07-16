@@ -17,7 +17,7 @@ The engine must:
 - Preserve competing hypotheses.
 - Promote only deterministic, contradiction-free evidence to `machine-supported`.
 - Keep heuristic or ambiguous assessments as `candidate`.
-- Decide whether two occurrences are identical, share a classified root cause, are unrelated, or lack enough evidence.
+- Decide whether two occurrences are identical, share a verified root cause, are verified as unrelated, or lack enough evidence.
 - Verify that a written resolution is consistent with the selected cause and supporting records.
 - Block `Learning outcome: none` when observable failure evidence exists.
 
@@ -83,17 +83,17 @@ Fingerprint, source occurrence, and pull-request context are identical.
 
 ### Shared root cause
 
-Both occurrences carry the same classified root-cause ID.
+Both occurrences carry the same classified root-cause ID and both are `confirmed` or `machine-supported`.
 
 ### Unrelated
 
-Both occurrences have classified but different root-cause IDs.
+Both occurrences carry different classified root-cause IDs and both are `confirmed` or `machine-supported`.
 
 ### Insufficient evidence
 
-One or both occurrences remain unclassified. A shared category or similar wording is not sufficient to merge them.
+One or both occurrences remain unclassified or candidate. A shared category, similar wording, or matching unverified catalog ID is not sufficient to merge them. Different candidate IDs are also not sufficient to declare the occurrences unrelated.
 
-This prevents unrelated `ROOT-UNCLASSIFIED-UNKNOWN` issues from being grouped merely because the machine lacked evidence for both.
+This prevents unrelated `ROOT-UNCLASSIFIED-UNKNOWN` issues from being grouped merely because the machine lacked evidence for both, and it prevents unconfirmed guesses from becoming recurrence facts.
 
 ## Written explanation verification
 
@@ -102,6 +102,7 @@ The explanation verifier checks:
 - The written root-cause ID matches the selected hypothesis.
 - `machine-supported` is used only with deterministic evidence and no contradiction.
 - `confirmed` includes a specific cause, verified resolution, fix reference, successful verification, and reviewer confirmation.
+- An ambiguous hypothesis cannot be confirmed until the competing cause is resolved.
 - Referenced evidence exists when an evidence inventory is supplied.
 - Unknown causes are not presented as confirmed.
 
@@ -159,7 +160,7 @@ The verifier checks:
 - Catalog membership.
 - Root-cause status consistency.
 - Confirmed resolution evidence.
-- Machine-supported decision requirements.
+- Deterministic catalog status and complete signature evidence for `machine-supported` decisions.
 
 Candidate pull requests cannot weaken this control because governance executes from the protected base.
 
@@ -182,6 +183,17 @@ Each root cause must define:
 - Prevention control.
 
 Invalid or duplicate catalog records fail analysis rather than silently producing unstable classifications.
+
+## Internal boundaries
+
+The engine is separated into:
+
+- Hypothesis analysis.
+- Occurrence relationships.
+- Explanation and learning-outcome verification.
+- A stable public index consumed by existing tooling.
+
+This keeps scoring, recurrence, and governance rules independently reviewable while preserving the repository's existing import surface.
 
 ## Limitations
 
