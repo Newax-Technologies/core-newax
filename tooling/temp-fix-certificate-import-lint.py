@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -6,6 +7,13 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     if count != 1:
         raise SystemExit(f'{label}: expected one match, found {count}')
     return text.replace(old, new, 1)
+
+
+def replace_pattern_once(text: str, pattern: str, replacement: str, label: str) -> str:
+    updated, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
+    if count != 1:
+        raise SystemExit(f'{label}: expected one match, found {count}')
+    return updated
 
 
 types_path = Path('packages/people-intake/src/types/certificate-import.ts')
@@ -50,10 +58,10 @@ repository = replace_once(
     "import type { Prisma } from '../generated/prisma/client';\nimport { PrismaService } from '../database/prisma.service';\n\ntype EvidenceWithFileAndImport = Prisma.CorePeopleIntakeEvidenceGetPayload<{\n  include: { file: true; certificateImports: true };\n}>;\n\ntype ImportWithEvidenceAndIntake = Prisma.CoreCertificateImportGetPayload<{\n  include: { evidence: { include: { intake: true } } };\n}>;",
     'Prisma payload aliases',
 )
-repository = replace_once(
+repository = replace_pattern_once(
     repository,
-    '              payload,\n              personCount: payload.people.length,',
-    '              payload: payload as unknown as Prisma.InputJsonValue,\n              personCount: payload.people.length,',
+    r'^(\s*)payload,\n(\s*)personCount: payload\.people\.length,',
+    r'\1payload: payload as unknown as Prisma.InputJsonValue,\n\2personCount: payload.people.length,',
     'Prisma JSON payload conversion',
 )
 repository = replace_once(
