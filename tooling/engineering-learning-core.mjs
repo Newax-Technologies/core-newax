@@ -8,6 +8,7 @@ const CATALOG_PATH = resolve(
   CURRENT_DIRECTORY,
   '../docs/verification/engineering-learning-catalog.json',
 );
+const ANSI_COLOR_PATTERN = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g');
 
 export const FAILURE_CONCLUSIONS = new Set(['action_required', 'failure', 'timed_out']);
 
@@ -17,7 +18,7 @@ export function loadCatalog(path = CATALOG_PATH) {
 
 export function normalizeText(value) {
   return String(value ?? '')
-    .replaceAll(/\u001b\[[0-9;]*m/g, '')
+    .replaceAll(ANSI_COLOR_PATTERN, '')
     .replaceAll(/\b[0-9a-f]{40}\b/gi, '<sha>')
     .replaceAll(/\b[0-9a-f]{7,64}\b/gi, '<hex>')
     .replaceAll(/\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\b/g, '<timestamp>')
