@@ -204,6 +204,18 @@
       "unsuccessfulMethod": "Trust a prose intention without checking the actual action recipient immediately before execution.",
       "successfulMethod": "Use an explicit operation-intent record and invoke only the action whose target type, identifier, and postcondition match it.",
       "preventionControl": "Every mutation requires an executable target-action precondition and postcondition record; a mismatch blocks the action."
+    },
+    {
+      "id": "ROOT-GITHUB-STALE-CONTENT-SHA",
+      "ledgerEntry": "EL-0021",
+      "category": "github-tool-operation",
+      "confidence": "high",
+      "deterministic": true,
+      "signatures": ["does not match", "content sha", "409"],
+      "rootCause": "A sequential file update or delete used a stale blob SHA instead of the current file version.",
+      "unsuccessfulMethod": "Reuse a previously captured blob SHA after the same path has changed.",
+      "successfulMethod": "Fetch the target file immediately before the mutation and use its current blob SHA.",
+      "preventionControl": "A 409 conflict stops the write sequence; current file state and SHA must be refreshed before retry."
     }
   ]
 }
