@@ -69,10 +69,7 @@ for (const field of REQUIRED_FIELDS) {
 
 const learningOutcome = extractField(body, '- Learning outcome:');
 const ledgerEntry = extractField(body, '- Ledger entry:');
-const ledgerConsulted = extractField(
-  body,
-  '- Ledger consulted before implementation:',
-);
+const ledgerConsulted = extractField(body, '- Ledger consulted before implementation:');
 const sourceSelfReference = extractField(
   body,
   '- Source file contains the workflow run that verifies itself:',
