@@ -9,9 +9,7 @@ import {
 import { parseMetadata, toOptionalInteger } from './engineering-learning-core.mjs';
 
 export function parseErrorGraphMetadata(body) {
-  const match = String(body ?? '').match(
-    /<!-- newax-error-relationship-graph\n([\s\S]*?)\n-->/,
-  );
+  const match = String(body ?? '').match(/<!-- newax-error-relationship-graph\n([\s\S]*?)\n-->/);
   if (match === null) {
     return {};
   }
