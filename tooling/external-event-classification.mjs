@@ -27,10 +27,7 @@ export function applyExternalSourceClassification(baseEvent, sourceType, summary
     return baseEvent;
   }
 
-  const [category, rootCauseSuffix] = SOURCE_CLASSIFICATIONS[sourceType] ?? [
-    'unknown',
-    'UNKNOWN',
-  ];
+  const [category, rootCauseSuffix] = SOURCE_CLASSIFICATIONS[sourceType] ?? ['unknown', 'UNKNOWN'];
   const classification = {
     category,
     rootCauseId: `ROOT-UNCLASSIFIED-${rootCauseSuffix}`,
