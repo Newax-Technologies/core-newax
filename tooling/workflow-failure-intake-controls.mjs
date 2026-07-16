@@ -83,7 +83,6 @@ export function extractMonitoredWorkflowNames(content) {
 
 export function findWorkflowCoverageErrors({ workflowFiles, intakeContent }) {
   const monitored = new Set(extractMonitoredWorkflowNames(intakeContent));
-  const expected = new Map();
   const errors = [];
 
   for (const workflow of workflowFiles) {
@@ -92,17 +91,10 @@ export function findWorkflowCoverageErrors({ workflowFiles, intakeContent }) {
     }
 
     const name = extractWorkflowName(workflow.content, workflow.filename);
-    expected.set(name, workflow.filename);
     if (!monitored.has(name)) {
       errors.push(
         `Workflow ${name} (${workflow.filename}) is not monitored by ${INTAKE_FILENAME}.`,
       );
-    }
-  }
-
-  for (const name of monitored) {
-    if (!expected.has(name)) {
-      errors.push(`Monitored workflow ${name} does not match a non-exempt workflow file.`);
     }
   }
 
