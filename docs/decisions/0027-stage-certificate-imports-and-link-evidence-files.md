@@ -74,9 +74,9 @@ Acceptance requires:
 
 ## Acceptance evidence
 
-The implementation was first verified at implementation commit `b74fce3163135a00a025a7e9483949ee734b9f17` and the final documentation-complete feature head is `fb13fbe6f85bab1a07af9389c1c3c800c6e465b8`.
+The final feature head is `c8448a7bbee8e1b0d855593a73f9283456a65054`.
 
-- Continuous Integration run 614 (`29500544608`) passed against the final head: dependency installation, Prisma validation, all migrations, migration-status verification, formatting, lint, strict type-check, complete tests, and production builds.
-- Database Registry Map run 159 (`29500544657`) passed against the same final head: generator tests, publishable inventory generation, contract validation, and review-artifact creation.
+- Continuous Integration run 615 (`29500888146`) passed against the final head: dependency installation, Prisma validation, all migrations, migration-status verification, formatting, lint, strict type-check, complete tests, and production builds.
+- Database Registry Map run 160 (`29500888172`) passed against the same final head: generator tests, publishable inventory generation, contract validation, and review-artifact creation.
 - No temporary construction workflows or scripts remain in the feature diff.
 - No unresolved review thread or known implementation issue remains.
