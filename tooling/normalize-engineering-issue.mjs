@@ -8,6 +8,7 @@ import {
   renderIssueBody,
 } from './engineering-learning-core.mjs';
 import { applyExternalSourceClassification } from './external-event-classification.mjs';
+import { sanitizeEngineeringEvidence } from './sanitize-engineering-evidence.mjs';
 
 const SOURCE_TYPES = {
   'Communication or polling': 'communication',
@@ -51,7 +52,7 @@ if (!issue.title.startsWith('[Engineering learning]')) {
 const sourceLabel = readSection(issue.body, 'Source type');
 const sourceType = SOURCE_TYPES[sourceLabel] ?? 'manual';
 const symptom = readSection(issue.body, 'Exact symptom or mistake');
-const evidence = readSection(issue.body, 'Evidence');
+const evidence = sanitizeEngineeringEvidence(readSection(issue.body, 'Evidence'));
 const rootCauseCandidate = readSection(issue.body, 'Root-cause candidate');
 const unsuccessfulMethod = readSection(issue.body, 'Unsuccessful method');
 const successfulMethod = readSection(issue.body, 'Successful method');
@@ -81,7 +82,7 @@ const baseEvent = createEngineeringEvent({
 const learningEvent = {
   ...applyExternalSourceClassification(baseEvent, sourceType, symptom),
   rootCauseCandidate:
-    rootCauseCandidate ||
+    sanitizeEngineeringEvidence(rootCauseCandidate) ||
     'The issue records a candidate cause that requires evidence-backed confirmation.',
 };
 
