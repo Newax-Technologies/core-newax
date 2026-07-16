@@ -3,28 +3,12 @@ import { readFileSync } from 'node:fs';
 import {
   appendLocalEvent,
   createEngineeringEvent,
-  createFingerprint,
   createOrUpdateLearningIssue,
 } from './engineering-learning-core.mjs';
-
-const SOURCE_CLASSIFICATIONS = {
-  communication: {
-    category: 'process-communication-polling',
-    rootCauseId: 'ROOT-UNCLASSIFIED-PROCESS_COMMUNICATION_POLLING',
-  },
-  'external-tool': {
-    category: 'external-tool-operation',
-    rootCauseId: 'ROOT-UNCLASSIFIED-EXTERNAL_TOOL_OPERATION',
-  },
-  manual: {
-    category: 'unknown',
-    rootCauseId: 'ROOT-UNCLASSIFIED-UNKNOWN',
-  },
-  planning: {
-    category: 'planning-decision-quality',
-    rootCauseId: 'ROOT-UNCLASSIFIED-PLANNING_DECISION_QUALITY',
-  },
-};
+import {
+  EXTERNAL_EVENT_SOURCE_TYPES,
+  applyExternalSourceClassification,
+} from './external-event-classification.mjs';
 
 function parseArguments(values) {
   const result = {};
@@ -69,7 +53,7 @@ const sourceType = payload.source_type ?? payload.sourceType ?? 'manual';
 if (summary === undefined || String(summary).trim().length === 0) {
   throw new Error('A non-empty --summary or dispatched summary is required.');
 }
-if (!['communication', 'external-tool', 'local-command', 'manual', 'planning'].includes(sourceType)) {
+if (!EXTERNAL_EVENT_SOURCE_TYPES.has(sourceType)) {
   throw new Error(`Unsupported engineering event source type: ${sourceType}.`);
 }
 
@@ -95,27 +79,7 @@ const baseEvent = createEngineeringEvent({
   preventionControl: payload.prevention_control ?? payload.preventionControl,
   evidenceUrls,
 });
-
-const externalClassification = SOURCE_CLASSIFICATIONS[sourceType];
-const learningEvent =
-  externalClassification === undefined
-    ? baseEvent
-    : {
-        ...baseEvent,
-        ...externalClassification,
-        fingerprint: createFingerprint({
-          classification: externalClassification,
-          workflowName: baseEvent.workflowName,
-          jobName: baseEvent.jobName,
-          stepName: baseEvent.stepName,
-          logText: summary,
-        }),
-        rootCauseCandidate:
-          'The source category is known, but the true root cause requires evidence-backed confirmation.',
-        rootCauseConfidence: 'low',
-        rootCauseDeterministic: false,
-        status: 'candidate',
-      };
+const learningEvent = applyExternalSourceClassification(baseEvent, sourceType, summary);
 
 if (process.env.GITHUB_TOKEN !== undefined && process.env.GITHUB_REPOSITORY !== undefined) {
   const result = await createOrUpdateLearningIssue(learningEvent);
