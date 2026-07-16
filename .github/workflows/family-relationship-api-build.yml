@@ -56,7 +56,28 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply reviewed family relationship patch
-        run: python tooling/temp-build-family-relationship-api.py
+        id: patch
+        continue-on-error: true
+        run: |
+          set +e
+          python tooling/temp-build-family-relationship-api.py > /tmp/family-relationship-patch.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/family-relationship-patch.log
+          exit "$status"
+
+      - name: Upload patch diagnostic
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: family-relationship-patch-${{ github.sha }}
+          path: /tmp/family-relationship-patch.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce patch result
+        if: steps.patch.outcome == 'failure'
+        run: exit 1
 
       - name: Generate and normalize
         run: |
