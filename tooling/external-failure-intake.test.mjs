@@ -56,10 +56,7 @@ test('rejects unsupported source types and abbreviated commit SHAs', () => {
 
 test('classifies command wrappers by the tool that actually failed', () => {
   assert.equal(classifyCommandSource('pnpm', ['install']), 'package-manager');
-  assert.equal(
-    classifyCommandSource('pnpm', ['--filter', '@newax/api', 'db:migrate']),
-    'database',
-  );
+  assert.equal(classifyCommandSource('pnpm', ['--filter', '@newax/api', 'db:migrate']), 'database');
   assert.equal(classifyCommandSource('pnpm', ['dev']), 'development-server');
   assert.equal(classifyCommandSource('next', ['build']), 'build-tool');
   assert.equal(classifyCommandSource('pnpm', ['lint']), 'local-verification');
@@ -127,14 +124,8 @@ test('records only actual performance regressions', () => {
 
 test('parses object, array, and NDJSON event input', () => {
   assert.equal(parseEngineeringEventInput('{"summary":"one"}').length, 1);
-  assert.equal(
-    parseEngineeringEventInput('[{"summary":"one"},{"summary":"two"}]').length,
-    2,
-  );
-  assert.equal(
-    parseEngineeringEventInput('{"summary":"one"}\n{"summary":"two"}').length,
-    2,
-  );
+  assert.equal(parseEngineeringEventInput('[{"summary":"one"},{"summary":"two"}]').length, 2);
+  assert.equal(parseEngineeringEventInput('{"summary":"one"}\n{"summary":"two"}').length, 2);
 });
 
 test('authenticates server-to-server intake and rejects stale or changed requests', () => {
@@ -197,33 +188,27 @@ test('receiver accepts one signed event and rejects an invalid signature', async
   const signature = createEngineeringIngestSignature(secret, rawBody, nowSeconds);
 
   try {
-    const acceptedResponse = await fetch(
-      `http://127.0.0.1:${address.port}/engineering-events`,
-      {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-newax-event-timestamp': String(nowSeconds),
-          'x-newax-event-signature': `sha256=${signature}`,
-        },
-        body: rawBody,
+    const acceptedResponse = await fetch(`http://127.0.0.1:${address.port}/engineering-events`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-newax-event-timestamp': String(nowSeconds),
+        'x-newax-event-signature': `sha256=${signature}`,
       },
-    );
+      body: rawBody,
+    });
     assert.equal(acceptedResponse.status, 202);
     assert.equal(accepted.length, 1);
 
-    const rejectedResponse = await fetch(
-      `http://127.0.0.1:${address.port}/engineering-events`,
-      {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-newax-event-timestamp': String(nowSeconds),
-          'x-newax-event-signature': `sha256=${'0'.repeat(64)}`,
-        },
-        body: rawBody,
+    const rejectedResponse = await fetch(`http://127.0.0.1:${address.port}/engineering-events`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-newax-event-timestamp': String(nowSeconds),
+        'x-newax-event-signature': `sha256=${'0'.repeat(64)}`,
       },
-    );
+      body: rawBody,
+    });
     assert.equal(rejectedResponse.status, 401);
     assert.equal(accepted.length, 1);
   } finally {
