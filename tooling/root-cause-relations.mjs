@@ -76,8 +76,7 @@ export function compareRootCauseOccurrences(currentValue, previousValue) {
   }
 
   if (currentClassified && previousClassified && current.rootCauseId !== previous.rootCauseId) {
-    const differingEvidence =
-      `Classified root-cause IDs differ: ${current.rootCauseId} and ${previous.rootCauseId}.`;
+    const differingEvidence = `Classified root-cause IDs differ: ${current.rootCauseId} and ${previous.rootCauseId}.`;
     if (bothVerified) {
       return {
         evidence: [differingEvidence],
