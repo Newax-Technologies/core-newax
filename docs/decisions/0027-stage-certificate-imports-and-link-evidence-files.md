@@ -71,3 +71,12 @@ Acceptance requires:
 - live PostgreSQL tests for composite Tenant and Organization ownership, draft-only attachment, immutable submitted evidence, lifecycle consistency, reviewer separation, optimistic versions, and post-application immutability;
 - HTTP input and route-metadata tests;
 - complete repository formatting, lint, type-check, tests, builds, migrations, and database-registry generation against the exact final commit.
+
+## Acceptance evidence
+
+The implementation is verified at exact commit `b74fce3163135a00a025a7e9483949ee734b9f17`.
+
+- Continuous Integration run 613 (`29500178283`) passed dependency installation, Prisma validation, all migrations, migration-status verification, formatting, lint, strict type-check, complete tests, and production builds.
+- Database Registry Map run 158 (`29500178230`) passed generator tests, publishable inventory generation, contract validation, and review-artifact creation.
+- No temporary construction workflows or scripts remain in the feature diff.
+- No unresolved review thread or known implementation issue remains.
