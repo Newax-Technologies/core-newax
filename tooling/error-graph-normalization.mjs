@@ -143,10 +143,7 @@ export function normalizeErrorImpacts(value) {
         raw.type ?? raw.relationship ?? 'causes',
         `impacts[${index}].type`,
       ),
-      status: normalizeGraphStatus(
-        raw.status ?? 'machine-supported',
-        `impacts[${index}].status`,
-      ),
+      status: normalizeGraphStatus(raw.status ?? 'machine-supported', `impacts[${index}].status`),
       evidence: cleanGraphArray(raw.evidence, `impacts[${index}].evidence`),
     };
   });
