@@ -11,10 +11,12 @@ export {
   occurrenceNodeIdForEvent,
 } from './error-graph-model.mjs';
 export {
-  analyzeErrorRelationshipGraph,
-  findCommonErrorRootAncestors,
   findErrorPath,
   findErrorRootAncestors,
-  findLowestCommonErrorAncestors,
   listErrorAncestors,
-} from './error-graph-analysis.mjs';
+} from './error-graph-traversal.mjs';
+export {
+  analyzeErrorRelationshipGraph,
+  findCommonErrorRootAncestors,
+  findLowestCommonErrorAncestors,
+} from './error-graph-common-ancestor.mjs';
