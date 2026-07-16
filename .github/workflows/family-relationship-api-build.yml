@@ -60,7 +60,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          python tooling/temp-build-family-relationship-api.py > /tmp/family-relationship-patch.log 2>&1
+          python tooling/temp-run-family-relationship-builder.py > /tmp/family-relationship-patch.log 2>&1
           status=$?
           set -e
           cat /tmp/family-relationship-patch.log
