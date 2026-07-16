@@ -23,9 +23,7 @@ async function readRequestBody(request, maximumBodyBytes) {
   for await (const chunk of request) {
     bytes += chunk.length;
     if (bytes > maximumBodyBytes) {
-      const error = new RangeError(
-        'Engineering event request exceeds the configured size limit.',
-      );
+      const error = new RangeError('Engineering event request exceeds the configured size limit.');
       error.code = 'BODY_TOO_LARGE';
       throw error;
     }
