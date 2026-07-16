@@ -161,15 +161,11 @@ test('does not use candidate edges as verified causality', () => {
 test('rejects causal cycles with the exact cycle path', () => {
   const first = event({
     fingerprint: 'first',
-    relationshipHints: [
-      { parentFingerprint: 'second', type: 'causes', status: 'confirmed' },
-    ],
+    relationshipHints: [{ parentFingerprint: 'second', type: 'causes', status: 'confirmed' }],
   });
   const second = event({
     fingerprint: 'second',
-    relationshipHints: [
-      { parentFingerprint: 'first', type: 'causes', status: 'confirmed' },
-    ],
+    relationshipHints: [{ parentFingerprint: 'first', type: 'causes', status: 'confirmed' }],
   });
 
   assert.throws(() => buildErrorRelationshipGraph([first, second]), /causal cycle/);
