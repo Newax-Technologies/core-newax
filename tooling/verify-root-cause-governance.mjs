@@ -93,10 +93,30 @@ for (const issue of linkedIssues) {
   }
 
   const resolution = parseResolution(issue.body);
+  const matchedSignatures = String(metadata['matched-signatures'] ?? '')
+    .split('|')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const missingDeterministicSignatures =
+    metadata['root-cause-status'] === 'machine-supported'
+      ? catalogEntry.signatures.filter((signature) => !matchedSignatures.includes(signature))
+      : [];
+  const deterministicEvidence =
+    metadata['root-cause-status'] === 'machine-supported' &&
+    catalogEntry.deterministic === true &&
+    missingDeterministicSignatures.length === 0;
+  const evidenceAgainst = [
+    ...(metadata['root-cause-status'] === 'machine-supported' && !catalogEntry.deterministic
+      ? ['The catalog entry is not deterministic.']
+      : []),
+    ...missingDeterministicSignatures.map(
+      (signature) => `Missing deterministic signature: ${signature}`,
+    ),
+  ];
   const assessment = {
     ambiguous: false,
-    deterministic: metadata['root-cause-status'] === 'machine-supported',
-    evidenceAgainst: [],
+    deterministic: deterministicEvidence,
+    evidenceAgainst,
     selected: {
       rootCauseId,
     },
@@ -115,7 +135,7 @@ for (const issue of linkedIssues) {
     },
   });
 
-  if (verification.status === 'unsupported') {
+  if (verification.status !== 'supported') {
     for (const message of verification.errors) {
       errors.push(`Issue #${issue.number}: ${message}`);
     }
