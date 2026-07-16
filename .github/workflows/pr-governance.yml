@@ -37,4 +37,4 @@ jobs:
       - name: Reconcile workflow failures and learning evidence
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node tooling/reconcile-pr-learning.mjs
+        run: node tooling/run-pr-learning-reconciliation.mjs
