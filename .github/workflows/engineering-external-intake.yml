@@ -1,0 +1,67 @@
+name: Engineering External Intake
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_type:
+        description: Observable source of the mistake
+        required: true
+        type: choice
+        options:
+          - local-command
+          - external-tool
+          - planning
+          - communication
+          - manual
+      summary:
+        description: Exact symptom or mistake
+        required: true
+        type: string
+      pr_number:
+        description: Related pull request number when applicable
+        required: false
+        type: string
+      commit_sha:
+        description: Related commit SHA when applicable
+        required: false
+        type: string
+      evidence:
+        description: Comma-separated evidence URLs
+        required: false
+        type: string
+      unsuccessful_method:
+        description: Method that failed
+        required: false
+        type: string
+      successful_method:
+        description: Method that resolved the problem, when known
+        required: false
+        type: string
+      prevention_control:
+        description: Control that should prevent recurrence
+        required: false
+        type: string
+  repository_dispatch:
+    types:
+      - engineering_mistake
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  capture-external-event:
+    name: Capture external engineering event
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out default branch controls
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Create or update learning intake
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node tooling/record-engineering-event.mjs

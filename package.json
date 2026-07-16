@@ -15,10 +15,17 @@
     "dev": "pnpm -r --parallel --if-present run dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "learning:flush": "node tooling/flush-engineering-events.mjs",
+    "learning:record": "node tooling/record-engineering-event.mjs",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
-    "test": "pnpm -r --if-present run test",
-    "typecheck": "pnpm -r --if-present run typecheck"
+    "operation:validate": "node tooling/validate-operation-intent.mjs",
+    "test": "pnpm test:learning && pnpm -r --if-present run test",
+    "test:learning": "node --test tooling/engineering-learning-core.test.mjs tooling/workflow-failure-intake-controls.test.mjs",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "verify": "node tooling/run-engineering-command.mjs -- pnpm verify:raw",
+    "verify:raw": "pnpm format:check && pnpm verify:workflow-intake && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "verify:workflow-intake": "node tooling/workflow-failure-intake-controls.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.4",
