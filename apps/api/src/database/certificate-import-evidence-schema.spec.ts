@@ -19,10 +19,13 @@ describe('certificate import evidence schema', () => {
     expect(schema).toContain('confidenceBps');
   });
 
-  it('enforces scope, state, reviewer separation, and draft-only evidence', () => {
+  it('enforces scope, lifecycle, reviewer separation, and evidence immutability', () => {
+    expect(migration).toContain('core_certificate_imports_payload_check');
     expect(migration).toContain('core_certificate_imports_state_check');
     expect(migration).toContain('core_certificate_imports_reviewer_check');
+    expect(migration).toContain('core_certificate_imports_transition_trigger');
     expect(migration).toContain('core_people_intake_evidence_draft_trigger');
+    expect(migration).toContain('core_people_intake_evidence_mutation_trigger');
     expect(migration).toContain('core_files_scope_organization_id_key');
   });
 });
