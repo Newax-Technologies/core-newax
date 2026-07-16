@@ -74,9 +74,9 @@ Acceptance requires:
 
 ## Acceptance evidence
 
-The final feature head is `de5b5ccb1cfe3bbe72d8758883c171c810d6e860`.
+The final frozen feature head is `eca90da626a091803aa7e11286cd120ff5e44212`.
 
-- Continuous Integration run 616 (`29501229506`) passed against the final head: dependency installation, Prisma validation, all migrations, migration-status verification, formatting, lint, strict type-check, complete tests, and production builds.
-- Database Registry Map run 161 (`29501229571`) passed against the same final head: generator tests, publishable inventory generation, contract validation, and review-artifact creation.
+- Continuous Integration run 617 (`29501567052`) passed against the final head: dependency installation, Prisma validation, all migrations, migration-status verification, formatting, lint, strict type-check, complete tests, and production builds.
+- Database Registry Map run 162 (`29501564538`) passed against the same final head: generator tests, publishable inventory generation, contract validation, and review-artifact creation.
 - No temporary construction workflows or scripts remain in the feature diff.
 - No unresolved review thread or known implementation issue remains.
