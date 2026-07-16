@@ -11,7 +11,9 @@ if (command === undefined) {
   throw new Error('Usage: node tooling/run-engineering-command.mjs -- <command> [arguments]');
 }
 
+const commandText = `${command} ${argumentsList.join(' ')}`.trim();
 const output = [];
+let launchError = null;
 const child = spawn(command, argumentsList, {
   env: process.env,
   shell: process.platform === 'win32',
@@ -27,19 +29,24 @@ for (const stream of [child.stdout, child.stderr]) {
   });
 }
 
-const exitCode = await new Promise((resolve, reject) => {
-  child.on('error', reject);
+const exitCode = await new Promise((resolve) => {
+  child.on('error', (error) => {
+    launchError = error;
+    output.push(String(error));
+    resolve(1);
+  });
   child.on('close', (code) => resolve(code ?? 1));
 });
 
 if (exitCode !== 0 && process.env.CI !== 'true') {
   const event = createEngineeringEvent({
     sourceType: 'local-command',
-    sourceId: `${command} ${argumentsList.join(' ')}`.trim(),
+    sourceId: commandText,
     repository: process.env.GITHUB_REPOSITORY ?? null,
     commitSha: process.env.GITHUB_SHA ?? null,
-    stepName: `${command} ${argumentsList.join(' ')}`.trim(),
+    stepName: commandText,
     logText: output.join('').slice(-100_000),
+    summary: launchError === null ? `Command failed: ${commandText}` : String(launchError),
     evidenceUrls: [],
   });
   const path = appendLocalEvent(event);
