@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 
-import { appendLocalEvent, createEngineeringEvent } from './engineering-learning-core.mjs';
+import { deliverExternalFailure } from './deliver-engineering-event.mjs';
+import { classifyCommandSource } from './external-failure-intake.mjs';
 
 const separatorIndex = process.argv.indexOf('--');
 const commandArguments =
@@ -39,18 +40,29 @@ const exitCode = await new Promise((resolve) => {
 });
 
 if (exitCode !== 0 && process.env.CI !== 'true') {
-  const event = createEngineeringEvent({
-    sourceType: 'local-command',
-    sourceId: commandText,
-    repository: process.env.GITHUB_REPOSITORY ?? null,
-    commitSha: process.env.GITHUB_SHA ?? null,
-    stepName: commandText,
-    logText: output.join('').slice(-100_000),
-    summary: launchError === null ? `Command failed: ${commandText}` : String(launchError),
-    evidenceUrls: [],
-  });
-  const path = appendLocalEvent(event);
-  process.stderr.write(`\nNEWAX engineering failure queued at ${path}.\n`);
+  const sourceType =
+    process.env.ENGINEERING_SOURCE_TYPE ?? classifyCommandSource(command, argumentsList);
+  const result = await deliverExternalFailure(
+    {
+      sourceType,
+      environment: process.env.ENGINEERING_ENVIRONMENT ?? 'local',
+      severity: 'error',
+      sourceId: process.env.ENGINEERING_EVENT_ID,
+      repository: process.env.GITHUB_REPOSITORY,
+      commitSha: process.env.GITHUB_SHA,
+      service: process.env.ENGINEERING_SERVICE,
+      component: process.env.ENGINEERING_COMPONENT,
+      operation: commandText,
+      release: process.env.ENGINEERING_RELEASE,
+      summary:
+        launchError === null
+          ? `Command exited with status ${exitCode}: ${commandText}`
+          : `Command could not start: ${commandText}`,
+      details: output.join('').slice(-100_000),
+    },
+    { delivery: 'queue' },
+  );
+  process.stderr.write(`\nNEWAX engineering failure queued at ${result.path}.\n`);
 }
 
 process.exit(exitCode);

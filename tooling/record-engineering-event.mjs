@@ -1,11 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-import { appendLocalEvent, createEngineeringEvent } from './engineering-learning-core.mjs';
-import {
-  EXTERNAL_EVENT_SOURCE_TYPES,
-  applyExternalSourceClassification,
-} from './external-event-classification.mjs';
-import { submitEngineeringEvent } from './submit-engineering-event.mjs';
+import { deliverExternalFailure } from './deliver-engineering-event.mjs';
 
 function parseArguments(values) {
   const result = {};
@@ -33,55 +28,30 @@ function readGithubPayload() {
   }
 
   const event = JSON.parse(readFileSync(eventPath, 'utf8'));
-  if (event.client_payload !== undefined) {
-    return event.client_payload;
-  }
-  if (event.inputs !== undefined) {
-    return event.inputs;
-  }
-  return null;
+  return event.client_payload ?? event.inputs ?? null;
 }
 
 const argumentsMap = parseArguments(process.argv.slice(2));
 const payload = readGithubPayload() ?? argumentsMap;
-const summary = payload.summary ?? payload.symptom;
-const sourceType = payload.source_type ?? payload.sourceType ?? 'manual';
-
-if (summary === undefined || String(summary).trim().length === 0) {
-  throw new Error('A non-empty --summary or dispatched summary is required.');
-}
-if (!EXTERNAL_EVENT_SOURCE_TYPES.has(sourceType)) {
-  throw new Error(`Unsupported engineering event source type: ${sourceType}.`);
-}
-
-const evidenceUrls = String(payload.evidence ?? '')
-  .split(',')
-  .map((value) => value.trim())
-  .filter(Boolean);
-
-const baseEvent = createEngineeringEvent({
-  sourceType,
-  sourceId: payload.source_id ?? payload.sourceId ?? null,
-  repository: process.env.GITHUB_REPOSITORY ?? payload.repository ?? null,
-  prNumber: payload.pr_number ?? payload.prNumber ?? null,
-  commitSha: payload.commit_sha ?? payload.commitSha ?? null,
-  workflowName: payload.workflow_name ?? payload.workflowName ?? null,
-  jobName: payload.job_name ?? payload.jobName ?? null,
-  stepName:
-    payload.step_name ?? payload.stepName ?? payload.category ?? 'External engineering event',
-  logText: summary,
-  summary,
+const result = await deliverExternalFailure({
+  ...payload,
+  sourceType: payload.source_type ?? payload.sourceType ?? 'manual',
+  sourceId: payload.source_id ?? payload.sourceId,
+  occurredAt: payload.occurred_at ?? payload.occurredAt,
+  prNumber: payload.pr_number ?? payload.prNumber,
+  commitSha: payload.commit_sha ?? payload.commitSha,
+  traceId: payload.trace_id ?? payload.traceId,
+  evidenceUrls: payload.evidence_urls ?? payload.evidenceUrls ?? payload.evidence,
   unsuccessfulMethod: payload.unsuccessful_method ?? payload.unsuccessfulMethod,
   successfulMethod: payload.successful_method ?? payload.successfulMethod,
   preventionControl: payload.prevention_control ?? payload.preventionControl,
-  evidenceUrls,
 });
-const learningEvent = applyExternalSourceClassification(baseEvent, sourceType, summary);
 
-if (process.env.GITHUB_TOKEN !== undefined && process.env.GITHUB_REPOSITORY !== undefined) {
-  const result = await submitEngineeringEvent(learningEvent);
-  console.log(JSON.stringify({ delivery: 'github-issue', ...result }));
-} else {
-  const path = appendLocalEvent(learningEvent);
-  console.log(JSON.stringify({ delivery: 'local-queue', path }));
-}
+console.log(
+  JSON.stringify({
+    delivery: result.delivery,
+    issueNumber: result.issueNumber ?? null,
+    path: result.path ?? null,
+    sourceId: result.event.sourceId,
+  }),
+);

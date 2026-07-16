@@ -4,29 +4,89 @@ on:
   workflow_dispatch:
     inputs:
       source_type:
-        description: Observable source of the mistake
+        description: Observable failure source
         required: true
         type: choice
         options:
-          - local-command
+          - local-verification
+          - development-server
+          - runtime-exception
+          - deployment
+          - build-tool
+          - package-manager
+          - database
+          - browser-console
+          - api-log
+          - security-scanner
+          - performance-regression
           - external-tool
           - planning
           - communication
           - manual
-      summary:
-        description: Exact symptom or mistake
+      environment:
+        description: Environment where the failure occurred
         required: true
+        type: choice
+        options:
+          - local
+          - development
+          - test
+          - preview
+          - staging
+          - production
+          - ci
+          - unknown
+      severity:
+        description: Observed severity
+        required: true
+        type: choice
+        options:
+          - info
+          - warning
+          - error
+          - critical
+      summary:
+        description: Exact symptom or failure
+        required: true
+        type: string
+      operation:
+        description: Command, route, deployment, scan, or operation
+        required: false
+        type: string
+      service:
+        description: Service or application name
+        required: false
+        type: string
+      component:
+        description: Component or subsystem
+        required: false
+        type: string
+      release:
+        description: Release or deployment identifier
+        required: false
+        type: string
+      trace_id:
+        description: Trace or correlation identifier
+        required: false
+        type: string
+      source_id:
+        description: Stable provider occurrence identifier
+        required: false
         type: string
       pr_number:
         description: Related pull request number when applicable
         required: false
         type: string
       commit_sha:
-        description: Related commit SHA when applicable
+        description: Full related commit SHA when applicable
+        required: false
+        type: string
+      details:
+        description: Bounded diagnostic details
         required: false
         type: string
       evidence:
-        description: Comma-separated evidence URLs
+        description: Comma-separated evidence URLs without credentials
         required: false
         type: string
       unsuccessful_method:
