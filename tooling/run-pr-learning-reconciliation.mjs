@@ -39,9 +39,7 @@ async function intakeIsActiveOnDefaultBranch(event) {
   }
 
   try {
-    await githubRequest(
-      `/contents/${INTAKE_PATH}?ref=${encodeURIComponent(defaultBranch)}`,
-    );
+    await githubRequest(`/contents/${INTAKE_PATH}?ref=${encodeURIComponent(defaultBranch)}`);
     return true;
   } catch (error) {
     if (isNotFound(error)) {
@@ -60,9 +58,7 @@ async function runBootstrapReconciliation(event) {
   const body = pullRequest.body ?? '';
   const errors = [];
   const learningOutcome = parsePullRequestField(body, '- Learning outcome:');
-  const ledgerEntries = parseLedgerEntries(
-    parsePullRequestField(body, '- Ledger entries:'),
-  );
+  const ledgerEntries = parseLedgerEntries(parsePullRequestField(body, '- Ledger entries:'));
   const listedIssueNumbers = new Set(
     parseIssueNumbers(parsePullRequestField(body, '- Learning issues:')),
   );
@@ -107,9 +103,7 @@ async function runBootstrapReconciliation(event) {
       const ledgerChanged = changedFiles.some((file) => {
         return (
           file.filename === 'docs/verification/engineering-learning-ledger.md' ||
-          file.filename.includes(
-            `docs/verification/engineering-learning-ledger/${ledgerEntry}`,
-          )
+          file.filename.includes(`docs/verification/engineering-learning-ledger/${ledgerEntry}`)
         );
       });
       if (!ledgerChanged) {
@@ -120,19 +114,10 @@ async function runBootstrapReconciliation(event) {
 
   for (const issue of linkedIssues) {
     const metadata = parseMetadata(issue.body);
-    const finalRootCauseStatus = parseLastField(
-      issue.body,
-      '- Root-cause status:',
-    );
+    const finalRootCauseStatus = parseLastField(issue.body, '- Root-cause status:');
     const resolutionStatus = parseLastField(issue.body, '- Resolution status:');
-    const confirmedRootCause = parseLastField(
-      issue.body,
-      '- Confirmed root cause:',
-    );
-    const successfulVerification = parseLastField(
-      issue.body,
-      '- Successful verification:',
-    );
+    const confirmedRootCause = parseLastField(issue.body, '- Confirmed root cause:');
+    const successfulVerification = parseLastField(issue.body, '- Successful verification:');
 
     if (metadata.fingerprint === undefined || metadata['root-cause-id'] === undefined) {
       errors.push(`Issue #${issue.number} lacks machine-readable learning metadata.`);
