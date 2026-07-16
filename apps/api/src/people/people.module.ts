@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PeopleService, PersonRelationshipService } from '@newax/people';
 
 import { DatabaseModule } from '../database/database.module';
+import { RequestContextModule } from '../request-context/request-context.module';
 import { CurrentOrganizationFamilyRelationshipsController } from './current-organization-family-relationships.controller';
 import { CurrentPersonController } from './current-person.controller';
 import { LoggingPersonEventPublisher } from './logging-person-event.publisher';
@@ -10,7 +11,7 @@ import { PrismaPeopleRepository } from './prisma-people.repository';
 import { PrismaPersonRelationshipRepository } from './prisma-person-relationship.repository';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, RequestContextModule],
   controllers: [CurrentPersonController, CurrentOrganizationFamilyRelationshipsController],
   providers: [
     PrismaPeopleRepository,
