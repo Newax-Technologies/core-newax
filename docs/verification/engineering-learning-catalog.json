@@ -216,6 +216,18 @@
       "unsuccessfulMethod": "Reuse a previously captured blob SHA after the same path has changed.",
       "successfulMethod": "Fetch the target file immediately before the mutation and use its current blob SHA.",
       "preventionControl": "A 409 conflict stops the write sequence; current file state and SHA must be refreshed before retry."
+    },
+    {
+      "id": "ROOT-TEST-ANCESTOR-LEVELS-COLLAPSED",
+      "ledgerEntry": "EL-0022",
+      "category": "unit-integration-tests",
+      "confidence": "high",
+      "deterministic": false,
+      "signatures": ["nearest common ancestor", "canonical common root", "lowestCommonAncestorIds"],
+      "rootCause": "A relationship-graph test treated the nearest shared predecessor and the original shared root cause as the same graph level.",
+      "unsuccessfulMethod": "Use one expected ancestor value for nearest-common-ancestor and common-root-ancestor assertions.",
+      "successfulMethod": "Build a multi-level causal chain and assert nearest and canonical-root ancestry independently.",
+      "preventionControl": "Every multi-level relationship-graph test must verify nearest and canonical-root ancestor outputs separately."
     }
   ]
 }
