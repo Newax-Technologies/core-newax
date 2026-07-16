@@ -5,6 +5,10 @@ import {
   listAll,
 } from './engineering-learning-core.mjs';
 import { submitEngineeringEvent } from './submit-engineering-event.mjs';
+import {
+  createSafeWorkflowSymptom,
+  limitWorkflowLog,
+} from './workflow-failure-intake-controls.mjs';
 
 async function resolvePullRequestNumber(workflowRun) {
   const directNumber = workflowRun.pull_requests?.[0]?.number;
@@ -56,8 +60,10 @@ export async function captureWorkflowRunFailure(workflowRun) {
       logText = `Job logs were unavailable: ${String(error)}`;
     }
 
+    const classificationLog = limitWorkflowLog(logText);
+
     for (const step of steps) {
-      const learningEvent = createEngineeringEvent({
+      const classifiedEvent = createEngineeringEvent({
         sourceType: 'ci-workflow',
         sourceId: `${workflowRun.id}:${job.id}:${step.number ?? step.name}`,
         occurredAt: workflowRun.updated_at ?? workflowRun.created_at,
@@ -69,9 +75,18 @@ export async function captureWorkflowRunFailure(workflowRun) {
         jobId: job.id,
         jobName: job.name,
         stepName: step.name,
-        logText,
+        logText: classificationLog,
         evidenceUrls: [workflowRun.html_url, job.html_url].filter(Boolean),
       });
+      const learningEvent = {
+        ...classifiedEvent,
+        symptom: createSafeWorkflowSymptom({
+          workflowName: workflowRun.name,
+          jobName: job.name,
+          stepName: step.name,
+          matchedSignatures: classifiedEvent.matchedSignatures,
+        }),
+      };
 
       results.push(await submitEngineeringEvent(learningEvent));
     }
