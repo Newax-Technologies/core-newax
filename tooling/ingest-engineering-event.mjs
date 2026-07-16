@@ -64,9 +64,7 @@ if (payloads.length === 0 && argumentsMap.summary !== undefined) {
   ];
 }
 if (payloads.length === 0) {
-  throw new Error(
-    'Provide --file, --json, NDJSON through stdin, or a --summary event definition.',
-  );
+  throw new Error('Provide --file, --json, NDJSON through stdin, or a --summary event definition.');
 }
 
 const results = [];
