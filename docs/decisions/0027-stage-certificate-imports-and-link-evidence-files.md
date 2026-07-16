@@ -74,9 +74,9 @@ Acceptance requires:
 
 ## Acceptance evidence
 
-The final verified feature head is `d22552b1216af33413006ca8fd14f3eaec96e913`.
+The final verified feature head is `06ac23f9790fcfa31cff1862cf4e8fd7b7e7e1cb`.
 
-- Continuous Integration run 622 (`29503317330`) passed against the final head: dependency installation, Prisma validation, all migrations, migration-status verification, formatting, lint, strict type-check, complete tests, and production builds.
-- Database Registry Map run 167 (`29503317337`) passed against the same final head: generator tests, publishable inventory generation, contract validation, and review-artifact creation.
+- Continuous Integration run 623 (`29503670059`) passed against the final head: dependency installation, Prisma validation, all migrations, migration-status verification, formatting, lint, strict type-check, complete tests, and production builds.
+- Database Registry Map run 168 (`29503670255`) passed against the same final head: generator tests, publishable inventory generation, contract validation, and review-artifact creation.
 - No temporary construction workflows or scripts remain in the feature diff.
 - No unresolved review thread or known implementation issue remains.
