@@ -1,0 +1,84 @@
+name: Capture Family Relationship Full Test Temporary
+
+on:
+  pull_request:
+    types:
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.head_ref == 'agent/family-relationship-api-sensitive-read'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: newax_ci
+          POSTGRES_PASSWORD: newax_ci
+          POSTGRES_USER: newax
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U newax -d newax_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://newax:newax_ci@localhost:5432/newax_ci
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v7
+        with:
+          ref: agent/family-relationship-api-sensitive-read
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate database client
+        run: pnpm --filter @newax/api db:generate
+
+      - name: Apply migrations
+        run: pnpm --filter @newax/api db:migrate:deploy
+
+      - name: Run and capture complete tests
+        id: tests
+        continue-on-error: true
+        run: |
+          set +e
+          pnpm test > /tmp/family-relationship-full-test.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/family-relationship-full-test.log
+          exit "$status"
+
+      - name: Upload test transcript
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: family-relationship-full-test-${{ github.sha }}
+          path: /tmp/family-relationship-full-test.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce test result
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
