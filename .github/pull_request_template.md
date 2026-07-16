@@ -20,8 +20,7 @@ State the business or engineering outcome this change must produce.
 - [ ] The intended behavior is testable.
 - [ ] What must not happen is explicit.
 - [ ] Existing behavior that must remain unchanged is identified.
-- [ ] Affected security, tenancy, permissions, data, and workflow boundaries are
-      identified.
+- [ ] Affected security, tenancy, permissions, data, and workflow boundaries are identified.
 
 ## What changed
 
@@ -42,8 +41,7 @@ Identify adjacent scope that remains deliberately unchanged or deferred.
 
 ## Verification
 
-Record the latest source state only. Replace `pending` after the final source
-change.
+Record the latest source state only. Replace `pending` after the final source change.
 
 - Head commit: `pending`
 - Frozen-lockfile install: `pending`
@@ -62,19 +60,27 @@ change.
 
 ## Engineering learning record
 
-Complete this section for every pull request.
+Complete this section for every pull request. `none` is allowed only when the automated reconciliation check finds no failed workflow, linked learning issue, local-event intake, or external-tool event for this pull request.
 
-- Learning outcome: `new` or `none`
-- Ledger entry: `EL-XXXX` or `not-required`
+- Learning outcome: `new`, `existing`, or `none`
+- Ledger entries: `EL-XXXX`, comma-separated entries, or `not-required`
+- Learning issues: `#123`, comma-separated issues, or `not-required`
+- Root-cause status: `confirmed`, `machine-supported`, or `not-required`
+- Root-cause evidence: Identify the failed run, issue, log, reproduction, or reviewer confirmation.
+- Resolution evidence: Identify the fix commit and successful focused and complete verification.
 - Successful method used: Describe the evidence-backed method used.
-- Unsuccessful method avoided: Name the known failed method that was not
-  repeated.
+- Unsuccessful method avoided: Name the known failed method that was not repeated.
 - New prevention control: Describe the new control or write `not-required`.
 - Ledger consulted before implementation: `yes`
+- Failure history reconciled: `yes`
+- External and tool events reconciled: `yes`
 
-When `Learning outcome` is `new`, update:
+When `Learning outcome` is `new`, update either:
 
 - `docs/verification/engineering-learning-ledger.md`
+- `docs/verification/engineering-learning-ledger/EL-XXXX-description.md`
+
+When the same root cause already exists, use `existing`, link the existing ledger entry, and still link the occurrence-specific engineering-learning issue.
 
 ## Code necessity and simplicity audit
 
@@ -92,13 +98,11 @@ When `Learning outcome` is `new`, update:
 ## Repository freeze and evidence
 
 - Repository-content freeze: `not-started`, `active`, or `complete`
-- Final verification evidence location: Pull-request metadata, review, comment,
-  or release record.
+- Final verification evidence location: Pull-request metadata, review, comment, or release record.
 - Source file contains the workflow run that verifies itself: `no`
 - Repository file action used for pull-request metadata: `no`
 
-After the repository-content freeze becomes `active`, do not change source files
-merely to record CI run IDs, commit hashes, or completion language.
+After the repository-content freeze becomes `active`, do not change source files merely to record CI run IDs, commit hashes, or completion language.
 
 ## Risk assessment
 
@@ -114,10 +118,8 @@ State `None` only after verification.
 
 ## Deferred issues
 
-List explicitly approved deferred work. Deferred work must not be required for
-this pull request's acceptance criteria.
+List explicitly approved deferred work. Deferred work must not be required for this pull request's acceptance criteria.
 
 ## Merge policy
 
-State whether the pull request may merge immediately, must remain stacked, or
-requires explicit NEWAX authorization.
+State whether the pull request may merge immediately, must remain stacked, or requires explicit NEWAX authorization.
