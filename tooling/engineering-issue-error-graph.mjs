@@ -27,6 +27,7 @@ export { createErrorGraphContext, parseErrorGraphMetadata };
 export function renderErrorGraphSection(event, context) {
   const commonAncestor = context.primaryCommonAncestorId;
   const relatedIssues = context.relatedIssueNumbers;
+  const nearestAncestors = context.lowestCommonAncestorIds;
   const chainText =
     context.chains.length === 0
       ? '- No verified causal chain is available.'
@@ -46,7 +47,8 @@ graph-impacts: ${encodeJson(event.impacts ?? [])}
 ## Error relationship graph
 
 - Current occurrence: \`${context.currentNodeId}\`
-- Primary verified common ancestor: ${commonAncestor === null ? 'None found' : `\`${commonAncestor}\``}
+- Primary verified common root: ${commonAncestor === null ? 'None found' : `\`${commonAncestor}\``}
+- Nearest verified common ancestor: ${nearestAncestors.length === 0 ? 'None found' : nearestAncestors.map((nodeId) => `\`${nodeId}\``).join(', ')}
 - Related occurrences: ${relatedIssues.length === 0 ? 'None found' : relatedIssues.map((number) => `#${number}`).join(', ')}
 - Candidate relationships are excluded from verified ancestor decisions.
 
@@ -98,6 +100,7 @@ export async function attachErrorRelationshipGraph(issueNumber, event, options =
   return {
     issueNumber,
     graphNodeId: context.currentNodeId,
+    lowestCommonAncestorIds: context.lowestCommonAncestorIds,
     rootAncestorIds: context.rootAncestorIds,
     primaryCommonAncestorId: context.primaryCommonAncestorId,
     relatedIssueNumbers: context.relatedIssueNumbers,
