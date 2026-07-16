@@ -339,7 +339,7 @@ export async function ensureLabel(name, color, description, options = {}) {
 }
 
 export async function findMatchingIssues(event, options = {}) {
-  const issues = await listAll('/issues?state=all&labels=engineering-learning', options);
+  const issues = await listAll('/issues?state=all', options);
   const candidates = issues
     .filter((issue) => issue.pull_request === undefined)
     .map((issue) => ({ issue, metadata: parseMetadata(issue.body) }));
