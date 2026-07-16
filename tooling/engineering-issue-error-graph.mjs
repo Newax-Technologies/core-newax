@@ -71,9 +71,7 @@ ${chainText}
 }
 
 export function replaceErrorGraphSection(body, section) {
-  const pattern = new RegExp(
-    `<!-- ${GRAPH_MARKER}\\n[\\s\\S]*?<!-- \\/${GRAPH_MARKER} -->`,
-  );
+  const pattern = new RegExp(`<!-- ${GRAPH_MARKER}\\n[\\s\\S]*?<!-- \\/${GRAPH_MARKER} -->`);
   const normalizedBody = String(body ?? '').trimEnd();
   return pattern.test(normalizedBody)
     ? normalizedBody.replace(pattern, section)
