@@ -4,7 +4,7 @@
 
 Draft reusable foundation module.
 
-Version: `0.1.0`
+Version: `0.2.0`
 
 ## Purpose
 
@@ -115,3 +115,21 @@ Tests cover permissions, normalization, duplicate identifiers, parent cycles, sc
 - Duplicate matching against existing canonical people is not included.
 - Field-level reviewer comments are not included.
 - The first UI is an internal operational dashboard, not a public self-service form.
+
+## Evidence and certificate imports
+
+Version 0.2.0 links an editable People Intake draft to active same-Organization File metadata and stages structured certificate extraction separately from the draft payload.
+
+Evidence attachment supports PDF, PNG, and JPEG files up to 25 MiB. It references `core_files`; it does not upload bytes, expose storage keys, or duplicate checksums. Evidence can only be attached while the intake remains a draft.
+
+A certificate import progresses through `pending`, `extracted`, `accepted`, or `rejected`. The extraction actor cannot review the same import. Rejection requires notes. An accepted extraction is copied into the draft only through an explicit apply operation by the intake creator with matching import and intake versions.
+
+Permissions:
+
+- `people_intake.evidence.view`
+- `people_intake.evidence.attach`
+- `people_intake.certificate_import.extract`
+- `people_intake.certificate_import.review`
+- `people_intake.certificate_import.apply`
+
+Automatic OCR, malware scanning, storage-provider upload, and signed file download remain separate storage and extraction-provider concerns.
