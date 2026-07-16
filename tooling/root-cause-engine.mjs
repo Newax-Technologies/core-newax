@@ -4,7 +4,10 @@ const ANSI_COLOR_PATTERN = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, '
 const CLASSIFIED_ROOT_CAUSE_PREFIX = 'ROOT-UNCLASSIFIED-';
 
 const STAGE_CATEGORIES = [
-  ['dependency-installation-lockfile', ['install', 'dependency', 'lockfile', 'pnpm', 'npm', 'yarn']],
+  [
+    'dependency-installation-lockfile',
+    ['install', 'dependency', 'lockfile', 'pnpm', 'npm', 'yarn'],
+  ],
   ['formatting', ['format', 'prettier']],
   ['eslint-static-analysis', ['lint', 'eslint']],
   ['typecheck-compilation', ['type-check', 'typecheck', 'typescript', 'compile', 'tsc']],
@@ -159,14 +162,18 @@ function buildHypothesis(rootCause, lowerEvidence, inferredCategory) {
     return null;
   }
 
-  const missingSignatures = signatures.filter((signature) => !matchedSignatures.includes(signature));
+  const missingSignatures = signatures.filter(
+    (signature) => !matchedSignatures.includes(signature),
+  );
   const coverage = matchedSignatures.length / signatures.length;
   const categoryMatch = rootCause.category === inferredCategory;
   const completeDeterministicMatch =
     rootCause.deterministic && missingSignatures.length === 0 && matchedSignatures.length > 0;
   const score = Math.min(
     100,
-    Math.round(25 + coverage * 60 + (categoryMatch ? 10 : 0) + (completeDeterministicMatch ? 5 : 0)),
+    Math.round(
+      25 + coverage * 60 + (categoryMatch ? 10 : 0) + (completeDeterministicMatch ? 5 : 0),
+    ),
   );
   const evidenceFor = matchedSignatures.map(
     (signature) => `Observed catalog signature: ${signature}`,
@@ -175,10 +182,13 @@ function buildHypothesis(rootCause, lowerEvidence, inferredCategory) {
     evidenceFor.push(`Failed stage maps to category: ${inferredCategory}`);
   }
   const evidenceAgainst = rootCause.deterministic
-    ? missingSignatures.map((signature) => `Required deterministic signature was not observed: ${signature}`)
+    ? missingSignatures.map(
+        (signature) => `Required deterministic signature was not observed: ${signature}`,
+      )
     : [];
   const missingEvidence = missingSignatures.map(
-    (signature) => `Confirm whether the missing signature is present in complete evidence: ${signature}`,
+    (signature) =>
+      `Confirm whether the missing signature is present in complete evidence: ${signature}`,
   );
 
   return {
@@ -230,7 +240,10 @@ export function analyzeRootCause(input, catalog) {
   const hypotheses = catalog.rootCauses
     .map((rootCause) => buildHypothesis(rootCause, lowerEvidence, inferredCategory))
     .filter(Boolean)
-    .sort((first, second) => second.score - first.score || first.rootCauseId.localeCompare(second.rootCauseId));
+    .sort(
+      (first, second) =>
+        second.score - first.score || first.rootCauseId.localeCompare(second.rootCauseId),
+    );
 
   if (hypotheses.length === 0) {
     const selected = {
@@ -332,11 +345,7 @@ export function compareRootCauseOccurrences(currentValue, previousValue) {
 
   const currentClassified = isClassifiedRootCause(current.rootCauseId);
   const previousClassified = isClassifiedRootCause(previous.rootCauseId);
-  if (
-    currentClassified &&
-    previousClassified &&
-    current.rootCauseId === previous.rootCauseId
-  ) {
+  if (currentClassified && previousClassified && current.rootCauseId === previous.rootCauseId) {
     evidence.push(`Both occurrences use classified root-cause ID ${current.rootCauseId}.`);
     return {
       evidence,
@@ -373,7 +382,10 @@ export function compareRootCauseOccurrences(currentValue, previousValue) {
       'Unclassified or incomplete evidence cannot establish a shared root cause.',
     ],
     relation: 'insufficient-evidence',
-    score: Math.min(60, signatureOverlap.length * 20 + (current.category === previous.category ? 10 : 0)),
+    score: Math.min(
+      60,
+      signatureOverlap.length * 20 + (current.category === previous.category ? 10 : 0),
+    ),
     sharedRootCause: false,
   };
 }
@@ -388,7 +400,9 @@ export function verifyRootCauseExplanation({ assessment, diagnosis, availableEvi
 
   const rootCauseId = diagnosis?.rootCauseId;
   if (selected !== undefined && rootCauseId !== selected.rootCauseId) {
-    errors.push('The written root-cause ID does not match the selected evidence-backed hypothesis.');
+    errors.push(
+      'The written root-cause ID does not match the selected evidence-backed hypothesis.',
+    );
   }
   if (!isClassifiedRootCause(rootCauseId)) {
     errors.push('An unclassified root cause cannot be verified as confirmed.');
@@ -400,7 +414,9 @@ export function verifyRootCauseExplanation({ assessment, diagnosis, availableEvi
   }
   if (rootCauseStatus === 'machine-supported') {
     if (assessment?.deterministic !== true || assessment?.evidenceAgainst?.length > 0) {
-      errors.push('Machine-supported status requires deterministic evidence without contradictions.');
+      errors.push(
+        'Machine-supported status requires deterministic evidence without contradictions.',
+      );
     }
   }
   if (rootCauseStatus === 'confirmed') {
@@ -428,7 +444,9 @@ export function verifyRootCauseExplanation({ assessment, diagnosis, availableEvi
       (reference) => !availableEvidence.includes(reference),
     );
     if (missingReferences.length > 0) {
-      errors.push(`Written explanation references unavailable evidence: ${missingReferences.join(', ')}.`);
+      errors.push(
+        `Written explanation references unavailable evidence: ${missingReferences.join(', ')}.`,
+      );
     }
   }
   if (evidenceReferences.length === 0) {
@@ -445,7 +463,8 @@ export function verifyRootCauseExplanation({ assessment, diagnosis, availableEvi
       assessment?.deterministic === true &&
       assessment?.evidenceAgainst?.length === 0,
     semanticTruthVerified: false,
-    status: errors.length > 0 ? 'unsupported' : warnings.length > 0 ? 'partially-supported' : 'supported',
+    status:
+      errors.length > 0 ? 'unsupported' : warnings.length > 0 ? 'partially-supported' : 'supported',
     warnings,
   };
 }
