@@ -26,15 +26,33 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repository
+      - name: Check out candidate pull request
         uses: actions/checkout@v7
         with:
+          path: candidate
           persist-credentials: false
 
+      - name: Check out trusted base controls
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          persist-credentials: false
+
+      - name: Select trusted governance controls
+        shell: bash
+        run: |
+          if test -f trusted/tooling/verify-pr-governance.mjs; then
+            echo "NEWAX_GOVERNANCE_ROOT=trusted" >> "$GITHUB_ENV"
+          else
+            echo "NEWAX_GOVERNANCE_ROOT=candidate" >> "$GITHUB_ENV"
+            echo "Bootstrap fallback: the protected base does not yet contain governance controls."
+          fi
+
       - name: Verify pull-request governance structure
-        run: node tooling/verify-pr-governance.mjs
+        run: node "$NEWAX_GOVERNANCE_ROOT/tooling/verify-pr-governance.mjs"
 
       - name: Reconcile workflow failures and learning evidence
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node tooling/run-pr-learning-reconciliation.mjs
+        run: node "$NEWAX_GOVERNANCE_ROOT/tooling/run-pr-learning-reconciliation.mjs"
