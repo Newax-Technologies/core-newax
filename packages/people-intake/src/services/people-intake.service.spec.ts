@@ -182,4 +182,11 @@ describe('PeopleIntakeService', () => {
       }),
     ).rejects.toMatchObject({ code: 'PEOPLE_INTAKE_FORBIDDEN' });
   });
+
+  it('classifies malformed client intake identifiers as invalid input', async () => {
+    const service = new PeopleIntakeService(repository());
+    await expect(
+      service.get(context(PEOPLE_INTAKE_PERMISSIONS.view), 'not-a-uuid'),
+    ).rejects.toMatchObject({ code: 'PEOPLE_INTAKE_INVALID_INPUT' });
+  });
 });

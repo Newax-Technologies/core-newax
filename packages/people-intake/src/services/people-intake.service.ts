@@ -61,7 +61,7 @@ export class PeopleIntakeService {
     this.requirePermission(context, PEOPLE_INTAKE_PERMISSIONS.view);
     const scoped = this.scope(context);
     const record = await this.repository.findById({
-      id: this.uuid(intakeId, 'intakeId'),
+      id: this.inputUuid(intakeId, 'intakeId'),
       tenantId: scoped.tenantId,
       organizationId: scoped.organizationId,
     });
@@ -96,7 +96,7 @@ export class PeopleIntakeService {
       input.status = this.status(query.status);
     }
     if (query.afterId !== undefined) {
-      input.afterId = this.uuid(query.afterId, 'afterId');
+      input.afterId = this.inputUuid(query.afterId, 'afterId');
     }
     const result = await this.repository.list(input);
     if (result.status === 'organization_unavailable') {
@@ -126,7 +126,7 @@ export class PeopleIntakeService {
     const scoped = this.scope(context);
     const payload = this.validator.normalizePayload(input.payload);
     const result = await this.repository.updateDraft({
-      id: this.uuid(intakeId, 'intakeId'),
+      id: this.inputUuid(intakeId, 'intakeId'),
       ...scoped,
       actorUserId: scoped.actorUserId,
       expectedVersion: this.version(input.expectedVersion),
@@ -148,7 +148,7 @@ export class PeopleIntakeService {
     this.requirePermission(context, PEOPLE_INTAKE_PERMISSIONS.submit);
     const scoped = this.scope(context);
     const result = await this.repository.submit({
-      id: this.uuid(intakeId, 'intakeId'),
+      id: this.inputUuid(intakeId, 'intakeId'),
       tenantId: scoped.tenantId,
       organizationId: scoped.organizationId,
       actorUserId: scoped.actorUserId,
@@ -174,7 +174,7 @@ export class PeopleIntakeService {
       this.invalid('notes', 'A rejection requires reviewer notes.');
     }
     const result = await this.repository.review({
-      id: this.uuid(intakeId, 'intakeId'),
+      id: this.inputUuid(intakeId, 'intakeId'),
       tenantId: scoped.tenantId,
       organizationId: scoped.organizationId,
       reviewerUserId: scoped.actorUserId,
@@ -326,6 +326,13 @@ export class PeopleIntakeService {
       this.invalid('expectedVersion', 'expectedVersion must be a positive integer.');
     }
     return value;
+  }
+
+  private inputUuid(value: string, field: string): string {
+    if (typeof value !== 'string' || !UUID_PATTERN.test(value)) {
+      this.invalid(field, `${field} must be a UUID.`);
+    }
+    return value.toLowerCase();
   }
 
   private uuid(value: string, field: string): string {
