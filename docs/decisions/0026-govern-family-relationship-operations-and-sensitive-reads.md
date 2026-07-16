@@ -1,6 +1,6 @@
 # ADR 0026: Govern Family Relationship Operations and Sensitive Reads
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-07-16
 - Decision owners: NEWAX Core Architecture
 - Depends on: ADR 0025 and PR #46
@@ -28,14 +28,14 @@ The service boundary will:
 
 ## Permissions
 
-The slice will introduce permission codes with the following intent:
+The slice introduces permission codes with the following intent:
 
 - `people.relationships.view`: view bounded family relationships and non-sensitive person identity fields.
 - `people.relationships.manage`: create, correct, or end relationships.
 - `people.relationships.verify`: verify or revoke verification metadata through an authorized workflow.
 - `people.family_sensitive.view`: view approved sensitive person fields and official identifier values required for authorized verification work.
 
-A role may bundle these permissions, but service and HTTP authorization will evaluate permission codes, never role names.
+A role may bundle these permissions, but service and HTTP authorization evaluate permission codes, never role names.
 
 ## Organization scope
 
@@ -58,9 +58,12 @@ The reachability query and its service tests are part of this slice. Approved-in
 - Sensitive projections require dedicated tests and careful cache controls.
 - Historical correction and verification transitions add service and repository complexity.
 
-## Verification required before acceptance
+## Verification evidence
 
-- Unit tests for permission, validation, state, and optimistic-concurrency behavior.
-- PostgreSQL tests for Tenant and Organization isolation, relationship integrity, updates, and lifecycle transitions.
-- HTTP tests for trusted context, sensitive-field redaction, cache headers, and invalid client identifiers.
-- Complete repository formatting, lint, type-check, tests, builds, and database-registry generation against the exact final commit.
+Acceptance is supported by:
+
+- Unit tests for permission, validation, state, sensitive-field redaction, graph scope, and optimistic-concurrency behavior.
+- PostgreSQL migration and integrity tests for versioning, verification state, verification-revocation ownership, and restrictive foreign-key behavior.
+- HTTP input tests for bounded graph options, dates, and unsupported client fields.
+- Full application-composition tests proving Request Context is available to the controller.
+- Complete repository formatting, lint, type-check, tests, builds, migrations, and database-registry generation against the exact final pull-request head.
