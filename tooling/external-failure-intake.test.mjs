@@ -84,6 +84,31 @@ test('adapts structured API logs without inventing a root cause', () => {
   assert.equal(event.traceId, 'trace-123');
 });
 
+test('maps common structured logger severities into the governed severity set', () => {
+  const cases = [
+    ['warn', 'warning'],
+    ['fatal', 'critical'],
+    ['debug', 'info'],
+    [0, 'error'],
+    [1, 'warning'],
+    [2, 'info'],
+    [20, 'info'],
+    [40, 'warning'],
+    [50, 'error'],
+    [60, 'critical'],
+    ['30', 'info'],
+  ];
+
+  for (const [level, expected] of cases) {
+    const event = createStructuredLogFailure({
+      level,
+      message: `Logger emitted ${String(level)}.`,
+    });
+
+    assert.equal(event.severity, expected);
+  }
+});
+
 test('adapts security findings and refuses empty scanner reports', () => {
   const event = createSecurityScannerFailure({
     scanner: 'CodeQL',
@@ -290,6 +315,26 @@ test('node runtime monitor queues uncaught exceptions without replacing process 
     uninstall();
     rmSync(directory, { recursive: true, force: true });
   }
+});
+
+test('delivery projection redacts external context before persistence', () => {
+  const event = createLearningEventFromExternalFailure({
+    sourceType: 'deployment',
+    environment: 'preview',
+    service: 'api_key=service-secret',
+    component: 'password=component-secret',
+    release: 'Bearer abcdefghijklmnopqrstuvwxyz',
+    traceId: 'token=trace-secret',
+    operation: 'Preview deployment',
+    summary: 'Deployment failed.',
+  });
+
+  assert.equal(event.externalContext.service, 'api_key=<redacted>');
+  assert.equal(event.externalContext.component, 'password=<redacted>');
+  assert.equal(event.externalContext.release, 'Bearer <redacted-token>');
+  assert.equal(event.externalContext.traceId, 'token=<redacted>');
+  assert.equal(event.jobName.includes('service-secret'), false);
+  assert.equal(JSON.stringify(event.externalContext).includes('secret'), false);
 });
 
 test('delivery projection preserves environment and service context', () => {
