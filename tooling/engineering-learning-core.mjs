@@ -3,6 +3,8 @@ import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { sanitizeEngineeringEvidence } from './sanitize-engineering-evidence.mjs';
+
 const CURRENT_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 const CATALOG_PATH = resolve(
   CURRENT_DIRECTORY,
@@ -17,7 +19,7 @@ export function loadCatalog(path = CATALOG_PATH) {
 }
 
 export function normalizeText(value) {
-  return String(value ?? '')
+  return sanitizeEngineeringEvidence(value)
     .replaceAll(ANSI_COLOR_PATTERN, '')
     .replaceAll(/\b[0-9a-f]{40}\b/gi, '<sha>')
     .replaceAll(/\b[0-9a-f]{7,64}\b/gi, '<hex>')
@@ -112,28 +114,46 @@ export function createEngineeringEvent(input, catalog = loadCatalog()) {
   return {
     schemaVersion: 1,
     sourceType: input.sourceType ?? 'unknown',
-    sourceId: input.sourceId ?? null,
+    sourceId:
+      input.sourceId === undefined || input.sourceId === null
+        ? null
+        : sanitizeEngineeringEvidence(input.sourceId),
     occurredAt: input.occurredAt ?? new Date().toISOString(),
     repository: input.repository ?? null,
     prNumber: toOptionalInteger(input.prNumber),
     commitSha: input.commitSha ?? null,
     workflowRunId: toOptionalInteger(input.workflowRunId),
-    workflowName: input.workflowName ?? null,
+    workflowName:
+      input.workflowName === undefined || input.workflowName === null
+        ? null
+        : sanitizeEngineeringEvidence(input.workflowName),
     jobId: toOptionalInteger(input.jobId),
-    jobName: input.jobName ?? null,
-    stepName: input.stepName ?? null,
+    jobName:
+      input.jobName === undefined || input.jobName === null
+        ? null
+        : sanitizeEngineeringEvidence(input.jobName),
+    stepName:
+      input.stepName === undefined || input.stepName === null
+        ? null
+        : sanitizeEngineeringEvidence(input.stepName),
     category: classification.category,
     symptom: summarizeSymptom(
       input.logText ?? input.summary ?? input.stepName ?? 'Unknown failure',
     ),
     rootCauseId: classification.rootCauseId,
-    rootCauseCandidate: classification.rootCauseCandidate,
+    rootCauseCandidate: sanitizeEngineeringEvidence(classification.rootCauseCandidate),
     rootCauseConfidence: classification.confidence,
     rootCauseDeterministic: classification.deterministic,
     matchedSignatures: classification.matchedSignatures,
-    unsuccessfulMethod: input.unsuccessfulMethod ?? classification.unsuccessfulMethod,
-    successfulMethod: input.successfulMethod ?? classification.successfulMethod,
-    preventionControl: input.preventionControl ?? classification.preventionControl,
+    unsuccessfulMethod: sanitizeEngineeringEvidence(
+      input.unsuccessfulMethod ?? classification.unsuccessfulMethod,
+    ),
+    successfulMethod: sanitizeEngineeringEvidence(
+      input.successfulMethod ?? classification.successfulMethod,
+    ),
+    preventionControl: sanitizeEngineeringEvidence(
+      input.preventionControl ?? classification.preventionControl,
+    ),
     ledgerEntry: classification.ledgerEntry,
     fingerprint,
     evidenceUrls: Array.from(new Set((input.evidenceUrls ?? []).filter(Boolean))),
