@@ -20,14 +20,63 @@ function fail(messages) {
   process.exit(1);
 }
 
-function hasRequiredResolution(body) {
-  return (
-    body.includes('- Root-cause status: `confirmed`') &&
-    body.includes('- Resolution status: `verified`') &&
-    !body.includes('- Confirmed root cause: Pending.') &&
-    !body.includes('- Fix commit: Pending.') &&
-    !body.includes('- Successful verification: Pending.')
-  );
+function parseResolution(body) {
+  return {
+    confirmedRootCause: parsePullRequestField(body, '- Confirmed root cause:'),
+    fixCommit: parsePullRequestField(body, '- Fix commit:'),
+    resolutionStatus: parsePullRequestField(body, '- Resolution status:'),
+    reviewerConfirmation: parsePullRequestField(body, '- Reviewer confirmation:'),
+    rootCauseStatus: parsePullRequestField(body, '- Root-cause status:'),
+    successfulVerification: parsePullRequestField(body, '- Successful verification:'),
+  };
+}
+
+async function validateConfirmedResolution(issue, pullRequestCommitShas, errors) {
+  const resolution = parseResolution(issue.body ?? '');
+
+  if (resolution.rootCauseStatus !== 'confirmed') {
+    errors.push(`Issue #${issue.number} does not mark its root cause as confirmed.`);
+  }
+  if (
+    resolution.confirmedRootCause === null ||
+    resolution.confirmedRootCause === 'Pending.' ||
+    resolution.confirmedRootCause.length < 12
+  ) {
+    errors.push(`Issue #${issue.number} lacks a specific confirmed root cause.`);
+  }
+  if (resolution.resolutionStatus !== 'verified') {
+    errors.push(`Issue #${issue.number} resolution status is not verified.`);
+  }
+  if (
+    resolution.successfulVerification === null ||
+    resolution.successfulVerification === 'Pending.' ||
+    resolution.successfulVerification.length < 12
+  ) {
+    errors.push(`Issue #${issue.number} lacks successful verification evidence.`);
+  }
+  if (
+    resolution.reviewerConfirmation === null ||
+    resolution.reviewerConfirmation === 'Pending.' ||
+    resolution.reviewerConfirmation.length < 8
+  ) {
+    errors.push(`Issue #${issue.number} lacks reviewer confirmation.`);
+  }
+
+  const fixCommit = resolution.fixCommit ?? '';
+  if (/^[0-9a-f]{40}$/i.test(fixCommit)) {
+    try {
+      await githubRequest(`/commits/${fixCommit}`);
+      if (!pullRequestCommitShas.has(fixCommit)) {
+        errors.push(`Issue #${issue.number} fix commit is not part of this pull request.`);
+      }
+    } catch (error) {
+      errors.push(`Issue #${issue.number} fix commit could not be verified: ${String(error)}`);
+    }
+  } else if (!fixCommit.startsWith('not-applicable:')) {
+    errors.push(
+      `Issue #${issue.number} fix commit must be a full commit SHA or start with not-applicable:.`,
+    );
+  }
 }
 
 async function verifyMachineEvidence(issue, metadata, pullRequest, errors) {
@@ -54,7 +103,9 @@ async function verifyMachineEvidence(issue, metadata, pullRequest, errors) {
       return;
     }
 
-    const jobs = await listAll(`/actions/runs/${workflowRunId}/jobs`, { collectionKey: 'jobs' });
+    const jobs = await listAll(`/actions/runs/${workflowRunId}/jobs`, {
+      collectionKey: 'jobs',
+    });
     const job = jobs.find((candidate) => candidate.id === jobId);
     if (job === undefined || !FAILURE_CONCLUSIONS.has(job.conclusion)) {
       errors.push(`Issue #${issue.number} references job ${jobId}, which is not a failed job.`);
@@ -99,18 +150,19 @@ async function verifyMachineEvidence(issue, metadata, pullRequest, errors) {
   }
 }
 
-async function listPullRequestRuns(pullRequestNumber) {
-  const commits = await listAll(`/pulls/${pullRequestNumber}/commits`);
-  const runs = [];
+async function listPullRequestRuns(commits) {
+  const runsById = new Map();
 
   for (const commit of commits) {
     const response = await githubRequest(
-      `/actions/runs?event=pull_request&head_sha=${encodeURIComponent(commit.sha)}&per_page=100`,
+      `/actions/runs?event=pull_request&head_sha=${encodeURIComponent(commit.sha)}`,
     );
-    runs.push(...(response.workflow_runs ?? []));
+    for (const run of response.workflow_runs ?? []) {
+      runsById.set(run.id, run);
+    }
   }
 
-  return runs;
+  return [...runsById.values()];
 }
 
 async function listPullRequestLearningIssues(pullRequestNumber) {
@@ -122,10 +174,6 @@ async function listPullRequestLearningIssues(pullRequestNumber) {
     const metadata = parseMetadata(issue.body);
     return Number(metadata['pr-number']) === pullRequestNumber;
   });
-}
-
-async function listChangedFiles(pullRequestNumber) {
-  return listAll(`/pulls/${pullRequestNumber}/files`);
 }
 
 const eventPath = process.env.GITHUB_EVENT_PATH;
@@ -165,19 +213,47 @@ if (externalEventsReconciled !== 'yes') {
   errors.push('External and tool events must be reconciled before review.');
 }
 
+const commits = await listAll(`/pulls/${pullRequest.number}/commits`);
+const pullRequestCommitShas = new Set(commits.map((commit) => commit.sha));
 const [runs, linkedIssues, changedFiles] = await Promise.all([
-  listPullRequestRuns(pullRequest.number),
+  listPullRequestRuns(commits),
   listPullRequestLearningIssues(pullRequest.number),
-  listChangedFiles(pullRequest.number),
+  listAll(`/pulls/${pullRequest.number}/files`),
 ]);
 
 const failedRuns = runs.filter((run) => FAILURE_CONCLUSIONS.has(run.conclusion));
+const linkedIssueNumbers = new Set(linkedIssues.map((issue) => issue.number));
+const listedIssueNumbers = new Set(learningIssueNumbers);
+const linkedIssueMetadata = new Map(
+  linkedIssues.map((issue) => [issue.number, parseMetadata(issue.body)]),
+);
+const capturedWorkflowRunIds = new Set(
+  [...linkedIssueMetadata.values()]
+    .map((metadata) => Number(metadata['workflow-run-id']))
+    .filter(Number.isSafeInteger),
+);
 const hasFailureEvidence = failedRuns.length > 0 || linkedIssues.length > 0;
 
 if (learningOutcome === 'none' && hasFailureEvidence) {
   errors.push(
     `Learning outcome cannot be none: found ${failedRuns.length} failed workflow run(s) and ${linkedIssues.length} linked learning issue(s).`,
   );
+}
+
+for (const run of failedRuns) {
+  if (!capturedWorkflowRunIds.has(run.id)) {
+    errors.push(`Failed workflow run ${run.id} has no occurrence-specific learning issue.`);
+  }
+}
+for (const linkedIssueNumber of linkedIssueNumbers) {
+  if (!listedIssueNumbers.has(linkedIssueNumber)) {
+    errors.push(`Linked learning issue #${linkedIssueNumber} is missing from the PR record.`);
+  }
+}
+for (const listedIssueNumber of listedIssueNumbers) {
+  if (!linkedIssueNumbers.has(listedIssueNumber)) {
+    errors.push(`PR record issue #${listedIssueNumber} is not linked to this pull request.`);
+  }
 }
 
 if (learningOutcome === 'none') {
@@ -197,9 +273,7 @@ if (learningOutcome === 'new' || learningOutcome === 'existing') {
     errors.push('A learning outcome requires at least one ledger entry such as EL-0019.');
   }
   if (learningIssueNumbers.length === 0) {
-    errors.push(
-      'A learning outcome requires at least one linked engineering-learning issue number.',
-    );
+    errors.push('A learning outcome requires at least one linked engineering-learning issue.');
   }
   if (!['confirmed', 'machine-supported'].includes(rootCauseStatus ?? '')) {
     errors.push('Root-cause status must be `confirmed` or `machine-supported`.');
@@ -239,45 +313,43 @@ if (learningOutcome === 'existing') {
   for (const ledgerEntry of ledgerEntries) {
     const known = catalog.rootCauses.some((rootCause) => rootCause.ledgerEntry === ledgerEntry);
     if (!known) {
-      errors.push(
-        `Existing ledger entry ${ledgerEntry} is not represented in the learning catalog.`,
-      );
+      errors.push(`Existing ledger entry ${ledgerEntry} is absent from the learning catalog.`);
     }
   }
 }
 
+const catalog = loadCatalog();
 for (const learningIssueNumber of learningIssueNumbers) {
-  let issue;
-  try {
-    issue = await githubRequest(`/issues/${learningIssueNumber}`);
-  } catch (error) {
-    errors.push(`Learning issue #${learningIssueNumber} could not be read: ${String(error)}`);
+  const issue = linkedIssues.find((candidate) => candidate.number === learningIssueNumber);
+  if (issue === undefined) {
+    continue;
   }
 
-  if (issue !== undefined) {
-    const metadata = parseMetadata(issue.body);
-
-    if (metadata.fingerprint === undefined || metadata['root-cause-id'] === undefined) {
-      errors.push(`Issue #${learningIssueNumber} lacks machine-readable learning metadata.`);
-    }
-    if (Number(metadata['pr-number']) !== pullRequest.number) {
-      errors.push(`Issue #${learningIssueNumber} is not linked to PR #${pullRequest.number}.`);
-    }
-    if (rootCauseStatus === 'machine-supported') {
-      if (metadata['root-cause-status'] !== 'machine-supported') {
-        errors.push(
-          `Issue #${learningIssueNumber} does not contain machine-supported root-cause evidence.`,
-        );
-      } else {
-        await verifyMachineEvidence(issue, metadata, pullRequest, errors);
-      }
-    }
-    if (rootCauseStatus === 'confirmed' && !hasRequiredResolution(issue.body ?? '')) {
-      errors.push(
-        `Issue #${learningIssueNumber} does not contain a confirmed and verified resolution record.`,
-      );
-    }
+  const metadata = linkedIssueMetadata.get(learningIssueNumber) ?? {};
+  if (metadata.fingerprint === undefined || metadata['root-cause-id'] === undefined) {
+    errors.push(`Issue #${learningIssueNumber} lacks machine-readable learning metadata.`);
+    continue;
   }
+  if (Number(metadata['pr-number']) !== pullRequest.number) {
+    errors.push(`Issue #${learningIssueNumber} is not linked to PR #${pullRequest.number}.`);
+  }
+
+  const catalogEntry = catalog.rootCauses.find(
+    (rootCause) => rootCause.id === metadata['root-cause-id'],
+  );
+  if (catalogEntry === undefined && !metadata['root-cause-id'].startsWith('ROOT-UNCLASSIFIED-')) {
+    errors.push(`Issue #${learningIssueNumber} root-cause ID is absent from the catalog.`);
+  }
+
+  if (metadata['root-cause-status'] === 'machine-supported') {
+    await verifyMachineEvidence(issue, metadata, pullRequest, errors);
+  } else if (metadata['root-cause-status'] !== 'confirmed') {
+    errors.push(
+      `Issue #${learningIssueNumber} root-cause status is neither confirmed nor machine-supported.`,
+    );
+  }
+
+  await validateConfirmedResolution(issue, pullRequestCommitShas, errors);
 }
 
 if (errors.length > 0) {
