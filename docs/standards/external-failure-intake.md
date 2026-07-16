@@ -41,21 +41,21 @@ Required fields are `sourceType` and `summary`. The collector creates a stable `
 
 Production, staging, and preview are environments rather than root causes. They are recorded independently from the observable source.
 
-| Requested source | Event source type | Environment |
-| --- | --- | --- |
-| Local verification | `local-verification` | `local` |
-| Development server | `development-server` | `development` |
-| Runtime exceptions | `runtime-exception` | any |
-| Production | runtime, API, browser, deployment, database, scanner, or performance source | `production` |
-| Staging | runtime, API, browser, deployment, database, scanner, or performance source | `staging` |
-| Preview deployments | `deployment` | `preview` |
-| Build tools | `build-tool` | local, CI, preview, staging, or production |
-| Package manager | `package-manager` | local or CI |
-| Database | `database` | any |
-| Browser console | `browser-console` | development, preview, staging, or production |
-| API logs | `api-log` | any |
-| Security scanners | `security-scanner` | local, CI, preview, staging, or production |
-| Performance regressions | `performance-regression` | any |
+| Requested source        | Event source type                                                           | Environment                                  |
+| ----------------------- | --------------------------------------------------------------------------- | -------------------------------------------- |
+| Local verification      | `local-verification`                                                        | `local`                                      |
+| Development server      | `development-server`                                                        | `development`                                |
+| Runtime exceptions      | `runtime-exception`                                                         | any                                          |
+| Production              | runtime, API, browser, deployment, database, scanner, or performance source | `production`                                 |
+| Staging                 | runtime, API, browser, deployment, database, scanner, or performance source | `staging`                                    |
+| Preview deployments     | `deployment`                                                                | `preview`                                    |
+| Build tools             | `build-tool`                                                                | local, CI, preview, staging, or production   |
+| Package manager         | `package-manager`                                                           | local or CI                                  |
+| Database                | `database`                                                                  | any                                          |
+| Browser console         | `browser-console`                                                           | development, preview, staging, or production |
+| API logs                | `api-log`                                                                   | any                                          |
+| Security scanners       | `security-scanner`                                                          | local, CI, preview, staging, or production   |
+| Performance regressions | `performance-regression`                                                    | any                                          |
 
 ## Capture paths
 
