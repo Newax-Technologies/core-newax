@@ -3,6 +3,11 @@ import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import {
+  analyzeRootCause,
+  compareRootCauseOccurrences,
+  normalizeRootCauseEvidence,
+} from './root-cause-engine.mjs';
 import { sanitizeEngineeringEvidence } from './sanitize-engineering-evidence.mjs';
 
 const CURRENT_DIRECTORY = dirname(fileURLToPath(import.meta.url));
@@ -10,7 +15,6 @@ const CATALOG_PATH = resolve(
   CURRENT_DIRECTORY,
   '../docs/verification/engineering-learning-catalog.json',
 );
-const ANSI_COLOR_PATTERN = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g');
 
 export const FAILURE_CONCLUSIONS = new Set(['action_required', 'failure', 'timed_out']);
 
@@ -19,78 +23,25 @@ export function loadCatalog(path = CATALOG_PATH) {
 }
 
 export function normalizeText(value) {
-  return sanitizeEngineeringEvidence(value)
-    .replaceAll(ANSI_COLOR_PATTERN, '')
-    .replaceAll(/\b[0-9a-f]{40}\b/gi, '<sha>')
-    .replaceAll(/\b[0-9a-f]{7,64}\b/gi, '<hex>')
-    .replaceAll(/\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\b/g, '<timestamp>')
-    .replaceAll(/\b\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\b/g, '<time>')
-    .replaceAll(/\b\d+ms\b/g, '<duration>')
-    .replaceAll(/\s+/g, ' ')
-    .trim();
+  return normalizeRootCauseEvidence(value);
 }
 
-export function classifyFailure(
-  { workflowName, jobName, stepName, logText },
-  catalog = loadCatalog(),
-) {
-  const combined = normalizeText(
-    [workflowName, jobName, stepName, logText].filter(Boolean).join('\n'),
-  );
-  const lower = combined.toLowerCase();
-
-  for (const rootCause of catalog.rootCauses) {
-    const matchedSignatures = rootCause.signatures.filter((signature) =>
-      lower.includes(signature.toLowerCase()),
-    );
-    const requiredMatches = rootCause.deterministic ? rootCause.signatures.length : 1;
-
-    if (matchedSignatures.length >= requiredMatches) {
-      return {
-        category: rootCause.category,
-        confidence: rootCause.confidence,
-        deterministic: rootCause.deterministic,
-        ledgerEntry: rootCause.ledgerEntry,
-        matchedSignatures,
-        preventionControl: rootCause.preventionControl,
-        rootCauseCandidate: rootCause.rootCause,
-        rootCauseId: rootCause.id,
-        successfulMethod: rootCause.successfulMethod,
-        unsuccessfulMethod: rootCause.unsuccessfulMethod,
-      };
-    }
-  }
-
-  const step = String(stepName ?? '').toLowerCase();
-  const fallback = [
-    ['dependency-installation-lockfile', ['install', 'dependency', 'lockfile', 'pnpm']],
-    ['formatting', ['format', 'prettier']],
-    ['eslint-static-analysis', ['lint', 'eslint']],
-    ['typecheck-compilation', ['type-check', 'typecheck', 'typescript', 'compile']],
-    ['unit-integration-tests', ['test', 'vitest', 'playwright']],
-    ['database-migration-live-behavior', ['database', 'migration', 'prisma', 'postgres']],
-    ['production-build', ['build', 'bundle']],
-  ].find(([, keywords]) => keywords.some((keyword) => step.includes(keyword)));
-
-  const category = fallback?.[0] ?? 'unknown';
+export function classifyFailure(input, catalog = loadCatalog()) {
+  const assessment = analyzeRootCause(input, catalog);
+  const selected = assessment.selected;
 
   return {
-    category,
-    confidence: fallback === undefined ? 'low' : 'medium',
-    deterministic: false,
-    ledgerEntry: null,
-    matchedSignatures: [],
-    preventionControl:
-      'Confirm the root cause, add a regression control, and update the learning catalog.',
-    rootCauseCandidate:
-      fallback === undefined
-        ? 'The machine could not determine a supported root-cause candidate from the available evidence.'
-        : `The failure occurred in the ${category} verification stage; the exact root cause requires confirmation.`,
-    rootCauseId: `ROOT-UNCLASSIFIED-${category.toUpperCase().replaceAll('-', '_')}`,
-    successfulMethod:
-      'Confirm the cause from the complete logs, apply one focused correction, and rerun the full pipeline.',
-    unsuccessfulMethod:
-      'Apply speculative corrections without confirming the failed step and evidence.',
+    assessment,
+    category: selected.category,
+    confidence: selected.confidence,
+    deterministic: assessment.deterministic,
+    ledgerEntry: selected.ledgerEntry,
+    matchedSignatures: selected.matchedSignatures,
+    preventionControl: selected.preventionControl,
+    rootCauseCandidate: selected.rootCause,
+    rootCauseId: selected.rootCauseId,
+    successfulMethod: selected.successfulMethod,
+    unsuccessfulMethod: selected.unsuccessfulMethod,
   };
 }
 
@@ -112,7 +63,7 @@ export function createEngineeringEvent(input, catalog = loadCatalog()) {
   const fingerprint = createFingerprint({ ...input, classification });
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     sourceType: input.sourceType ?? 'unknown',
     sourceId:
       input.sourceId === undefined || input.sourceId === null
@@ -144,6 +95,7 @@ export function createEngineeringEvent(input, catalog = loadCatalog()) {
     rootCauseCandidate: sanitizeEngineeringEvidence(classification.rootCauseCandidate),
     rootCauseConfidence: classification.confidence,
     rootCauseDeterministic: classification.deterministic,
+    rootCauseAssessment: classification.assessment,
     matchedSignatures: classification.matchedSignatures,
     unsuccessfulMethod: sanitizeEngineeringEvidence(
       input.unsuccessfulMethod ?? classification.unsuccessfulMethod,
@@ -187,11 +139,33 @@ export function parseMetadata(body) {
   );
 }
 
+function renderEvidenceList(values, emptyMessage) {
+  return values.length === 0
+    ? `- ${emptyMessage}`
+    : values.map((value) => `- ${sanitizeEngineeringEvidence(value)}`).join('\n');
+}
+
+function renderAlternativeHypotheses(event) {
+  const alternatives = event.rootCauseAssessment.hypotheses.filter(
+    (hypothesis) => hypothesis.rootCauseId !== event.rootCauseId,
+  );
+  return alternatives.length === 0
+    ? '- No competing catalog hypothesis matched.'
+    : alternatives
+        .map(
+          (hypothesis) =>
+            `- \`${hypothesis.rootCauseId}\`: score ${hypothesis.score}, confidence ${hypothesis.confidence}`,
+        )
+        .join('\n');
+}
+
 export function renderIssueBody(event) {
   const evidence =
     event.evidenceUrls.length === 0
       ? '- No URL was supplied.'
       : event.evidenceUrls.map((url) => `- ${url}`).join('\n');
+  const matchedSignatures =
+    event.matchedSignatures.length === 0 ? 'none' : event.matchedSignatures.join('|');
 
   return `<!-- newax-engineering-event
 fingerprint: ${event.fingerprint}
@@ -202,7 +176,10 @@ commit-sha: ${event.commitSha ?? 'none'}
 workflow-run-id: ${event.workflowRunId ?? 'none'}
 job-id: ${event.jobId ?? 'none'}
 step-name: ${event.stepName ?? 'none'}
+failure-category: ${event.category}
+matched-signatures: ${matchedSignatures}
 root-cause-id: ${event.rootCauseId}
+root-cause-confidence: ${event.rootCauseConfidence}
 root-cause-status: ${event.status}
 duplicate-of: ${event.duplicateOfIssue ?? 'none'}
 -->
@@ -222,11 +199,34 @@ duplicate-of: ${event.duplicateOfIssue ?? 'none'}
 - Root-cause ID: \`${event.rootCauseId}\`
 - Machine confidence: \`${event.rootCauseConfidence}\`
 - Machine-supported classification: \`${event.rootCauseDeterministic ? 'yes' : 'no'}\`
+- Ambiguous hypothesis: \`${event.rootCauseAssessment.ambiguous ? 'yes' : 'no'}\`
 - Matching root-cause occurrence: ${event.duplicateOfIssue === undefined ? 'None found' : `#${event.duplicateOfIssue}`}
 
 ## Evidence links
 
 ${evidence}
+
+## Root-cause engine evidence
+
+### Observed facts
+
+${renderEvidenceList(event.rootCauseAssessment.observedFacts, 'No structured fact was available.')}
+
+### Evidence for the selected cause
+
+${renderEvidenceList(event.rootCauseAssessment.evidenceFor, 'No supporting catalog signature was observed.')}
+
+### Evidence against the selected cause
+
+${renderEvidenceList(event.rootCauseAssessment.evidenceAgainst, 'No contradiction was detected in available evidence.')}
+
+### Missing evidence
+
+${renderEvidenceList(event.rootCauseAssessment.missingEvidence, 'No additional machine evidence is required.')}
+
+### Alternative hypotheses
+
+${renderAlternativeHypotheses(event)}
 
 ## Root-cause assessment
 
@@ -269,6 +269,7 @@ export function renderRecurrenceComment(event) {
 - Workflow: ${event.workflowName ?? 'Not applicable'}
 - Failed step: ${event.stepName ?? 'Not applicable'}
 - Fingerprint: \`${event.fingerprint}\`
+- Root-cause ID: \`${event.rootCauseId}\`
 
 The existing prevention control must be reassessed before the same method is retried.`;
 }
@@ -369,22 +370,26 @@ export async function findMatchingIssues(event, options = {}) {
   const issues = await listAll('/issues?state=all', options);
   const candidates = issues
     .filter((issue) => issue.pull_request === undefined)
-    .map((issue) => ({ issue, metadata: parseMetadata(issue.body) }));
+    .map((issue) => {
+      const metadata = parseMetadata(issue.body);
+      return {
+        issue,
+        metadata,
+        relationship: compareRootCauseOccurrences(event, metadata),
+      };
+    });
 
-  const exactOccurrence = candidates.find(({ metadata }) => {
-    return (
-      metadata.fingerprint === event.fingerprint &&
-      metadata['source-id'] === String(event.sourceId ?? 'none') &&
-      metadata['pr-number'] === String(event.prNumber ?? 'none')
-    );
-  });
-  const sameRootCause = candidates.find(
-    ({ metadata }) => metadata['root-cause-id'] === event.rootCauseId,
+  const exactOccurrence = candidates.find(
+    ({ relationship }) => relationship.relation === 'exact-occurrence',
   );
+  const sameRootCause = candidates
+    .filter(({ relationship }) => relationship.relation === 'shared-root-cause')
+    .sort((first, second) => second.relationship.score - first.relationship.score)[0];
 
   return {
     exactOccurrence: exactOccurrence?.issue,
     sameRootCause: sameRootCause?.issue,
+    sameRootCauseRelationship: sameRootCause?.relationship ?? null,
   };
 }
 
