@@ -7,10 +7,7 @@ import {
   parseMetadata,
   parsePullRequestField,
 } from './engineering-learning-core.mjs';
-import {
-  evaluateLearningOutcome,
-  verifyRootCauseExplanation,
-} from './root-cause-engine.mjs';
+import { evaluateLearningOutcome, verifyRootCauseExplanation } from './root-cause-engine.mjs';
 
 function fail(messages) {
   console.error('Root-cause governance verification failed:');
