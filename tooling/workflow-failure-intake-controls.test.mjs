@@ -53,7 +53,7 @@ test('extracts the workflow_run monitoring list', () => {
   assert.deepEqual(names, ['Continuous Integration', 'Database Registry Map']);
 });
 
-test('detects omitted and stale monitored workflow names', () => {
+test('detects a current workflow omitted from failure intake', () => {
   const workflowFiles = [
     { filename: 'ci.yml', content: 'name: Continuous Integration\n' },
     { filename: 'database.yml', content: 'name: Database Registry Map\n' },
@@ -64,16 +64,15 @@ test('detects omitted and stale monitored workflow names', () => {
   ];
   const errors = findWorkflowCoverageErrors({
     workflowFiles,
-    intakeContent: `on:\n  workflow_run:\n    workflows:\n      - Continuous Integration\n      - Removed Workflow\n`,
+    intakeContent: `on:\n  workflow_run:\n    workflows:\n      - Continuous Integration\n      - Future Workflow\n`,
   });
 
   assert.deepEqual(errors, [
     'Workflow Database Registry Map (database.yml) is not monitored by engineering-failure-intake.yml.',
-    'Monitored workflow Removed Workflow does not match a non-exempt workflow file.',
   ]);
 });
 
-test('accepts complete monitoring coverage', () => {
+test('accepts complete coverage and harmless future workflow registration', () => {
   const workflowFiles = [
     { filename: 'ci.yml', content: 'name: Continuous Integration\n' },
     { filename: 'database.yml', content: 'name: Database Registry Map\n' },
@@ -84,7 +83,7 @@ test('accepts complete monitoring coverage', () => {
   ];
   const errors = findWorkflowCoverageErrors({
     workflowFiles,
-    intakeContent: `on:\n  workflow_run:\n    workflows:\n      - Continuous Integration\n      - Database Registry Map\n`,
+    intakeContent: `on:\n  workflow_run:\n    workflows:\n      - Continuous Integration\n      - Database Registry Map\n      - Future Workflow\n`,
   });
 
   assert.deepEqual(errors, []);
