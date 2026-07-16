@@ -1,14 +1,11 @@
 import { readFileSync } from 'node:fs';
 
-import {
-  appendLocalEvent,
-  createEngineeringEvent,
-  createOrUpdateLearningIssue,
-} from './engineering-learning-core.mjs';
+import { appendLocalEvent, createEngineeringEvent } from './engineering-learning-core.mjs';
 import {
   EXTERNAL_EVENT_SOURCE_TYPES,
   applyExternalSourceClassification,
 } from './external-event-classification.mjs';
+import { submitEngineeringEvent } from './submit-engineering-event.mjs';
 
 function parseArguments(values) {
   const result = {};
@@ -82,7 +79,7 @@ const baseEvent = createEngineeringEvent({
 const learningEvent = applyExternalSourceClassification(baseEvent, sourceType, summary);
 
 if (process.env.GITHUB_TOKEN !== undefined && process.env.GITHUB_REPOSITORY !== undefined) {
-  const result = await createOrUpdateLearningIssue(learningEvent);
+  const result = await submitEngineeringEvent(learningEvent);
   console.log(JSON.stringify({ delivery: 'github-issue', ...result }));
 } else {
   const path = appendLocalEvent(learningEvent);
