@@ -53,7 +53,24 @@ jobs:
         run: pnpm --filter @newax/people-intake typecheck
 
       - name: Test People Intake package
-        run: pnpm --filter @newax/people-intake test
+        id: people_intake_test
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pnpm --filter @newax/people-intake test 2>&1 | tee people-intake-test.log
+
+      - name: Upload focused test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: people-intake-uuid-regression-${{ github.run_id }}
+          path: people-intake-test.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce focused test result
+        if: steps.people_intake_test.outcome != 'success'
+        run: exit 1
 
       - name: Commit UUID validation fix
         run: |
