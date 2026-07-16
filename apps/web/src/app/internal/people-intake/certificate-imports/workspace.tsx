@@ -104,7 +104,9 @@ export function CertificateImportWorkspace() {
       });
       const body: unknown = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(errorMessage(body) ?? `Request failed with status ${String(response.status)}.`);
+        throw new Error(
+          errorMessage(body) ?? `Request failed with status ${String(response.status)}.`,
+        );
       }
       if (!isApiEnvelope<T>(body)) {
         throw new Error('The server returned an invalid response.');
@@ -335,7 +337,9 @@ export function CertificateImportWorkspace() {
         </label>
         <p>
           Current context:{' '}
-          <strong>{selectedMembership?.organization_display_name ?? 'No organization selected'}</strong>
+          <strong>
+            {selectedMembership?.organization_display_name ?? 'No organization selected'}
+          </strong>
         </p>
       </section>
 
@@ -441,12 +445,11 @@ export function CertificateImportWorkspace() {
         >
           Load import
         </button>
-
         {importRecord !== null ? (
           <div style={{ marginBlock: 16 }}>
             <p>
-              Status: <strong>{importRecord.status}</strong> · import version{' '}
-              {importRecord.version} · intake version {importRecord.intake_version} · intake status{' '}
+              Status: <strong>{importRecord.status}</strong> · import version {importRecord.version}{' '}
+              · intake version {importRecord.intake_version} · intake status{' '}
               {importRecord.intake_status}
             </p>
 

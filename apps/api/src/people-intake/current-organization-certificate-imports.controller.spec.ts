@@ -20,12 +20,15 @@ const operations = [
 ] as const;
 
 describe('CurrentOrganizationCertificateImportsController metadata', () => {
-  it.each(operations)('%s requires Organization context and its dedicated permission', (name, permission) => {
-    const handler = CurrentOrganizationCertificateImportsController.prototype[name];
+  it.each(operations)(
+    '%s requires Organization context and its dedicated permission',
+    (name, permission) => {
+      const handler = CurrentOrganizationCertificateImportsController.prototype[name];
 
-    expect(Reflect.getMetadata(HTTP_CONTEXT_MODE_KEY, handler)).toBe('organization');
-    expect(Reflect.getMetadata(HTTP_REQUIRED_PERMISSIONS_KEY, handler)).toEqual([permission]);
-  });
+      expect(Reflect.getMetadata(HTTP_CONTEXT_MODE_KEY, handler)).toBe('organization');
+      expect(Reflect.getMetadata(HTTP_REQUIRED_PERMISSIONS_KEY, handler)).toEqual([permission]);
+    },
+  );
 
   it.each(operations)('%s prevents response caching', (name) => {
     const handler = CurrentOrganizationCertificateImportsController.prototype[name];
