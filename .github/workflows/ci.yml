@@ -89,7 +89,23 @@ jobs:
           retention-days: 7
 
       - name: Lint
+        id: linting
         run: pnpm lint
+
+      - name: Prepare ESLint diagnostic
+        if: failure() && steps.linting.outcome == 'failure'
+        run: >-
+          pnpm exec eslint . --max-warnings 0 --format json
+          --output-file eslint-report.json || true
+
+      - name: Upload ESLint diagnostic
+        if: failure() && steps.linting.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: eslint-report-${{ github.sha }}
+          path: eslint-report.json
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Type-check
         run: pnpm typecheck
