@@ -11,7 +11,10 @@ import {
 } from './root-cause-engine.mjs';
 
 const catalog = JSON.parse(
-  readFileSync(new URL('../docs/verification/engineering-learning-catalog.json', import.meta.url), 'utf8'),
+  readFileSync(
+    new URL('../docs/verification/engineering-learning-catalog.json', import.meta.url),
+    'utf8',
+  ),
 );
 
 function createCatalog(rootCauses) {
