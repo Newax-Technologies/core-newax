@@ -40,8 +40,9 @@ export function classifyFailure(
     const matchedSignatures = rootCause.signatures.filter((signature) =>
       lower.includes(signature.toLowerCase()),
     );
+    const requiredMatches = rootCause.deterministic ? rootCause.signatures.length : 1;
 
-    if (matchedSignatures.length > 0) {
+    if (matchedSignatures.length >= requiredMatches) {
       return {
         category: rootCause.category,
         confidence: rootCause.confidence,
@@ -270,14 +271,19 @@ export async function githubRequest(path, options = {}) {
   }
 
   const url = path.startsWith('http') ? path : `https://api.github.com/repos/${repository}${path}`;
+  const headers = {
+    Accept: 'application/vnd.github+json',
+    Authorization: `Bearer ${token}`,
+    'X-GitHub-Api-Version': '2022-11-28',
+    ...options.headers,
+  };
+  if (options.body !== undefined && headers['Content-Type'] === undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
