@@ -47,7 +47,7 @@ ALTER TABLE "core_person_relationships"
 ALTER TABLE "core_person_relationships"
   ADD CONSTRAINT "core_person_relationships_verification_revoked_by_user_id_fkey"
   FOREIGN KEY ("verification_revoked_by_user_id") REFERENCES "core_users"("id")
-  ON DELETE SET NULL ON UPDATE CASCADE;
+  ON DELETE RESTRICT ON UPDATE CASCADE;
 
 CREATE INDEX "core_person_relationships_verification_revoked_by_user_id_idx"
   ON "core_person_relationships"("verification_revoked_by_user_id");

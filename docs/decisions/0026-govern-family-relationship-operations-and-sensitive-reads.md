@@ -39,9 +39,9 @@ A role may bundle these permissions, but service and HTTP authorization will eva
 
 ## Organization scope
 
-A relationship is Tenant-owned. HTTP access additionally requires that every person included in the requested Organization family view is reachable through an active Organization membership or through an Organization-scoped approved intake/application record. This prevents an Organization user from exploring unrelated people merely because their Tenant owns both records.
+A relationship is Tenant-owned. A current-Organization family graph must begin at a root person who has an active membership in that Organization. The graph may then traverse active Tenant-owned relationships to relatives who are not Organization members. A relationship mutation requires at least one endpoint to have an active membership in the current Organization. This allows legitimate parent, child, guardian, spouse, sibling, and dependent records without granting Organization users a way to select an unrelated Tenant-owned family as the starting point.
 
-The exact reachability query and tests must be implemented before this ADR becomes Accepted.
+The reachability query and its service tests are part of this slice. Approved-intake reachability may be added later when approved intakes can be canonically applied.
 
 ## Consequences
 

@@ -163,7 +163,7 @@ model CorePersonRelationship {
   sourcePerson              CorePerson @relation("PersonRelationshipSource", fields: [sourcePersonId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   targetPerson              CorePerson @relation("PersonRelationshipTarget", fields: [targetPersonId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   verifiedByUser            CoreUser?  @relation("PersonRelationshipVerifiedBy", fields: [verifiedByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  verificationRevokedByUser CoreUser?  @relation("PersonRelationshipVerificationRevokedBy", fields: [verificationRevokedByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  verificationRevokedByUser CoreUser?  @relation("PersonRelationshipVerificationRevokedBy", fields: [verificationRevokedByUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   // Self-links, validity, verification consistency, active-link uniqueness, and
   // active parentage cycles are enforced by migration-owned PostgreSQL constraints.

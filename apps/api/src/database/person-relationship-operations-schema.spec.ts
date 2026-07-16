@@ -24,5 +24,7 @@ describe('person relationship operation schema', () => {
     expect(migration).toContain('verification_revocation_reason');
     expect(migration).toContain('btrim("verification_source") <>');
     expect(migration).toContain('verification_revoked_by_user_id_fkey');
+    expect(migration).toContain('ON DELETE RESTRICT ON UPDATE CASCADE');
+    expect(schema).toContain('onDelete: Restrict');
   });
 });
