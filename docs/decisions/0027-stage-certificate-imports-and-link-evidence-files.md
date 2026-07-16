@@ -74,9 +74,7 @@ Acceptance requires:
 
 ## Acceptance evidence
 
-The final verified feature head is `06ac23f9790fcfa31cff1862cf4e8fd7b7e7e1cb`.
+The exact final head and workflow evidence are recorded in Pull Request #48 after exact-head verification completes.
 
-- Continuous Integration run 623 (`29503670059`) passed against the final head: dependency installation, Prisma validation, all migrations, migration-status verification, formatting, lint, strict type-check, complete tests, and production builds.
-- Database Registry Map run 168 (`29503670255`) passed against the same final head: generator tests, publishable inventory generation, contract validation, and review-artifact creation.
 - No temporary construction workflows or scripts remain in the feature diff.
 - No unresolved review thread or known implementation issue remains.
