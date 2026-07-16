@@ -1,10 +1,15 @@
 import { appendLocalEvent, createEngineeringEvent } from './engineering-learning-core.mjs';
 import { applyExternalSourceClassification } from './external-event-classification.mjs';
 import { normalizeExternalFailurePayload } from './external-failure-intake.mjs';
+import { sanitizeEngineeringEvidence } from './sanitize-engineering-evidence.mjs';
 import { submitEngineeringEvent } from './submit-engineering-event.mjs';
 
 function createContextLabel(event) {
   return [event.environment, event.service, event.release].filter(Boolean).join(' / ');
+}
+
+function sanitizeContextValue(value) {
+  return value === null ? null : sanitizeEngineeringEvidence(value);
 }
 
 export function createLearningEventFromExternalFailure(payload, options = {}) {
@@ -38,12 +43,12 @@ export function createLearningEventFromExternalFailure(payload, options = {}) {
   return {
     ...applyExternalSourceClassification(baseEvent, normalized.sourceType, logText),
     externalContext: {
-      component: normalized.component,
+      component: sanitizeContextValue(normalized.component),
       environment: normalized.environment,
-      release: normalized.release,
-      service: normalized.service,
+      release: sanitizeContextValue(normalized.release),
+      service: sanitizeContextValue(normalized.service),
       severity: normalized.severity,
-      traceId: normalized.traceId,
+      traceId: sanitizeContextValue(normalized.traceId),
     },
   };
 }
