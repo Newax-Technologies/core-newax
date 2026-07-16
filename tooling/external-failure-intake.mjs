@@ -35,12 +35,7 @@ export const ENGINEERING_ENVIRONMENTS = new Set([
   'unknown',
 ]);
 
-export const ENGINEERING_SEVERITIES = new Set([
-  'critical',
-  'error',
-  'info',
-  'warning',
-]);
+export const ENGINEERING_SEVERITIES = new Set(['critical', 'error', 'info', 'warning']);
 
 function readValue(payload, camelName, snakeName = camelName) {
   return payload[camelName] ?? payload[snakeName];
@@ -192,10 +187,7 @@ export function normalizeExternalFailurePayload(payload, options = {}) {
         readValue(payload, 'category', 'category'),
       'operation',
     ) ?? 'External engineering failure';
-  const occurredAt = normalizeIsoTimestamp(
-    readValue(payload, 'occurredAt', 'occurred_at'),
-    now,
-  );
+  const occurredAt = normalizeIsoTimestamp(readValue(payload, 'occurredAt', 'occurred_at'), now);
   const normalized = {
     schemaVersion: 1,
     sourceType,
@@ -253,10 +245,7 @@ export function normalizeExternalFailurePayload(payload, options = {}) {
 export function classifyCommandSource(command, argumentsList = []) {
   const text = `${command ?? ''} ${argumentsList.join(' ')}`.toLowerCase();
 
-  if (
-    /\b(pnpm|npm|yarn|bun)\b/.test(text) &&
-    /\b(install|add|remove|update|dedupe)\b/.test(text)
-  ) {
+  if (/\b(pnpm|npm|yarn|bun)\b/.test(text) && /\b(install|add|remove|update|dedupe)\b/.test(text)) {
     return 'package-manager';
   }
   if (/\b(prisma|psql|postgres|migration|migrate|db:|database)\b/.test(text)) {
