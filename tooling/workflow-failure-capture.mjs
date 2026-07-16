@@ -38,17 +38,14 @@ export async function captureWorkflowRunFailure(workflowRun) {
   });
   const failedJobs = jobs.filter((job) => FAILURE_CONCLUSIONS.has(job.conclusion));
   if (failedJobs.length === 0) {
-    throw new Error(
-      `Workflow run ${workflowRun.id} failed but GitHub returned no failed job.`,
-    );
+    throw new Error(`Workflow run ${workflowRun.id} failed but GitHub returned no failed job.`);
   }
 
   const prNumber = await resolvePullRequestNumber(workflowRun);
   const results = [];
 
   for (const job of failedJobs) {
-    const failedSteps =
-      job.steps?.filter((step) => FAILURE_CONCLUSIONS.has(step.conclusion)) ?? [];
+    const failedSteps = job.steps?.filter((step) => FAILURE_CONCLUSIONS.has(step.conclusion)) ?? [];
     const steps = failedSteps.length === 0 ? [{ name: 'Unknown failed step' }] : failedSteps;
     let logText = '';
 
