@@ -74,7 +74,7 @@ Acceptance requires:
 
 ## Acceptance evidence
 
-The exact final head and workflow evidence are recorded in Pull Request #48 after exact-head verification completes.
+Exact-head workflow identifiers are stored in the Pull Request #48 completion record rather than this source-controlled ADR. This avoids changing the commit merely to describe the checks that verified it.
 
 - No temporary construction workflows or scripts remain in the feature diff.
 - No unresolved review thread or known implementation issue remains.
