@@ -76,7 +76,9 @@ test('identifies the common ancestor across the current and existing ledger occu
 
   assert.equal(context.primaryCommonAncestorId, 'cause:ROOT-DEPENDENCY-LOCKFILE-OUTDATED');
   assert.deepEqual(context.relatedIssueNumbers, [10]);
-  assert.deepEqual(context.lowestCommonAncestorIds, ['cause:ROOT-DEPENDENCY-LOCKFILE-OUTDATED']);
+  assert.deepEqual(context.lowestCommonAncestorIds, [
+    impactNodeIdForEvent(current, 'ci-failure-44'),
+  ]);
   assert.ok(context.rootAncestorIds.includes('cause:ROOT-DEPENDENCY-LOCKFILE-OUTDATED'));
 });
 
