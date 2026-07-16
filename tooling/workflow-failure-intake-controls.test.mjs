@@ -61,10 +61,6 @@ test('detects omitted and stale monitored workflow names', () => {
       filename: 'engineering-failure-intake.yml',
       content: 'name: Engineering Failure Intake\n',
     },
-    {
-      filename: 'engineering-external-intake.yml',
-      content: 'name: Engineering External Intake\n',
-    },
   ];
   const errors = findWorkflowCoverageErrors({
     workflowFiles,
@@ -84,10 +80,6 @@ test('accepts complete monitoring coverage', () => {
     {
       filename: 'engineering-failure-intake.yml',
       content: 'name: Engineering Failure Intake\n',
-    },
-    {
-      filename: 'engineering-external-intake.yml',
-      content: 'name: Engineering External Intake\n',
     },
   ];
   const errors = findWorkflowCoverageErrors({
