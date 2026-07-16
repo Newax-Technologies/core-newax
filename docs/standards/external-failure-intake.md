@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed implementation standard for Engineering Intelligence System module 2.
+Implemented repository standard for Engineering Intelligence System module 2. Environment-specific activation remains deployment-dependent and must be verified separately.
 
 The external intake layer converts failures outside pull requests into the same sanitized, deduplicated engineering-learning record used for GitHub Actions failures.
 
