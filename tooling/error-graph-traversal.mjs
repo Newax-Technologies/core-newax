@@ -49,9 +49,8 @@ export function findErrorRootAncestors(graph, nodeId, options = {}) {
   assertErrorGraphNode(index, nodeId);
   const ancestors = new Set(listErrorAncestors(graph, nodeId, { ...options, includeSelf: true }));
   return [...ancestors]
-    .filter(
-      (candidate) =>
-        (index.incoming.get(candidate) ?? []).every((edge) => !ancestors.has(edge.from)),
+    .filter((candidate) =>
+      (index.incoming.get(candidate) ?? []).every((edge) => !ancestors.has(edge.from)),
     )
     .sort();
 }
