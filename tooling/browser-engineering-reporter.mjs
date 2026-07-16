@@ -19,6 +19,25 @@ function cleanUrl(value) {
   }
 }
 
+function normalizeSameOriginEndpoint(value, locationHref) {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new TypeError('Browser engineering reporter requires a same-origin endpoint.');
+  }
+  const endpoint = value.trim();
+  if (typeof locationHref === 'string' && locationHref.length > 0) {
+    const current = new URL(locationHref);
+    const candidate = new URL(endpoint, current);
+    if (candidate.origin !== current.origin) {
+      throw new TypeError('Browser engineering reporter requires a same-origin endpoint.');
+    }
+    return endpoint;
+  }
+  if (!endpoint.startsWith('/') || endpoint.startsWith('//') || endpoint.includes('\\')) {
+    throw new TypeError('Browser engineering reporter requires a same-origin endpoint.');
+  }
+  return endpoint;
+}
+
 function errorDetails(value) {
   if (value instanceof Error) {
     return {
@@ -32,18 +51,15 @@ function errorDetails(value) {
   };
 }
 
-export function createBrowserEngineeringReporter(options) {
-  const endpoint = options?.endpoint;
-  if (typeof endpoint !== 'string' || endpoint.trim().length === 0) {
-    throw new TypeError('Browser engineering reporter requires a same-origin endpoint.');
-  }
-  const fetchImplementation = options.fetchImplementation ?? globalThis.fetch;
+export function createBrowserEngineeringReporter(options = {}) {
+  const windowObject = options?.windowObject ?? globalThis.window;
+  const endpoint = normalizeSameOriginEndpoint(options?.endpoint, windowObject?.location?.href);
+  const fetchImplementation = options?.fetchImplementation ?? globalThis.fetch;
   if (typeof fetchImplementation !== 'function') {
     throw new TypeError('Browser engineering reporter requires fetch.');
   }
 
-  const windowObject = options.windowObject ?? globalThis.window;
-  const consoleObject = options.consoleObject ?? globalThis.console;
+  const consoleObject = options?.consoleObject ?? globalThis.console;
   const environment = options.environment ?? 'production';
   const service = options.service ?? 'browser';
   const release = options.release ?? null;
