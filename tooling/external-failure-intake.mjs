@@ -37,6 +37,27 @@ export const ENGINEERING_ENVIRONMENTS = new Set([
 
 export const ENGINEERING_SEVERITIES = new Set(['critical', 'error', 'info', 'warning']);
 
+const STRUCTURED_LOG_SEVERITY_ALIASES = new Map([
+  ['alert', 'critical'],
+  ['critical', 'critical'],
+  ['emerg', 'critical'],
+  ['emergency', 'critical'],
+  ['fatal', 'critical'],
+  ['panic', 'critical'],
+  ['err', 'error'],
+  ['error', 'error'],
+  ['warn', 'warning'],
+  ['warning', 'warning'],
+  ['debug', 'info'],
+  ['http', 'info'],
+  ['info', 'info'],
+  ['log', 'info'],
+  ['notice', 'info'],
+  ['silly', 'info'],
+  ['trace', 'info'],
+  ['verbose', 'info'],
+]);
+
 function readValue(payload, camelName, snakeName = camelName) {
   return payload[camelName] ?? payload[snakeName];
 }
@@ -267,6 +288,30 @@ export function classifyCommandSource(command, argumentsList = []) {
   return 'local-command';
 }
 
+function normalizeStructuredLogSeverity(value) {
+  if (typeof value === 'number') {
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw new TypeError('Structured log severity must be a non-negative integer or string.');
+    }
+    if (value >= 60) {
+      return 'critical';
+    }
+    if (value === 0 || value >= 50) {
+      return 'error';
+    }
+    if (value === 1 || value >= 40) {
+      return 'warning';
+    }
+    return 'info';
+  }
+
+  const severity = optionalString(value, 'severity', 20)?.toLowerCase() ?? 'error';
+  if (/^\d+$/.test(severity)) {
+    return normalizeStructuredLogSeverity(Number(severity));
+  }
+  return STRUCTURED_LOG_SEVERITY_ALIASES.get(severity) ?? severity;
+}
+
 export function createStructuredLogFailure(record, defaults = {}) {
   if (record === null || typeof record !== 'object' || Array.isArray(record)) {
     throw new TypeError('Structured log record must be an object.');
@@ -278,7 +323,9 @@ export function createStructuredLogFailure(record, defaults = {}) {
       ...defaults,
       sourceType: defaults.sourceType ?? 'api-log',
       environment: record.environment ?? defaults.environment,
-      severity: record.level ?? record.severity ?? defaults.severity ?? 'error',
+      severity: normalizeStructuredLogSeverity(
+        record.level ?? record.severity ?? defaults.severity ?? 'error',
+      ),
       occurredAt: record.timestamp ?? record.time ?? defaults.occurredAt,
       service: record.service ?? defaults.service,
       component: record.component ?? defaults.component,
