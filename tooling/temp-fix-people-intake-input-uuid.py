@@ -45,12 +45,12 @@ if spec.count(closing_anchor) != 1:
     raise SystemExit("invalid intake ID regression test: expected one suite closing anchor")
 regression_test = """
 
-    it('classifies malformed client intake identifiers as invalid input', async () => {
-      const service = new PeopleIntakeService(repository());
-      await expect(
-        service.get(context(PEOPLE_INTAKE_PERMISSIONS.view), 'not-a-uuid'),
-      ).rejects.toMatchObject({ code: 'PEOPLE_INTAKE_INVALID_INPUT' });
-    });
+  it('classifies malformed client intake identifiers as invalid input', async () => {
+    const service = new PeopleIntakeService(repository());
+    await expect(
+      service.get(context(PEOPLE_INTAKE_PERMISSIONS.view), 'not-a-uuid'),
+    ).rejects.toMatchObject({ code: 'PEOPLE_INTAKE_INVALID_INPUT' });
+  });
 """
-spec = spec.replace(closing_anchor, regression_test + "\n" + closing_anchor, 1)
+spec = spec.replace(closing_anchor, "  });" + regression_test + "\n});\n", 1)
 spec_path.write_text(spec)
