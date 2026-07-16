@@ -56,7 +56,8 @@ const rootCauseCandidate = readSection(issue.body, 'Root-cause candidate');
 const unsuccessfulMethod = readSection(issue.body, 'Unsuccessful method');
 const successfulMethod = readSection(issue.body, 'Successful method');
 const preventionControl = readSection(issue.body, 'Prevention control');
-const prNumber = Number(readSection(issue.body, 'Related pull request').match(/\d+/)?.[0] ?? 0) || null;
+const prNumber =
+  Number(readSection(issue.body, 'Related pull request').match(/\d+/)?.[0] ?? 0) || null;
 const commitSha = readSection(issue.body, 'Related commit') || null;
 
 if (symptom.length === 0) {
@@ -97,7 +98,11 @@ await githubRequest(`/issues/${issue.number}`, {
   body: JSON.stringify({
     body: normalizedBody,
     labels: Array.from(
-      new Set([...(issue.labels ?? []).map((label) => label.name), 'engineering-learning', 'learning-candidate']),
+      new Set([
+        ...(issue.labels ?? []).map((label) => label.name),
+        'engineering-learning',
+        'learning-candidate',
+      ]),
     ),
   }),
 });
