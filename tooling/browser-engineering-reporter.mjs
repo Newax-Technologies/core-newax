@@ -2,10 +2,7 @@ const MAX_BROWSER_TEXT = 4_000;
 
 function cleanText(value, maximum = MAX_BROWSER_TEXT) {
   return String(value ?? '')
-    .replaceAll(
-      /\b(api[_-]?key|password|passwd|secret|token)\s*[:=]\s*[^\s,;]+/gi,
-      '$1=<redacted>',
-    )
+    .replaceAll(/\b(api[_-]?key|password|passwd|secret|token)\s*[:=]\s*[^\s,;]+/gi, '$1=<redacted>')
     .slice(0, maximum);
 }
 
