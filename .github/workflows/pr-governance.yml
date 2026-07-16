@@ -56,3 +56,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node "$NEWAX_GOVERNANCE_ROOT/tooling/run-pr-learning-reconciliation.mjs"
+
+      - name: Verify root-cause decisions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if test -f "$NEWAX_GOVERNANCE_ROOT/tooling/verify-root-cause-governance.mjs"; then
+            node "$NEWAX_GOVERNANCE_ROOT/tooling/verify-root-cause-governance.mjs"
+          else
+            echo "Root-cause governance activates after its controls reach the protected base."
+          fi

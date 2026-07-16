@@ -32,6 +32,27 @@ export function applyExternalSourceClassification(baseEvent, sourceType, summary
     category,
     rootCauseId: `ROOT-UNCLASSIFIED-${rootCauseSuffix}`,
   };
+  const rootCauseCandidate =
+    'The source and environment are known, but the true root cause requires evidence-backed confirmation.';
+  const evidenceFor = [`Observable source type: ${sourceType}`, `Source category: ${category}`];
+  const missingEvidence = [
+    'Complete diagnostic evidence and a verified resolution are required before confirmation.',
+  ];
+  const selected = {
+    ...baseEvent.rootCauseAssessment.selected,
+    category,
+    confidence: 'low',
+    deterministic: false,
+    evidenceAgainst: [],
+    evidenceFor,
+    ledgerEntry: null,
+    matchedSignatures: [],
+    missingEvidence,
+    missingSignatures: [],
+    rootCause: rootCauseCandidate,
+    rootCauseId: classification.rootCauseId,
+    score: 10,
+  };
 
   return {
     ...baseEvent,
@@ -43,8 +64,21 @@ export function applyExternalSourceClassification(baseEvent, sourceType, summary
       stepName: baseEvent.stepName,
       logText: summary,
     }),
-    rootCauseCandidate:
-      'The source and environment are known, but the true root cause requires evidence-backed confirmation.',
+    ledgerEntry: null,
+    matchedSignatures: [],
+    rootCauseAssessment: {
+      ...baseEvent.rootCauseAssessment,
+      ambiguous: false,
+      deterministic: false,
+      evidenceAgainst: [],
+      evidenceFor,
+      hypotheses: [selected],
+      inferredCategory: category,
+      missingEvidence,
+      selected,
+      status: 'candidate',
+    },
+    rootCauseCandidate,
     rootCauseConfidence: 'low',
     rootCauseDeterministic: false,
     status: 'candidate',
