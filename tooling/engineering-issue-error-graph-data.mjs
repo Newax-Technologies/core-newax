@@ -3,6 +3,7 @@ import {
   findCommonErrorRootAncestors,
   findErrorPath,
   findErrorRootAncestors,
+  findLowestCommonErrorAncestors,
   occurrenceNodeIdForEvent,
 } from './error-relationship-graph.mjs';
 import { parseMetadata, toOptionalInteger } from './engineering-learning-core.mjs';
@@ -134,6 +135,15 @@ export function createErrorGraphContext(event, issues) {
     .filter((nodeId) => nodeId.startsWith(`${currentNodeId}:impact:`))
     .sort();
   const chainTargets = downstreamNodeIds.length === 0 ? [currentNodeId] : downstreamNodeIds;
+  const relatedOccurrenceNodeIds = existingEvents
+    .filter((candidate) => primary.relatedIssueNumbers.includes(candidate.issueNumber))
+    .map(occurrenceNodeIdForEvent);
+  const ancestorFocusNodeIds =
+    chainTargets.length >= 2 ? chainTargets : [currentNodeId, ...relatedOccurrenceNodeIds];
+  const lowestCommonAncestorIds =
+    ancestorFocusNodeIds.length < 2
+      ? []
+      : findLowestCommonErrorAncestors(graph, ancestorFocusNodeIds);
   const chains = rootAncestorIds.flatMap((rootId) =>
     chainTargets.map((targetId) => findErrorPath(graph, rootId, targetId)).filter(Boolean),
   );
@@ -142,6 +152,7 @@ export function createErrorGraphContext(event, issues) {
     currentNodeId,
     directParentIds,
     downstreamNodeIds,
+    lowestCommonAncestorIds,
     rootAncestorIds,
     primaryCommonAncestorId: primary.ancestorId,
     relatedIssueNumbers: primary.relatedIssueNumbers,
