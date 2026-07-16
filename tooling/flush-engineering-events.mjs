@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { createOrUpdateLearningIssue } from './engineering-learning-core.mjs';
+import { submitEngineeringEvent } from './submit-engineering-event.mjs';
 
 const queuePath = resolve(process.cwd(), '.newax/engineering-events.ndjson');
 
@@ -22,7 +22,7 @@ const events = readFileSync(queuePath, 'utf8')
 
 const results = [];
 for (const event of events) {
-  results.push(await createOrUpdateLearningIssue(event));
+  results.push(await submitEngineeringEvent(event));
 }
 
 writeFileSync(queuePath, '', 'utf8');
