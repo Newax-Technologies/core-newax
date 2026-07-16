@@ -12,8 +12,9 @@ import {
   parsePullRequestField,
   renderIssueBody,
 } from './engineering-learning-core.mjs';
+import { applyExternalSourceClassification } from './external-event-classification.mjs';
 
-test('classifies an outdated pnpm lockfile with the known root cause', () => {
+test('classifies an exact pnpm lockfile diagnostic as machine-supported', () => {
   const result = classifyFailure({
     workflowName: 'Continuous Integration',
     jobName: 'Verify monorepo',
@@ -24,6 +25,18 @@ test('classifies an outdated pnpm lockfile with the known root cause', () => {
   assert.equal(result.rootCauseId, 'ROOT-DEPENDENCY-LOCKFILE-OUTDATED');
   assert.equal(result.ledgerEntry, 'EL-0001');
   assert.equal(result.deterministic, true);
+});
+
+test('does not promote a heuristic TypeScript match to deterministic truth', () => {
+  const result = classifyFailure({
+    workflowName: 'Continuous Integration',
+    jobName: 'Verify monorepo',
+    stepName: 'Type-check',
+    logText: 'error TS2559: Type mismatch involving ProcessEnv.',
+  });
+
+  assert.equal(result.rootCauseId, 'ROOT-TYPECHECK-PROCESSENV-SHAPE');
+  assert.equal(result.deterministic, false);
 });
 
 test('falls back to the failed stage when no known signature exists', () => {
@@ -74,7 +87,26 @@ test('creates stable machine-readable issue metadata', () => {
   assert.equal(metadata['root-cause-status'], 'candidate');
 });
 
-test('parses pull-request fields and issue numbers', () => {
+test('categorizes planning events while preserving root-cause uncertainty', () => {
+  const baseEvent = createEngineeringEvent({
+    sourceType: 'planning',
+    sourceId: 'planning-1',
+    stepName: 'External engineering event',
+    logText: 'A decision was made without checking branch ancestry.',
+  });
+  const event = applyExternalSourceClassification(
+    baseEvent,
+    'planning',
+    'A decision was made without checking branch ancestry.',
+  );
+
+  assert.equal(event.category, 'planning-decision-quality');
+  assert.equal(event.rootCauseId, 'ROOT-UNCLASSIFIED-PLANNING_DECISION_QUALITY');
+  assert.equal(event.status, 'candidate');
+  assert.equal(event.rootCauseDeterministic, false);
+});
+
+test('parses pull-request fields, issue numbers, and ledger entries', () => {
   const body = '- Learning outcome: `existing`\n- Learning issue: `#123`';
 
   assert.equal(parsePullRequestField(body, '- Learning outcome:'), 'existing');
@@ -83,7 +115,7 @@ test('parses pull-request fields and issue numbers', () => {
   assert.deepEqual(parseLedgerEntries('EL-0018, EL-0019, EL-0018'), ['EL-0018', 'EL-0019']);
 });
 
-test('governed command wrapper queues a local failure outside CI', async () => {
+test('governed command wrapper queues a non-zero local command', async () => {
   const { mkdtempSync, readFileSync, rmSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const { join, resolve } = await import('node:path');
@@ -91,20 +123,55 @@ test('governed command wrapper queues a local failure outside CI', async () => {
 
   const directory = mkdtempSync(join(tmpdir(), 'newax-learning-'));
   const wrapper = resolve('tooling/run-engineering-command.mjs');
-  const result = spawnSync(process.execPath, [wrapper, process.execPath, '-e', 'process.exit(7)'], {
-    cwd: directory,
-    env: { ...process.env, CI: 'false' },
-    encoding: 'utf8',
-  });
+  try {
+    const result = spawnSync(
+      process.execPath,
+      [wrapper, process.execPath, '-e', 'process.exit(7)'],
+      {
+        cwd: directory,
+        env: { ...process.env, CI: 'false' },
+        encoding: 'utf8',
+      },
+    );
 
-  assert.equal(result.status, 7);
-  const queued = readFileSync(join(directory, '.newax/engineering-events.ndjson'), 'utf8')
-    .trim()
-    .split('\n')
-    .map((line) => JSON.parse(line));
-  assert.equal(queued.length, 1);
-  assert.equal(queued[0].sourceType, 'local-command');
-  rmSync(directory, { recursive: true, force: true });
+    assert.equal(result.status, 7);
+    const queued = readFileSync(join(directory, '.newax/engineering-events.ndjson'), 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    assert.equal(queued.length, 1);
+    assert.equal(queued[0].sourceType, 'local-command');
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('governed command wrapper queues a command launch failure', async () => {
+  const { mkdtempSync, readFileSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join, resolve } = await import('node:path');
+  const { spawnSync } = await import('node:child_process');
+
+  const directory = mkdtempSync(join(tmpdir(), 'newax-learning-launch-'));
+  const wrapper = resolve('tooling/run-engineering-command.mjs');
+  try {
+    const result = spawnSync(process.execPath, [wrapper, 'newax-command-that-does-not-exist'], {
+      cwd: directory,
+      env: { ...process.env, CI: 'false' },
+      encoding: 'utf8',
+    });
+
+    assert.equal(result.status, 1);
+    const queued = readFileSync(join(directory, '.newax/engineering-events.ndjson'), 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    assert.equal(queued.length, 1);
+    assert.equal(queued[0].sourceType, 'local-command');
+    assert.match(queued[0].symptom, /ENOENT|not found/i);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('operation intent blocks a pull-request target using an issue action', async () => {
