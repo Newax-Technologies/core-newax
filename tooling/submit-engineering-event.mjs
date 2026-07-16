@@ -1,7 +1,4 @@
-import {
-  createOrUpdateLearningIssue,
-  findMatchingIssues,
-} from './engineering-learning-core.mjs';
+import { createOrUpdateLearningIssue, findMatchingIssues } from './engineering-learning-core.mjs';
 
 export async function submitEngineeringEvent(event, options = {}) {
   const matches = await findMatchingIssues(event, options);
