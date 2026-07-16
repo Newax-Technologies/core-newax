@@ -92,7 +92,28 @@ jobs:
         run: pnpm format:check
 
       - name: Verify lint
-        run: pnpm lint
+        id: lint
+        continue-on-error: true
+        run: |
+          set +e
+          pnpm lint > /tmp/family-relationship-lint.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/family-relationship-lint.log
+          exit "$status"
+
+      - name: Upload lint diagnostic
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: family-relationship-lint-${{ github.sha }}
+          path: /tmp/family-relationship-lint.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce lint result
+        if: steps.lint.outcome == 'failure'
+        run: exit 1
 
       - name: Type-check People module
         run: pnpm --filter @newax/people typecheck
