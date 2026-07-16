@@ -60,7 +60,10 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          python tooling/temp-build-certificate-import-evidence.py > /tmp/certificate-import-patch.log 2>&1
+          {
+            python tooling/temp-build-certificate-import-evidence.py
+            python tooling/temp-fix-certificate-import-lint.py
+          } > /tmp/certificate-import-patch.log 2>&1
           status=$?
           set -e
           cat /tmp/certificate-import-patch.log
@@ -83,6 +86,7 @@ jobs:
         run: |
           pnpm --filter @newax/api db:format
           pnpm --filter @newax/api db:generate
+          pnpm exec eslint apps/api/src/people-intake apps/web/src/app/internal/people-intake/certificate-imports packages/people-intake/src --fix
           pnpm format
 
       - name: Apply migrations
