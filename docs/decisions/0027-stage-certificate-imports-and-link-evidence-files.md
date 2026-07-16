@@ -76,5 +76,4 @@ Acceptance requires:
 
 Exact-head workflow identifiers are stored in the Pull Request #48 completion record rather than this source-controlled ADR. This avoids changing the commit merely to describe the checks that verified it.
 
-- No temporary construction workflows or scripts remain in the feature diff.
-- No unresolved review thread or known implementation issue remains.
+No temporary construction workflow or script, unresolved review thread, or known implementation issue may remain when the PR is marked ready.
