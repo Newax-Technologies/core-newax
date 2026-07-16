@@ -192,9 +192,7 @@ function unclassifiedAssessment(inferredCategory) {
     deterministic: false,
     evidenceAgainst: [],
     evidenceFor:
-      inferredCategory === 'unknown'
-        ? []
-        : [`Failed stage maps to category: ${inferredCategory}`],
+      inferredCategory === 'unknown' ? [] : [`Failed stage maps to category: ${inferredCategory}`],
     ledgerEntry: null,
     matchedSignatures: [],
     missingEvidence: ['Complete diagnostic evidence and a verified resolution are required.'],
