@@ -41,9 +41,7 @@ export function findCommonErrorRootAncestors(graph, nodeIds, options = {}) {
   if (!Array.isArray(nodeIds) || nodeIds.length < 2) {
     throw new TypeError('Common root analysis requires at least two node IDs.');
   }
-  const rootSets = nodeIds.map(
-    (nodeId) => new Set(findErrorRootAncestors(graph, nodeId, options)),
-  );
+  const rootSets = nodeIds.map((nodeId) => new Set(findErrorRootAncestors(graph, nodeId, options)));
   return [...intersection(rootSets)].sort();
 }
 
@@ -57,7 +55,9 @@ export function analyzeErrorRelationshipGraph(graph, focusNodeIds = [], options 
     focus.map((nodeId) => [nodeId, findErrorRootAncestors(graph, nodeId, options)]),
   );
   const commonRootAncestorIds =
-    focus.length < 2 ? rootsByNode[focus[0]] ?? [] : findCommonErrorRootAncestors(graph, focus, options);
+    focus.length < 2
+      ? (rootsByNode[focus[0]] ?? [])
+      : findCommonErrorRootAncestors(graph, focus, options);
   const lowestCommonAncestorIds =
     focus.length < 2 ? [] : findLowestCommonErrorAncestors(graph, focus, options);
   const chains = [];
