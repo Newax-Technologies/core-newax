@@ -1,5 +1,8 @@
 import { stableKnowledgeStringify } from './knowledge-graph-normalization.mjs';
-import { KNOWLEDGE_GRAPH_NODE_TYPES } from './knowledge-graph-schema.mjs';
+import {
+  KNOWLEDGE_GRAPH_MAX_MARKER_DATA_LENGTH,
+  KNOWLEDGE_GRAPH_NODE_TYPES,
+} from './knowledge-graph-schema.mjs';
 import { analyzeKnowledgeHistory } from './knowledge-graph-traversal.mjs';
 
 const MARKER = 'newax-engineering-knowledge-graph';
@@ -68,9 +71,19 @@ export function renderKnowledgeGraphSection(graph, options = {}) {
     const node = primaryByKind.get(kind);
     return `  ${mermaidId(index)}["${kind}: ${mermaidLabel(node)}"]`;
   });
-  const mermaidEdges = KNOWLEDGE_GRAPH_NODE_TYPES.slice(0, -1).map(
-    (_, index) => `  ${mermaidId(index)} --> ${mermaidId(index + 1)}`,
-  );
+  const mermaidEdges = KNOWLEDGE_GRAPH_NODE_TYPES.slice(0, -1).map((_, index) => {
+    const from = analysis.chain[index];
+    const to = analysis.chain[index + 1];
+    const verified =
+      from !== undefined &&
+      to !== undefined &&
+      graph.edges.some(
+        (edge) => edge.from === from.id && edge.to === to.id && edge.status === 'verified',
+      );
+    return verified
+      ? `  ${mermaidId(index)} --> ${mermaidId(index + 1)}`
+      : `  ${mermaidId(index)} -. timeline or missing link .-> ${mermaidId(index + 1)}`;
+  });
   const branches = analysis.branches.length
     ? analysis.branches.map((node) => `- ${node.kind}: ${linkForNode(node)}`).join('\n')
     : '- None.';
@@ -87,6 +100,12 @@ export function renderKnowledgeGraphSection(graph, options = {}) {
   const gaps = analysis.gaps.length
     ? analysis.gaps.map((gap) => `- \`${gap}\``).join('\n')
     : '- None.';
+  const encodedGraph = base64url(graph);
+  if (encodedGraph.length > KNOWLEDGE_GRAPH_MAX_MARKER_DATA_LENGTH) {
+    throw new TypeError(
+      `Knowledge graph marker data exceeds ${KNOWLEDGE_GRAPH_MAX_MARKER_DATA_LENGTH} characters.`,
+    );
+  }
   const canonicalRecord = options.recordUrl
     ? `[Open the complete engineering history](${options.recordUrl})`
     : 'This issue is the canonical complete-history view.';
@@ -96,7 +115,7 @@ schema-version: ${graph.schemaVersion}
 graph-digest: ${graph.digest}
 focus-node-id: ${analysis.focusNodeId ?? 'none'}
 history-status: ${analysis.status}
-graph-data: ${base64url(graph)}
+graph-data: ${encodedGraph}
 -->
 ## Engineering knowledge graph
 
