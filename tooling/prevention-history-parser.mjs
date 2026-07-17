@@ -113,9 +113,19 @@ export function parseResolvedMistakes(issue, comments = []) {
       ),
     ),
   ];
-  if (events.length > 0) return events;
+  const resolvedEvents = events.filter(
+    (event) =>
+      ['resolved', 'verified'].includes(
+        normalizeString(event.resolutionStatus).toLowerCase(),
+      ) || ['resolved', 'closed'].includes(normalizeString(event.status).toLowerCase()),
+  );
+  if (resolvedEvents.length > 0) return resolvedEvents;
   const legacy = legacyFromIssue(issue, source);
-  return legacy === null ? [] : [legacy];
+  if (legacy === null) return [];
+  const isResolved =
+    normalizeString(issue.state).toLowerCase() === 'closed' ||
+    ['resolved', 'verified'].includes(normalizeString(legacy.resolutionStatus).toLowerCase());
+  return isResolved ? [legacy] : [];
 }
 
 export function parsePreventionIssueNumbers(pullRequestBody) {
