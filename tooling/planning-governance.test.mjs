@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { detectPlanningMistakes } from './planning-mistake-detector.mjs';
+import { analyzePlanningMistakes } from './planning-mistake-analysis.mjs';
 import { planningGovernanceErrors } from './verify-pr-planning.mjs';
 
 function commit(sha, timestamp, files) {
@@ -18,7 +18,7 @@ function commit(sha, timestamp, files) {
 }
 
 test('governance blocks high-confidence findings and missing review evidence', () => {
-  const result = detectPlanningMistakes({
+  const result = analyzePlanningMistakes({
     phase: 'review',
     declaredScopePaths: ['src'],
     commits: [
@@ -34,7 +34,7 @@ test('governance blocks high-confidence findings and missing review evidence', (
 });
 
 test('governance allows a draft with only suspected findings', () => {
-  const result = detectPlanningMistakes({
+  const result = analyzePlanningMistakes({
     phase: 'draft',
     declaredScopePaths: ['src'],
     commits: [commit('a', '2026-01-01T10:00:00Z', ['src/a.ts'])],
