@@ -24,11 +24,29 @@ function success(record) {
   };
 }
 
+function findStep(job, stepName, conclusions) {
+  if (!Array.isArray(job.steps) || job.steps.length === 0) {
+    return { error: `Step metadata is unavailable for job ${job.id}.`, step: null };
+  }
+  const step = job.steps.find((candidate) => candidate.name === stepName);
+  if (step === undefined || !conclusions.has(step.conclusion)) {
+    return {
+      error: `Step ${stepName} does not have the required conclusion in job ${job.id}.`,
+      step: null,
+    };
+  }
+  return { error: null, step };
+}
+
 async function verifyLog(record, githubRequest, listAll) {
   const workflowRunId = asSafeInteger(record.workflowRunId);
   const jobId = asSafeInteger(record.jobId);
-  if (workflowRunId === null || jobId === null) {
-    return failure(record, 'Log evidence requires safe workflow-run and job identifiers.');
+  const stepName = String(record.stepName ?? '').trim();
+  if (workflowRunId === null || jobId === null || stepName.length === 0) {
+    return failure(
+      record,
+      'Log evidence requires safe workflow-run and job identifiers plus an exact failed step name.',
+    );
   }
   const run = await githubRequest(`/actions/runs/${workflowRunId}`);
   if (!FAILURE_CONCLUSIONS.has(run?.conclusion)) {
@@ -41,12 +59,9 @@ async function verifyLog(record, githubRequest, listAll) {
   if (job === undefined || !FAILURE_CONCLUSIONS.has(job.conclusion)) {
     return failure(record, `Job ${jobId} is not a failed job in workflow run ${workflowRunId}.`);
   }
-  const stepName = String(record.stepName ?? '').trim();
-  if (stepName.length > 0 && Array.isArray(job.steps) && job.steps.length > 0) {
-    const step = job.steps.find((candidate) => candidate.name === stepName);
-    if (step === undefined || !FAILURE_CONCLUSIONS.has(step.conclusion)) {
-      return failure(record, `Step ${stepName} is not a failed step in job ${jobId}.`);
-    }
+  const stepResult = findStep(job, stepName, FAILURE_CONCLUSIONS);
+  if (stepResult.error !== null) {
+    return failure(record, stepResult.error);
   }
   return success({
     ...record,
@@ -68,19 +83,38 @@ async function verifyCommit(record, githubRequest) {
   return success(record);
 }
 
-async function verifyTest(record, githubRequest) {
+async function verifyTest(record, githubRequest, listAll) {
   const workflowRunId = asSafeInteger(record.workflowRunId);
+  const jobId = asSafeInteger(record.jobId);
+  const stepName = String(record.stepName ?? '').trim();
   const testName = String(record.testName ?? '').trim();
   const command = String(record.command ?? '').trim();
-  if (workflowRunId === null || testName.length === 0 || command.length === 0) {
+  if (
+    workflowRunId === null ||
+    jobId === null ||
+    stepName.length === 0 ||
+    testName.length === 0 ||
+    command.length === 0
+  ) {
     return failure(
       record,
-      'Test evidence requires a successful workflow run, test name, and command.',
+      'Test evidence requires a successful workflow run, job, exact successful step, test name, and command.',
     );
   }
   const run = await githubRequest(`/actions/runs/${workflowRunId}`);
   if (run?.conclusion !== 'success') {
     return failure(record, `Workflow run ${workflowRunId} did not complete successfully.`);
+  }
+  const jobs = await listAll(`/actions/runs/${workflowRunId}/jobs`, {
+    collectionKey: 'jobs',
+  });
+  const job = jobs.find((candidate) => candidate.id === jobId);
+  if (job === undefined || job.conclusion !== 'success') {
+    return failure(record, `Job ${jobId} is not a successful job in workflow run ${workflowRunId}.`);
+  }
+  const stepResult = findStep(job, stepName, new Set(['success']));
+  if (stepResult.error !== null) {
+    return failure(record, stepResult.error);
   }
   if (record.reproduces !== true || record.outcome !== 'passed') {
     return failure(
@@ -88,7 +122,11 @@ async function verifyTest(record, githubRequest) {
       'Test evidence must state that the passing test reproduces the failure condition.',
     );
   }
-  return success({ ...record, commitSha: run.head_sha ?? record.commitSha });
+  return success({
+    ...record,
+    commitSha: run.head_sha ?? record.commitSha,
+    jobName: job.name ?? record.jobName,
+  });
 }
 
 export async function verifyGithubExplanationEvidence({ evidence = [], githubRequest, listAll }) {
@@ -108,7 +146,7 @@ export async function verifyGithubExplanationEvidence({ evidence = [], githubReq
       } else if (record?.type === 'commit') {
         verified = await verifyCommit(record, githubRequest);
       } else if (record?.type === 'test') {
-        verified = await verifyTest(record, githubRequest);
+        verified = await verifyTest(record, githubRequest, listAll);
       } else {
         verified = failure(
           record,
