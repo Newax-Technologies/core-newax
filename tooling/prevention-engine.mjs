@@ -245,7 +245,15 @@ export function validatePreventionPack(pack) {
 export function buildPreventionRegistry(mistakes, existingPacks = [], options = {}) {
   const packs = new Map(existingPacks.map((pack) => [pack.rootCauseId, pack]));
   const results = [];
-  for (const input of mistakes) {
+  const orderedMistakes = [...mistakes].sort((left, right) => {
+    const leftTime = Date.parse(normalizeMistake(left).resolvedAt);
+    const rightTime = Date.parse(normalizeMistake(right).resolvedAt);
+    if (Number.isFinite(leftTime) && Number.isFinite(rightTime) && leftTime !== rightTime) {
+      return leftTime - rightTime;
+    }
+    return normalizeMistake(left).id.localeCompare(normalizeMistake(right).id);
+  });
+  for (const input of orderedMistakes) {
     const normalized = normalizeMistake(input);
     const result = buildOrUpdatePreventionPack(
       normalized,
