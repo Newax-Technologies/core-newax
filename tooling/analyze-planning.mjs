@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-import { detectPlanningMistakes } from './planning-mistake-detector.mjs';
+import { analyzePlanningMistakes } from './planning-mistake-analysis.mjs';
 import {
   collectPlanningHistory,
   collectPlanningHistoryForPullRequest,
@@ -36,7 +36,7 @@ async function readInput() {
 }
 
 const history = await readInput();
-const result = detectPlanningMistakes(history);
+const result = analyzePlanningMistakes(history);
 console.log(
   JSON.stringify(
     { history: { planningIssues: history.planningIssues ?? [] }, result },
