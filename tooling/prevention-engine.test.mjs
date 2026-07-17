@@ -173,3 +173,16 @@ test('builds separate packs for separate root causes', () => {
   ]);
   assert.equal(registry.packs.length, 2);
 });
+
+test('produces the same recurrence pack regardless of input retrieval order', () => {
+  const early = resolved({ id: 'ISSUE-1', resolvedAt: '2026-07-17T10:00:00Z' });
+  const late = resolved({
+    id: 'ISSUE-2',
+    issueNumber: 2,
+    resolvedAt: '2026-07-18T10:00:00Z',
+    fixCommit: 'b'.repeat(40),
+  });
+  const forward = buildPreventionRegistry([early, late]).packs[0];
+  const reverse = buildPreventionRegistry([late, early]).packs[0];
+  assert.deepEqual(reverse, forward);
+});
