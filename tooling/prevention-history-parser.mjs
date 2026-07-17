@@ -8,6 +8,37 @@ function splitList(value) {
     .filter(Boolean);
 }
 
+function controlOptions(values = {}) {
+  const ci = {
+    owner: normalizeString(values.ciOwner),
+    reviewer: normalizeString(values.ciReviewer),
+    implementationRef: normalizeString(values.ciImplementationRef),
+    verificationRefs: splitList(values.ciVerificationRefs),
+  };
+  const staticAnalysis = {
+    owner: normalizeString(values.staticOwner),
+    reviewer: normalizeString(values.staticReviewer),
+    implementationRef: normalizeString(values.staticImplementationRef),
+    verificationRefs: splitList(values.staticVerificationRefs),
+  };
+  const controls = {};
+  if (
+    Object.values(ci).some((value) =>
+      Array.isArray(value) ? value.length > 0 : value.length > 0,
+    )
+  ) {
+    controls['ci-check'] = ci;
+  }
+  if (
+    Object.values(staticAnalysis).some((value) =>
+      Array.isArray(value) ? value.length > 0 : value.length > 0,
+    )
+  ) {
+    controls['static-analysis-rule'] = staticAnalysis;
+  }
+  return controls;
+}
+
 function parseBlocks(body, blockName) {
   const expression = new RegExp(`<!-- ${blockName}\\n([\\s\\S]*?)\\n-->`, 'g');
   return [...String(body ?? '').matchAll(expression)].map((match) =>
@@ -73,6 +104,16 @@ function eventFromMetadata(metadata, source, createdAt, issueNumber) {
     successfulMethod: metadata['successful-method'],
     unsuccessfulMethod: metadata['unsuccessful-method'],
     evidenceRefs: splitList(metadata['evidence-refs']),
+    controlOptions: controlOptions({
+      ciOwner: metadata['ci-owner'],
+      ciReviewer: metadata['ci-reviewer'],
+      ciImplementationRef: metadata['ci-implementation-ref'],
+      ciVerificationRefs: metadata['ci-verification-refs'],
+      staticOwner: metadata['static-owner'],
+      staticReviewer: metadata['static-reviewer'],
+      staticImplementationRef: metadata['static-implementation-ref'],
+      staticVerificationRefs: metadata['static-verification-refs'],
+    }),
     source,
   };
 }
@@ -101,6 +142,22 @@ function eventFromIssueForm(issue, source, createdAt) {
     successfulMethod: extractHeadingValue(body, 'Successful method'),
     unsuccessfulMethod: extractHeadingValue(body, 'Unsuccessful method'),
     evidenceRefs: splitList(extractHeadingValue(body, 'Evidence references')),
+    controlOptions: controlOptions({
+      ciOwner: extractHeadingValue(body, 'CI control owner'),
+      ciReviewer: extractHeadingValue(body, 'CI control reviewer'),
+      ciImplementationRef: extractHeadingValue(body, 'CI implementation reference'),
+      ciVerificationRefs: extractHeadingValue(body, 'CI verification references'),
+      staticOwner: extractHeadingValue(body, 'Static-analysis control owner'),
+      staticReviewer: extractHeadingValue(body, 'Static-analysis control reviewer'),
+      staticImplementationRef: extractHeadingValue(
+        body,
+        'Static-analysis implementation reference',
+      ),
+      staticVerificationRefs: extractHeadingValue(
+        body,
+        'Static-analysis verification references',
+      ),
+    }),
     source,
   };
 }
@@ -136,6 +193,7 @@ function legacyFromIssue(issue, source) {
     successfulMethod: extractListField(body, 'Successful method'),
     unsuccessfulMethod: extractListField(body, 'Unsuccessful method'),
     evidenceRefs: [`issue:${issue.number}`],
+    controlOptions: {},
     source,
   };
 }
@@ -175,6 +233,29 @@ export function parseResolvedMistakes(issue, comments = []) {
     normalizeString(issue.state).toLowerCase() === 'closed' ||
     ['resolved', 'verified'].includes(normalizeString(legacy.resolutionStatus).toLowerCase());
   return isResolved ? [legacy] : [];
+}
+
+export function buildPreventionControlOptions(mistakes) {
+  const options = {};
+  const ordered = [...mistakes].sort((left, right) => {
+    const leftTime = Date.parse(normalizeString(left.resolvedAt));
+    const rightTime = Date.parse(normalizeString(right.resolvedAt));
+    if (Number.isFinite(leftTime) && Number.isFinite(rightTime) && leftTime !== rightTime) {
+      return leftTime - rightTime;
+    }
+    return normalizeString(left.id).localeCompare(normalizeString(right.id));
+  });
+  for (const mistake of ordered) {
+    const rootCauseId = normalizeString(mistake.rootCauseId);
+    if (rootCauseId.length === 0) continue;
+    const controls = mistake.controlOptions ?? {};
+    if (Object.keys(controls).length === 0) continue;
+    options[rootCauseId] ??= { controls: {} };
+    for (const [type, override] of Object.entries(controls)) {
+      options[rootCauseId].controls[type] = override;
+    }
+  }
+  return options;
 }
 
 export function parsePreventionIssueNumbers(pullRequestBody) {
