@@ -85,6 +85,7 @@ export function detectCommunicationMistakes(input = {}) {
       for (const source of contradictions) {
         const type = source.type === 'requirement' ? 'requirement-misunderstood' : 'wrong-interpretation';
         const canProveOrder = work !== null && workAt !== null && source.at !== null;
+        const noWork = work === null;
         findings.push(
           createFinding({
             type,
@@ -92,8 +93,9 @@ export function detectCommunicationMistakes(input = {}) {
             state: canProveOrder ? 'detected' : 'suspected',
             confidence: canProveOrder ? 'high' : 'medium',
             severity: 'high',
-            title:
-              type === 'requirement-misunderstood'
+            title: noWork
+              ? `${topic} has an interpretation that conflicts with active authoritative communication.`
+              : type === 'requirement-misunderstood'
                 ? `${topic} implementation used an interpretation that contradicted an active authoritative requirement.`
                 : `${topic} implementation used an interpretation that contradicted an active authoritative instruction or decision.`,
             eventIds: [interpretation.id, source.id],
@@ -106,9 +108,13 @@ export function detectCommunicationMistakes(input = {}) {
                 value: source.value,
                 authority: source.authority,
               },
-              { kind: 'dependent-work', ...work },
+              ...(work === null ? [] : [{ kind: 'dependent-work', ...work }]),
             ],
-            missingEvidence: canProveOrder ? [] : ['comparable-authoritative-and-work-timestamps'],
+            missingEvidence: canProveOrder
+              ? []
+              : work === null
+                ? ['dependent-work']
+                : ['comparable-authoritative-and-work-timestamps'],
             recommendation: 'Confirm the interpretation against the authoritative requirement before implementation.',
           }),
         );
