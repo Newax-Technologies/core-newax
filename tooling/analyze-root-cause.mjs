@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 
+import { confidenceForRootCauseOutput } from './confidence-finding-adapters.mjs';
 import { loadCatalog } from './engineering-learning-core.mjs';
 import { analyzeRootCause, compareRootCauseOccurrences } from './root-cause-engine.mjs';
 
@@ -67,12 +68,14 @@ const comparison =
         },
         readJson(argumentsMap.compare),
       );
+const confidenceScores = confidenceForRootCauseOutput({ input, assessment, comparison });
 
 console.log(
   JSON.stringify(
     {
       assessment,
       comparison,
+      confidenceScores,
       completionClaim:
         assessment.status === 'machine-supported'
           ? 'Machine evidence supports this catalog classification; semantic causality still remains reviewable.'
