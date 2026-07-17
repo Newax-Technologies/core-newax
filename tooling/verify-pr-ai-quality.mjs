@@ -8,12 +8,12 @@ export function aiToolGovernanceErrors(history, result) {
   const errors = [];
   const events = history.events ?? [];
   const issues = history.aiQualityIssues ?? [];
-  const hasAiEvidence = events.some((event) => event.type === 'ai-output');
-  if (history.phase === 'review' && hasAiEvidence && issues.length === 0) {
-    errors.push('A review-ready pull request with AI or tool output evidence requires at least one AI quality issue.');
+  const hasOutputRecord = events.some((event) => event.type === 'ai-output');
+  if (history.phase === 'review' && hasOutputRecord && issues.length === 0) {
+    errors.push('A review-ready pull request with output provenance requires a linked quality issue.');
   }
-  if (history.phase === 'review' && issues.length > 0 && events.length === 0) {
-    errors.push('A linked AI quality issue must contain structured AI quality evidence.');
+  if (history.phase === 'review' && issues.length > 0 && !hasOutputRecord) {
+    errors.push('A linked quality issue must contain a structured output provenance record.');
   }
   for (const finding of result.blockers ?? []) {
     errors.push(`${finding.type}: ${finding.title} (${finding.id})`);
