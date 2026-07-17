@@ -163,23 +163,28 @@ export function normalizeKnowledgeEdge(value, index = 0) {
 
 export function knowledgeEdgeId(edge) {
   return `kg-edge-${createHash('sha256')
-    .update([edge.from, edge.type, edge.to, edge.status, edge.provenance].join('|'))
+    .update([edge.from, edge.type, edge.to, edge.status].join('|'))
     .digest('hex')
     .slice(0, 20)}`;
 }
 
 export function mergeKnowledgeNode(existing, incoming) {
   if (existing === undefined) return incoming;
-  for (const field of ['kind', 'url', 'sourceRef']) {
-    if (existing[field] !== incoming[field]) {
+  if (existing.kind !== incoming.kind) {
+    throw new TypeError(`Knowledge node ${incoming.id} has incompatible kind.`);
+  }
+  for (const field of ['url', 'sourceRef']) {
+    if (existing[field] !== null && incoming[field] !== null && existing[field] !== incoming[field]) {
       throw new TypeError(`Knowledge node ${incoming.id} has incompatible ${field}.`);
     }
   }
   return {
     ...existing,
+    url: existing.url ?? incoming.url,
+    sourceRef: existing.sourceRef ?? incoming.sourceRef,
     label: existing.label.length >= incoming.label.length ? existing.label : incoming.label,
     status: existing.status === incoming.status ? existing.status : 'mixed',
-    occurredAt: existing.occurredAt ?? incoming.occurredAt,
+    occurredAt: [existing.occurredAt, incoming.occurredAt].filter(Boolean).sort()[0] ?? null,
     evidenceRefs: [...new Set([...existing.evidenceRefs, ...incoming.evidenceRefs])].sort(),
     metadata: { ...existing.metadata, ...incoming.metadata },
   };
