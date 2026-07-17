@@ -139,12 +139,24 @@ export function assertDeclarativeDefinition(type, definition) {
   if (definition === null || typeof definition !== 'object' || Array.isArray(definition)) {
     throw new TypeError(`${type} definition must be a declarative object.`);
   }
-  const prohibited = ['command', 'script', 'shell', 'exec', 'run', 'code', 'source'];
-  for (const key of Object.keys(definition)) {
-    if (prohibited.includes(key.toLowerCase())) {
-      throw new TypeError(`${type} cannot contain arbitrary executable field: ${key}.`);
+  const prohibited = new Set(['command', 'script', 'shell', 'exec', 'run', 'code', 'source']);
+  const visit = (value, path = []) => {
+    if (Array.isArray(value)) {
+      value.forEach((entry, index) => visit(entry, [...path, String(index)]));
+      return;
     }
-  }
+    if (value === null || typeof value !== 'object') return;
+    for (const [key, entry] of Object.entries(value)) {
+      const nextPath = [...path, key];
+      if (prohibited.has(key.toLowerCase())) {
+        throw new TypeError(
+          `${type} cannot contain arbitrary executable field: ${nextPath.join('.')}.`,
+        );
+      }
+      visit(entry, nextPath);
+    }
+  };
+  visit(definition);
   return definition;
 }
 
