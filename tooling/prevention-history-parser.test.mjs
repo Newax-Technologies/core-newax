@@ -128,10 +128,50 @@ Parse heading fields.
 Create a form the parser cannot read.
 
 ## Evidence references
-issue:14`,
+issue:14
+
+## CI control owner
+platform
+
+## CI control reviewer
+reviewer
+
+## CI implementation reference
+tooling/ci-check.mjs
+
+## CI verification references
+workflow:15`,
   });
   assert.equal(mistake.id, 'PREV-FORM-14');
   assert.equal(mistake.rootCauseId, 'ROOT-FORM');
   assert.deepEqual(mistake.verificationRefs, ['workflow:14']);
   assert.equal(mistake.resolutionStatus, 'Verified');
+  assert.equal(mistake.controlOptions['ci-check'].owner, 'platform');
+  assert.deepEqual(mistake.controlOptions['ci-check'].verificationRefs, ['workflow:15']);
+});
+
+test('combines latest structured control ownership by root cause', async () => {
+  const { buildPreventionControlOptions } = await import('./prevention-history-parser.mjs');
+  const options = buildPreventionControlOptions([
+    {
+      id: 'E-1',
+      rootCauseId: 'ROOT-X',
+      resolvedAt: '2026-07-17T10:00:00Z',
+      controlOptions: { 'ci-check': { owner: 'old', verificationRefs: [] } },
+    },
+    {
+      id: 'E-2',
+      rootCauseId: 'ROOT-X',
+      resolvedAt: '2026-07-18T10:00:00Z',
+      controlOptions: {
+        'ci-check': {
+          owner: 'platform',
+          reviewer: 'reviewer',
+          implementationRef: 'tooling/check.mjs',
+          verificationRefs: ['workflow:2'],
+        },
+      },
+    },
+  ]);
+  assert.equal(options['ROOT-X'].controls['ci-check'].owner, 'platform');
 });
