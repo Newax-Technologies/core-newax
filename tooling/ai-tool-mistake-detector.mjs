@@ -113,7 +113,8 @@ export function detectAiToolMistakes(input = {}) {
           type: 'ai-hallucination',
           output,
           state: explicitCorrection && isAttributableOutput(output) ? 'detected' : temporal.state,
-          confidence: explicitCorrection && isAttributableOutput(output) ? 'high' : temporal.confidence,
+          confidence:
+            explicitCorrection && isAttributableOutput(output) ? 'high' : temporal.confidence,
           severity: contradiction.severity === 'medium' ? 'high' : contradiction.severity,
           title: `${output.outputId} asserted a claim or symbol contradicted by verified authoritative evidence.`,
           eventIds: [output.id, contradiction.id],
@@ -128,7 +129,8 @@ export function detectAiToolMistakes(input = {}) {
             },
           ],
           missingEvidence: explicitCorrection ? missingProvenance : temporal.missing,
-          recommendation: 'Verify generated claims and symbols against the pinned authoritative source before accepting the output.',
+          recommendation:
+            'Verify generated claims and symbols against the pinned authoritative source before accepting the output.',
         }),
       );
     }
@@ -171,7 +173,8 @@ export function detectAiToolMistakes(input = {}) {
           missingEvidence: versionMatches
             ? base.missing
             : [...missingProvenance, 'matching-framework-and-pinned-version'],
-          recommendation: 'Resolve the API against the repository-pinned framework version and add a compile or contract regression.',
+          recommendation:
+            'Resolve the API against the repository-pinned framework version and add a compile or contract regression.',
         }),
       );
     }
@@ -184,7 +187,8 @@ export function detectAiToolMistakes(input = {}) {
         documentation.pinnedVersion.length > 0 &&
         documentation.documentationVersion !== documentation.pinnedVersion;
       if (!mismatch) continue;
-      const verifiedImpact = isVerifiedEvidence(documentation) || documentation.confirmsMistake === true;
+      const verifiedImpact =
+        isVerifiedEvidence(documentation) || documentation.confirmsMistake === true;
       const base = evidenceState(output, documentation, { historical: true });
       addFinding(
         findings,
@@ -205,8 +209,11 @@ export function detectAiToolMistakes(input = {}) {
               validationRef: documentation.validationRef,
             },
           ],
-          missingEvidence: verifiedImpact ? base.missing : [...missingProvenance, 'verified-material-impact'],
-          recommendation: 'Use documentation matching the repository-pinned version and record the exact source version.',
+          missingEvidence: verifiedImpact
+            ? base.missing
+            : [...missingProvenance, 'verified-material-impact'],
+          recommendation:
+            'Use documentation matching the repository-pinned version and record the exact source version.',
         }),
       );
     }
@@ -245,7 +252,8 @@ export function detectAiToolMistakes(input = {}) {
             },
           ],
           missingEvidence: base.missing,
-          recommendation: 'Replace the deprecated package with the approved maintained alternative and verify compatibility.',
+          recommendation:
+            'Replace the deprecated package with the approved maintained alternative and verify compatibility.',
         }),
       );
     }
@@ -277,7 +285,8 @@ export function detectAiToolMistakes(input = {}) {
           missingEvidence: confirmed
             ? missingProvenance
             : [...missingProvenance, 'confirmed-policy-id-and-validation-reference'],
-          recommendation: 'Reject the unsafe suggestion, preserve the policy evidence, and add a prevention or review control.',
+          recommendation:
+            'Reject the unsafe suggestion, preserve the policy evidence, and add a prevention or review control.',
         }),
       );
     }
@@ -293,13 +302,15 @@ export function detectAiToolMistakes(input = {}) {
     );
     for (const provenance of copyRecords) {
       for (const defect of copyDefects) {
+        const confirmedProvenance = isVerifiedEvidence(provenance);
+        const confirmed = confirmedProvenance && isAttributableOutput(output);
         addFinding(
           findings,
           createFinding({
             type: 'copy-paste-bug',
             output,
-            state: isAttributableOutput(output) ? 'detected' : 'suspected',
-            confidence: isAttributableOutput(output) ? 'high' : 'medium',
+            state: confirmed ? 'detected' : 'suspected',
+            confidence: confirmed ? 'high' : 'medium',
             severity: 'high',
             title: `${output.outputId} retained stale context from copied material.`,
             eventIds: [output.id, provenance.id, defect.id],
@@ -312,8 +323,11 @@ export function detectAiToolMistakes(input = {}) {
                 validationRef: defect.validationRef,
               },
             ],
-            missingEvidence: missingProvenance,
-            recommendation: 'Replace stale identifiers and add a regression proving the copied context was fully adapted.',
+            missingEvidence: confirmedProvenance
+              ? missingProvenance
+              : [...missingProvenance, 'verified-copy-provenance'],
+            recommendation:
+              'Replace stale identifiers and add a regression proving the copied context was fully adapted.',
           }),
         );
       }
@@ -351,7 +365,8 @@ export function detectAiToolMistakes(input = {}) {
           missingEvidence: confirmed
             ? missingProvenance
             : [...missingProvenance, 'generated-code-attribution-and-static-analysis-reference'],
-          recommendation: 'Remove the dead generated code and add reachability or usage coverage where the behavior is required.',
+          recommendation:
+            'Remove the dead generated code and add reachability or usage coverage where the behavior is required.',
         }),
       );
     }
@@ -359,8 +374,12 @@ export function detectAiToolMistakes(input = {}) {
 
   applyFindingLifecycle(findings, events);
   const outputById = new Map(outputs.map((output) => [output.outputId, output]));
-  const blockers = findings.filter((finding) => canBlockFinding(finding, outputById.get(finding.outputId)));
-  const suspected = findings.filter((finding) => finding.state === 'suspected' && !finding.waived);
+  const blockers = findings.filter((finding) =>
+    canBlockFinding(finding, outputById.get(finding.outputId)),
+  );
+  const suspected = findings.filter(
+    (finding) => finding.state === 'suspected' && !finding.waived,
+  );
   const unresolvedDetected = findings.filter(
     (finding) => finding.state === 'detected' && !finding.waived,
   );
