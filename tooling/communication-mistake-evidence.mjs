@@ -26,11 +26,16 @@ export function firstWorkForTopic(topicEvents, commits, allEvents) {
   const explicit = allEvents
     .filter((event) => event.type === 'implementation' && event.topic === topic)
     .sort(compareEvents)[0];
-  const scopes = scopesForTopic(topicEvents);
-  const commit = commits.find(
-    (candidate) =>
-      scopes.length > 0 &&
-      candidate.files.some((file) => pathMatchesCommunicationScope(file.filename, scopes)),
+  const commit = commits.find((candidate) =>
+    topicEvents.some((event) =>
+      event.appliesTo.length > 0 &&
+      candidate.files.some((file) =>
+        pathMatchesCommunicationScope(file.filename, event.appliesTo),
+      ) &&
+      (event.at === null ||
+        candidate.timestamp === null ||
+        Date.parse(candidate.timestamp) >= Date.parse(event.at)),
+    ),
   );
   const options = [
     explicit === undefined
