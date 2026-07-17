@@ -2,7 +2,7 @@ name: Engineering confidence record
 description: Record recalculable confidence inputs for one Engineering Intelligence finding.
 title: "[Engineering confidence] "
 labels:
-  - engineering-confidence
+  - engineering-learning
 body:
   - type: markdown
     attributes:
