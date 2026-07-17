@@ -57,9 +57,7 @@ const fullEdges = [
 
 test('builds a deterministic full graph', () => {
   const first = buildKnowledgeGraph(fullNodes, fullEdges, { source: 'test' });
-  const second = buildKnowledgeGraph([...fullNodes].reverse(), [...fullEdges].reverse(), {
-    source: 'test',
-  });
+  const second = buildKnowledgeGraph([...fullNodes].reverse(), [...fullEdges].reverse(), { source: 'test' });
   assert.deepEqual(first, second);
   assert.equal(first.nodes.length, 12);
   assert.equal(first.edges.length, 11);
@@ -71,27 +69,19 @@ test('candidate links remain present', () => {
     ...fullEdges.slice(0, 5),
     edge('bug', 'root', 'classified-as', { status: 'candidate' }),
   ]);
-  assert.equal(graph.edges.find((item) => item.type === 'classified-as').status, 'candidate');
+  assert.equal(graph.edges.find((edge) => edge.type === 'classified-as').status, 'candidate');
 });
 
 test('rejects illegal stage jumps', () => {
   assert.throws(
-    () =>
-      buildKnowledgeGraph(
-        [node('req', 'requirement'), node('pr', 'pull-request')],
-        [edge('req', 'pr', 'implemented-by')],
-      ),
+    () => buildKnowledgeGraph([node('req', 'requirement'), node('pr', 'pull-request')], [edge('req', 'pr', 'implemented-by')]),
     /Illegal knowledge transition/,
   );
 });
 
 test('rejects missing endpoints', () => {
   assert.throws(
-    () =>
-      buildKnowledgeGraph(
-        [node('req', 'requirement')],
-        [edge('req', 'commit', 'implemented-by')],
-      ),
+    () => buildKnowledgeGraph([node('req', 'requirement')], [edge('req', 'commit', 'implemented-by')]),
     /missing target/,
   );
 });
@@ -138,11 +128,7 @@ test('requires durable URL or source reference', () => {
 
 test('rejects insecure URLs', () => {
   assert.throws(
-    () =>
-      buildKnowledgeGraph(
-        [node('x', 'bug', { sourceRef: null, url: 'http://example.com' })],
-        [],
-      ),
+    () => buildKnowledgeGraph([node('x', 'bug', { sourceRef: null, url: 'http://example.com' })], []),
     /must use https/,
   );
 });
@@ -155,4 +141,14 @@ test('detects digest tampering', () => {
 test('detects schema tampering', () => {
   const graph = buildKnowledgeGraph(fullNodes, fullEdges);
   assert.match(validateKnowledgeGraph({ ...graph, schemaVersion: 2 }).errors.join('\n'), /schemaVersion/);
+});
+
+test('bounds graph source metadata', () => {
+  assert.throws(
+    () =>
+      buildKnowledgeGraph([node('x', 'bug')], [], {
+        source: { a: { b: { c: { d: 'too deep' } } } },
+      }),
+    /depth limit/,
+  );
 });
