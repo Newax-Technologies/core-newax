@@ -16,6 +16,7 @@ export const CONFIDENCE_POLICY = Object.freeze({
     assessmentWeight: 0.75,
     evidenceQualityWeight: 0.25,
     unclassifiedCap: 49,
+    missingEvidenceSetCap: 49,
     ambiguousCap: 59,
     contradictionCap: 39,
     candidateCap: 69,
