@@ -17,7 +17,23 @@ function request(path) {
     },
     '/issues/10': {
       number: 10,
-      body: `<!-- newax-prevention-event\nevent-id: E-10\nroot-cause-id: ROOT-X\nroot-cause-status: confirmed\nresolution-status: verified\nresolved-at: 2026-07-17T12:00:00Z\nfix-commit: ${'a'.repeat(40)}\nreviewer: reviewer\nreviewed-at: 2026-07-17T12:05:00Z\nverification-refs: workflow:1\nregression-refs: test:one\nprevention-control: Require regression evidence.\n-->`,
+      body: `<!-- newax-prevention-event
+event-id: E-10
+root-cause-id: ROOT-X
+root-cause-status: confirmed
+resolution-status: verified
+resolved-at: 2026-07-17T12:00:00Z
+fix-commit: ${'a'.repeat(40)}
+reviewer: reviewer
+reviewed-at: 2026-07-17T12:05:00Z
+verification-refs: workflow:1
+regression-refs: test:one
+prevention-control: Require regression evidence.
+ci-owner: platform
+ci-reviewer: reviewer
+ci-implementation-ref: tooling/check.mjs
+ci-verification-refs: workflow:2
+-->`,
     },
     '/issues/10/comments': [],
   };
@@ -38,4 +54,5 @@ test('collects linked resolved mistakes and changed files', async () => {
   assert.equal(history.phase, 'review');
   assert.equal(history.mistakes.length, 1);
   assert.deepEqual(history.changedFiles, ['.newax/prevention/ci/root-x.json']);
+  assert.equal(history.controlOptions['ROOT-X'].controls['ci-check'].owner, 'platform');
 });
