@@ -69,7 +69,7 @@ test('candidate links remain present', () => {
     ...fullEdges.slice(0, 5),
     edge('bug', 'root', 'classified-as', { status: 'candidate' }),
   ]);
-  assert.equal(graph.edges.find((edge) => edge.type === 'classified-as').status, 'candidate');
+  assert.equal(graph.edges.find((item) => item.type === 'classified-as').status, 'candidate');
 });
 
 test('rejects illegal stage jumps', () => {
@@ -151,4 +151,53 @@ test('bounds graph source metadata', () => {
       }),
     /depth limit/,
   );
+});
+
+test('allows same-kind supersession when node IDs differ', () => {
+  const graph = buildKnowledgeGraph(
+    [node('rule-a', 'rule'), node('rule-b', 'rule')],
+    [edge('rule-a', 'rule-b', 'supersedes')],
+  );
+  assert.equal(graph.edges[0].type, 'supersedes');
+});
+
+test('merges a node URL and source reference supplied by separate evidence', () => {
+  const graph = buildKnowledgeGraph(
+    [
+      node('bug-x', 'bug', { url: 'https://github.com/o/r/issues/1', sourceRef: null }),
+      node('bug-x', 'bug', { url: null, sourceRef: 'issue:1' }),
+    ],
+    [],
+  );
+  assert.equal(graph.nodes[0].url, 'https://github.com/o/r/issues/1');
+  assert.equal(graph.nodes[0].sourceRef, 'issue:1');
+});
+
+test('duplicate edge provenance merges deterministically regardless of input order', () => {
+  const nodes = [node('req-x', 'requirement'), node('commit-x', 'commit')];
+  const first = edge('req-x', 'commit-x', 'implemented-by', {
+    provenance: 'z-source',
+    evidenceRefs: ['z'],
+  });
+  const second = edge('req-x', 'commit-x', 'implemented-by', {
+    provenance: 'a-source',
+    evidenceRefs: ['a'],
+  });
+  assert.deepEqual(buildKnowledgeGraph(nodes, [first, second]), buildKnowledgeGraph(nodes, [second, first]));
+});
+
+test('rejects excessive graph cardinality', () => {
+  const nodes = Array.from({ length: 251 }, (_, index) => node(`bug-${index}`, 'bug'));
+  assert.throws(() => buildKnowledgeGraph(nodes, []), /exceeds 250 nodes/);
+});
+
+test('validation returns bounded errors for malformed rendered content', () => {
+  const result = validateKnowledgeGraph({
+    schemaVersion: 1,
+    digest: 'bad',
+    nodes: [node('req-only', 'requirement')],
+    edges: [edge('req-only', 'missing', 'implemented-by')],
+  });
+  assert.equal(result.graph, null);
+  assert.match(result.errors.join('\n'), /missing target/);
 });
