@@ -28,7 +28,7 @@ const cases = [
   ],
   [
     'template changed',
-    { filename: '.github/pull_request_template.md', status: 'modified' },
+    { filename: 'docs/proposal-template.md', status: 'modified' },
     'template-changed',
   ],
   [
