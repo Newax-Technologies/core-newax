@@ -26,6 +26,17 @@ State the business or engineering outcome this change must produce.
 
 Review-ready pull requests require at least one planning issue, a declared task sequence, and declared scope paths. Planning mistake governance evaluates the issue history and commit sequence; these fields do not override that evidence.
 
+## Communication evidence
+
+- Communication issues: `#123`, comma-separated issues, or `not-required` only for an explicitly exempt maintenance change
+- Requirement confirmations: Identify the structured requirement and interpretation records.
+- Assumptions awaiting confirmation: Identify open assumptions or write `none`.
+- Decision records: Identify canonical decisions required by this change.
+- Approval evidence: Identify approval records or write `not-required`.
+- Conflicts and resolutions: Identify supersession or resolution records or write `none`.
+
+Review-ready pull requests require at least one linked communication issue and structured communication evidence. Pull-request prose does not override the issue, comment, review, and commit history evaluated by communication governance.
+
 ## Acceptance criteria
 
 - [ ] The intended behavior is testable.
