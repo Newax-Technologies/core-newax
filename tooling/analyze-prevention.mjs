@@ -34,7 +34,11 @@ async function readHistory() {
 }
 
 const history = await readHistory();
-const registry = buildPreventionRegistry(history.mistakes ?? [], history.existingPacks ?? []);
+const registry = buildPreventionRegistry(
+  history.mistakes ?? [],
+  history.existingPacks ?? [],
+  history.controlOptions ?? {},
+);
 const outputRoot = argumentValue('--out');
 const generatedPaths = [];
 if (outputRoot !== null) {
