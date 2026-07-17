@@ -112,29 +112,35 @@ function normalizeOverride(type, override = {}) {
 function buildControl(mistake, type, existingControl, overrideInput) {
   const override = normalizeOverride(type, overrideInput);
   const desiredState = controlState(type, override);
-  let state = desiredState;
-  let supersession = null;
-  if (existingControl?.state === 'enforced' && desiredState !== 'enforced') {
-    if (!validSupersession(override.supersession ?? {})) {
-      state = 'enforced';
-    } else {
-      supersession = {
+  const existingIsEnforced = existingControl?.state === 'enforced';
+  const hasSupersession = validSupersession(override.supersession ?? {});
+  const preserveEnforcedControl = existingIsEnforced && !hasSupersession;
+  const supersession = hasSupersession
+    ? {
         approver: normalizeString(override.supersession.approver),
         reason: normalizeString(override.supersession.reason),
         effectiveAt: normalizeString(override.supersession.effectiveAt),
-      };
-    }
-  }
-  const definition = override.definition ?? defaultDefinition(type, mistake);
+      }
+    : null;
+  const state = preserveEnforcedControl ? 'enforced' : desiredState;
+  const definition = preserveEnforcedControl
+    ? existingControl.definition
+    : (override.definition ?? defaultDefinition(type, mistake));
   if (EXECUTABLE_CONTROL_TYPES.has(type)) assertDeclarativeDefinition(type, definition);
   const draft = {
     id: controlId(mistake.rootCauseId, type),
     type,
     targetPath: controlTargetPath(mistake.rootCauseId, type),
     state,
-    owner: override.owner || existingControl?.owner || null,
-    reviewer: override.reviewer || existingControl?.reviewer || null,
-    implementationRef: override.implementationRef || existingControl?.implementationRef || null,
+    owner: preserveEnforcedControl
+      ? existingControl.owner
+      : (override.owner || existingControl?.owner || null),
+    reviewer: preserveEnforcedControl
+      ? existingControl.reviewer
+      : (override.reviewer || existingControl?.reviewer || null),
+    implementationRef: preserveEnforcedControl
+      ? existingControl.implementationRef
+      : (override.implementationRef || existingControl?.implementationRef || null),
     verificationRefs: uniqueStrings([
       ...(existingControl?.verificationRefs ?? []),
       ...override.verificationRefs,
