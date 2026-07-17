@@ -8,6 +8,7 @@ import {
   normalizeEvidence,
   normalizeString,
   qualityLabel,
+  stableStringify,
   uniqueStrings,
 } from './confidence-scoring-support.mjs';
 
@@ -180,9 +181,13 @@ function duplicateConfidence(input) {
     status: relation === 'insufficient-evidence' ? 'insufficient-evidence' : 'scored',
     meaning: CONFIDENCE_MEANINGS.duplicateConfidence,
     evidenceRefs: asArray(comparison.evidence),
-    missingEvidence: relation === 'insufficient-evidence' ? ['verified-duplicate-or-unrelated-decision'] : [],
+    missingEvidence:
+      relation === 'insufficient-evidence' ? ['verified-duplicate-or-unrelated-decision'] : [],
     capsApplied: capped.capsApplied,
-    extra: { relation, sharedRootCause: comparison.sharedRootCause === true },
+    extra: {
+      relation,
+      sharedRootCause: comparison.sharedRootCause === true,
+    },
   });
 }
 
@@ -257,8 +262,12 @@ function automationConfidence(input) {
   const exactFilesCurrent = automation.exactFilesCurrent === true;
   const governancePassed = automation.governancePassed === true;
   const executableTypes = CONFIDENCE_POLICY.executableAutomationControlTypes;
-  const enforcedExecutable = executableTypes.filter((type) => byType.get(type)?.state === 'enforced');
-  const verifiedControls = controls.filter((control) => asArray(control.verificationRefs).length > 0);
+  const enforcedExecutable = executableTypes.filter(
+    (type) => byType.get(type)?.state === 'enforced',
+  );
+  const verifiedControls = controls.filter(
+    (control) => asArray(control.verificationRefs).length > 0,
+  );
 
   const raw =
     (present.length / requiredTypes.length) * CONFIDENCE_POLICY.automation.completenessWeight +
@@ -273,7 +282,9 @@ function automationConfidence(input) {
     (governancePassed ? CONFIDENCE_POLICY.automation.governanceWeight : 0);
 
   const missingTypes = requiredTypes.filter((type) => !byType.has(type));
-  const candidateExecutable = executableTypes.filter((type) => byType.get(type)?.state !== 'enforced');
+  const candidateExecutable = executableTypes.filter(
+    (type) => byType.get(type)?.state !== 'enforced',
+  );
   const caps = [
     {
       id: 'incomplete-prevention-pack',
@@ -341,8 +352,11 @@ export function scoreConfidenceEnvelope(input = {}) {
     explanationVerification: input.explanationVerification ?? null,
     automationAssessment: input.automationAssessment ?? null,
   };
-  const quality = evidenceQuality(normalizedInput.evidenceRecords, normalizedInput.requiredEvidenceRoles);
-  return {
+  const quality = evidenceQuality(
+    normalizedInput.evidenceRecords,
+    normalizedInput.requiredEvidenceRoles,
+  );
+  const envelope = {
     schemaVersion: 1,
     policyVersion: CONFIDENCE_POLICY.version,
     inputDigest: inputDigest(normalizedInput),
@@ -352,6 +366,7 @@ export function scoreConfidenceEnvelope(input = {}) {
     explanationConfidence: explanationConfidence(normalizedInput),
     automationConfidence: automationConfidence(normalizedInput),
   };
+  return envelope;
 }
 
 export function validateConfidenceEnvelope(input, envelope) {
@@ -373,7 +388,7 @@ export function validateConfidenceEnvelope(input, envelope) {
     'explanationConfidence',
     'automationConfidence',
   ]) {
-    if (JSON.stringify(envelope[key]) !== JSON.stringify(expected[key])) {
+    if (stableStringify(envelope[key]) !== stableStringify(expected[key])) {
       errors.push(`${key} does not match the recalculated score.`);
     }
   }
