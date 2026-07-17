@@ -1,4 +1,6 @@
+import { attachErrorRelationshipGraph } from './engineering-issue-error-graph.mjs';
 import { createOrUpdateLearningIssue, findMatchingIssues } from './engineering-learning-core.mjs';
+import { normalizeErrorImpacts, normalizeRelationshipHints } from './error-relationship-graph.mjs';
 
 function legacyAssessment(event) {
   const category = event.category ?? 'unknown';
@@ -45,7 +47,7 @@ function legacyAssessment(event) {
       event.jobName ? `Job: ${event.jobName}` : null,
       event.stepName ? `Step: ${event.stepName}` : null,
       event.sourceType ? `Source: ${event.sourceType}` : null,
-      'Upgraded from engineering event schema version 1.',
+      'Upgraded from an engineering event created before the relationship graph existed.',
     ].filter(Boolean),
     selected,
     status: deterministic ? 'machine-supported' : 'candidate',
@@ -56,14 +58,13 @@ export function upgradeEngineeringEvent(event) {
   if (event === null || typeof event !== 'object' || Array.isArray(event)) {
     throw new TypeError('Engineering event must be an object.');
   }
-  if (event.rootCauseAssessment !== undefined) {
-    return event;
-  }
 
   return {
     ...event,
-    schemaVersion: 2,
-    rootCauseAssessment: legacyAssessment(event),
+    schemaVersion: 3,
+    rootCauseAssessment: event.rootCauseAssessment ?? legacyAssessment(event),
+    relationshipHints: normalizeRelationshipHints(event.relationshipHints ?? event.relationships),
+    impacts: normalizeErrorImpacts(event.impacts),
   };
 }
 
@@ -71,12 +72,20 @@ export async function submitEngineeringEvent(event, options = {}) {
   const upgradedEvent = upgradeEngineeringEvent(event);
   const matches = await findMatchingIssues(upgradedEvent, options);
   if (matches.exactOccurrence !== undefined) {
+    const graph = await attachErrorRelationshipGraph(
+      matches.exactOccurrence.number,
+      upgradedEvent,
+      options,
+    );
     return {
       issueNumber: matches.exactOccurrence.number,
       created: false,
       idempotent: true,
+      graph,
     };
   }
 
-  return createOrUpdateLearningIssue(upgradedEvent, options);
+  const result = await createOrUpdateLearningIssue(upgradedEvent, options);
+  const graph = await attachErrorRelationshipGraph(result.issueNumber, upgradedEvent, options);
+  return { ...result, graph };
 }
