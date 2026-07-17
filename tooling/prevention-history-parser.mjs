@@ -26,6 +26,23 @@ function parseBlocks(body, blockName) {
   );
 }
 
+function extractHeadingValue(body, heading) {
+  const lines = String(body ?? '').split('\n');
+  const target = heading.toLowerCase();
+  const start = lines.findIndex((line) => {
+    const match = line.match(/^#{2,4}\s+(.+)$/);
+    return match !== null && match[1].trim().toLowerCase() === target;
+  });
+  if (start === -1) return '';
+  const values = [];
+  for (let index = start + 1; index < lines.length; index += 1) {
+    if (/^#{2,4}\s+/.test(lines[index])) break;
+    const normalized = lines[index].trim();
+    if (normalized.length > 0) values.push(normalized.replace(/^[-*]\s*/, ''));
+  }
+  return values.join('\n').replace(/^```[^\n]*\n?|```$/g, '').trim();
+}
+
 function extractListField(body, label) {
   const match = String(body ?? '').match(new RegExp(`^-\\s*${label}:\\s*(.+)$`, 'im'));
   if (match !== null) return match[1].replaceAll('`', '').trim();
@@ -56,6 +73,34 @@ function eventFromMetadata(metadata, source, createdAt, issueNumber) {
     successfulMethod: metadata['successful-method'],
     unsuccessfulMethod: metadata['unsuccessful-method'],
     evidenceRefs: splitList(metadata['evidence-refs']),
+    source,
+  };
+}
+
+function eventFromIssueForm(issue, source, createdAt) {
+  const body = issue.body ?? '';
+  const id = extractHeadingValue(body, 'Event ID');
+  const rootCauseId = extractHeadingValue(body, 'Root cause ID');
+  if (id.length === 0 || rootCauseId.length === 0) return null;
+  return {
+    id,
+    issueNumber: Number(issue.number),
+    rootCauseId,
+    ledgerEntry: extractHeadingValue(body, 'Ledger entry'),
+    category: extractHeadingValue(body, 'Category'),
+    status: extractHeadingValue(body, 'Status'),
+    rootCauseStatus: extractHeadingValue(body, 'Root-cause status'),
+    resolutionStatus: extractHeadingValue(body, 'Resolution status'),
+    resolvedAt: extractHeadingValue(body, 'Resolved at') || createdAt,
+    fixCommit: extractHeadingValue(body, 'Fix commit'),
+    reviewer: extractHeadingValue(body, 'Reviewer'),
+    reviewedAt: extractHeadingValue(body, 'Reviewed at'),
+    verificationRefs: splitList(extractHeadingValue(body, 'Verification references')),
+    regressionRefs: splitList(extractHeadingValue(body, 'Regression references')),
+    preventionControl: extractHeadingValue(body, 'Prevention control'),
+    successfulMethod: extractHeadingValue(body, 'Successful method'),
+    unsuccessfulMethod: extractHeadingValue(body, 'Unsuccessful method'),
+    evidenceRefs: splitList(extractHeadingValue(body, 'Evidence references')),
     source,
   };
 }
@@ -113,6 +158,10 @@ export function parseResolvedMistakes(issue, comments = []) {
       ),
     ),
   ];
+  const formEvent = eventFromIssueForm(issue, source, createdAt);
+  if (formEvent !== null && !events.some((event) => event.id === formEvent.id)) {
+    events.push(formEvent);
+  }
   const resolvedEvents = events.filter(
     (event) =>
       ['resolved', 'verified'].includes(
