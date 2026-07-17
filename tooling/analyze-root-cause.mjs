@@ -65,6 +65,7 @@ const comparison =
           prNumber: input.prNumber,
           rootCauseId: assessment.selected.rootCauseId,
           sourceId: input.sourceId,
+          status: assessment.status,
         },
         readJson(argumentsMap.compare),
       );
