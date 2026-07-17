@@ -48,3 +48,33 @@ test('missing rendered section fails', () => {
   const record = collectKnowledgeGraphRecord({ body: input }, []);
   assert.match(validateKnowledgeGraphRecord(record).join('\n'), /Rendered knowledge graph section is missing/);
 });
+
+test('issue-form parser preserves structured source metadata', () => {
+  const source = { type: 'github-pull-request', repository: 'o/r', prNumber: 2 };
+  const body = `### Record ID\nKG-5\n\n### Source reference\npr:2\n\n### Knowledge graph input JSON\n\n\`\`\`json\n${JSON.stringify({ source, nodes, edges })}\n\`\`\``;
+  const [record] = parseKnowledgeGraphInputRecords(body);
+  assert.deepEqual(record.source, source);
+});
+
+test('canonical issue rendering does not link back to itself', async () => {
+  const { attachKnowledgeGraphToIssue } = await import('./engineering-issue-knowledge-graph.mjs');
+  const graph = buildKnowledgeGraph(nodes, edges);
+  let patchedBody = '';
+  const request = async (path, options = {}) => {
+    if (options.method === 'PATCH') {
+      patchedBody = JSON.parse(options.body).body;
+      return {};
+    }
+    return { number: 7, html_url: 'https://github.com/o/r/issues/7', body: 'Header' };
+  };
+  await attachKnowledgeGraphToIssue(7, graph, { request });
+  assert.match(patchedBody, /This issue is the canonical complete-history view/);
+  assert.doesNotMatch(patchedBody, /Open the complete engineering history/);
+});
+
+test('record link insertion is idempotent for pull requests and issues', async () => {
+  const { replaceKnowledgeGraphLink } = await import('./engineering-issue-knowledge-graph.mjs');
+  const first = replaceKnowledgeGraphLink('Header', 9, 'https://github.com/o/r/issues/9');
+  const second = replaceKnowledgeGraphLink(first, 9, 'https://github.com/o/r/issues/9');
+  assert.equal((second.match(/Complete engineering history/g) ?? []).length, 1);
+});
