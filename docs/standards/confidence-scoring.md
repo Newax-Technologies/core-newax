@@ -82,6 +82,7 @@ Root Cause Confidence combines:
 Caps:
 
 - absent or unclassified root cause: 49;
+- absent canonical root-cause evidence set: 49;
 - ambiguous competing cause: 59;
 - explicit contradictory evidence: 39;
 - candidate non-deterministic classification: 69;
