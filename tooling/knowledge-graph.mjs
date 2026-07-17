@@ -8,6 +8,7 @@ import {
   mergeKnowledgeNode,
   normalizeKnowledgeEdge,
   normalizeKnowledgeNode,
+  normalizeKnowledgeMetadata,
   stableKnowledgeValue,
 } from './knowledge-graph-normalization.mjs';
 
@@ -24,9 +25,7 @@ function validateVerifiedCycles(nodes, edges) {
   function visit(nodeId) {
     if (visiting.has(nodeId)) {
       const start = path.indexOf(nodeId);
-      throw new TypeError(
-        `Verified knowledge graph cycle: ${[...path.slice(start), nodeId].join(' -> ')}.`,
-      );
+      throw new TypeError(`Verified knowledge graph cycle: ${[...path.slice(start), nodeId].join(' -> ')}.`);
     }
     if (visited.has(nodeId)) return;
     visiting.add(nodeId);
@@ -49,17 +48,11 @@ export function buildKnowledgeGraph(nodeValues = [], edgeValues = [], options = 
   });
   const edges = new Map();
   edgeValues.map(normalizeKnowledgeEdge).forEach((edge) => {
-    if (edge.from === edge.to) {
-      throw new TypeError(`Knowledge edge ${edge.id} cannot be a self-link.`);
-    }
+    if (edge.from === edge.to) throw new TypeError(`Knowledge edge ${edge.id} cannot be a self-link.`);
     const fromNode = nodes.get(edge.from);
     const toNode = nodes.get(edge.to);
-    if (fromNode === undefined) {
-      throw new TypeError(`Knowledge edge ${edge.id} references missing source ${edge.from}.`);
-    }
-    if (toNode === undefined) {
-      throw new TypeError(`Knowledge edge ${edge.id} references missing target ${edge.to}.`);
-    }
+    if (fromNode === undefined) throw new TypeError(`Knowledge edge ${edge.id} references missing source ${edge.from}.`);
+    if (toNode === undefined) throw new TypeError(`Knowledge edge ${edge.id} references missing target ${edge.to}.`);
     if (!isAllowedKnowledgeTransition(edge.type, fromNode.kind, toNode.kind)) {
       throw new TypeError(
         `Illegal knowledge transition ${fromNode.kind} -[${edge.type}]-> ${toNode.kind}.`,
@@ -83,7 +76,7 @@ export function buildKnowledgeGraph(nodeValues = [], edgeValues = [], options = 
     schemaVersion: KNOWLEDGE_GRAPH_SCHEMA_VERSION,
     nodes: [...nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
     edges: [...edges.values()].sort((left, right) => left.id.localeCompare(right.id)),
-    source: options.source ?? null,
+    source: options.source === undefined || options.source === null ? null : normalizeKnowledgeMetadata(options.source, 'source'),
   });
   return {
     ...graphCore,
@@ -92,15 +85,11 @@ export function buildKnowledgeGraph(nodeValues = [], edgeValues = [], options = 
 }
 
 export function validateKnowledgeGraph(graph) {
-  const rebuilt = buildKnowledgeGraph(graph?.nodes ?? [], graph?.edges ?? [], {
-    source: graph?.source ?? null,
-  });
+  const rebuilt = buildKnowledgeGraph(graph?.nodes ?? [], graph?.edges ?? [], { source: graph?.source ?? null });
   const errors = [];
   if (graph?.schemaVersion !== KNOWLEDGE_GRAPH_SCHEMA_VERSION) {
     errors.push(`Knowledge graph schemaVersion must be ${KNOWLEDGE_GRAPH_SCHEMA_VERSION}.`);
   }
-  if (graph?.digest !== rebuilt.digest) {
-    errors.push('Knowledge graph digest does not match normalized content.');
-  }
+  if (graph?.digest !== rebuilt.digest) errors.push('Knowledge graph digest does not match normalized content.');
   return { errors, graph: rebuilt };
 }
