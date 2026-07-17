@@ -94,54 +94,80 @@ function eventFromMetadata(metadata, source, createdAt) {
   };
 }
 
+function parseGroupedIssueFields(body) {
+  const groups = [
+    'Output provenance',
+    'Version and symbol evidence',
+    'Claim and contradiction evidence',
+    'Validation and policy evidence',
+    'Copy and stale-context evidence',
+    'Lifecycle evidence',
+  ];
+  return Object.fromEntries(
+    groups
+      .flatMap((heading) => extractHeadingValue(body, heading).split('\n'))
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const separator = line.indexOf(':');
+        return separator === -1
+          ? [line.toLowerCase(), '']
+          : [line.slice(0, separator).trim().toLowerCase(), line.slice(separator + 1).trim()];
+      }),
+  );
+}
+
 function eventFromIssueForm(body, source, createdAt) {
-  const id = extractHeadingValue(body, 'Event ID');
-  const type = extractHeadingValue(body, 'Event type');
+  const grouped = parseGroupedIssueFields(body);
+  const field = (heading) =>
+    extractHeadingValue(body, heading) || grouped[heading.trim().toLowerCase()] || '';
+  const id = field('Event ID');
+  const type = field('Event type');
   if (id.length === 0 || type.length === 0) return null;
   return {
     id,
     type,
-    outputId: extractHeadingValue(body, 'Output ID'),
-    status: extractHeadingValue(body, 'Status'),
-    at: extractHeadingValue(body, 'Occurrence time') || createdAt,
-    effectiveAt: extractHeadingValue(body, 'Effective time'),
-    provider: extractHeadingValue(body, 'Provider'),
-    model: extractHeadingValue(body, 'Model'),
-    tool: extractHeadingValue(body, 'Tool'),
-    toolVersion: extractHeadingValue(body, 'Tool version'),
-    sourceKind: extractHeadingValue(body, 'Source kind'),
-    promptHash: extractHeadingValue(body, 'Prompt hash'),
-    outputHash: extractHeadingValue(body, 'Output hash'),
-    artifactRefs: splitList(extractHeadingValue(body, 'Artifact references')),
-    framework: extractHeadingValue(body, 'Framework'),
-    frameworkVersion: extractHeadingValue(body, 'Framework version'),
-    pinnedVersion: extractHeadingValue(body, 'Pinned version'),
-    documentationVersion: extractHeadingValue(body, 'Documentation version'),
-    symbol: extractHeadingValue(body, 'Symbol'),
-    claim: extractHeadingValue(body, 'Claim'),
-    expected: extractHeadingValue(body, 'Expected'),
-    actual: extractHeadingValue(body, 'Actual'),
-    packageName: extractHeadingValue(body, 'Package name'),
-    packageVersion: extractHeadingValue(body, 'Package version'),
-    replacement: extractHeadingValue(body, 'Replacement'),
-    policyId: extractHeadingValue(body, 'Policy ID'),
-    validationKind: extractHeadingValue(body, 'Validation kind'),
-    validationCode: extractHeadingValue(body, 'Validation code'),
-    validationRef: extractHeadingValue(body, 'Validation reference'),
-    copiedFrom: extractHeadingValue(body, 'Copied from'),
-    staleIdentifiers: splitList(extractHeadingValue(body, 'Stale identifiers')),
-    generated: extractHeadingValue(body, 'Generated'),
-    materialImpact: extractHeadingValue(body, 'Material impact'),
-    confirmsMistake: extractHeadingValue(body, 'Confirms mistake'),
-    references: splitList(extractHeadingValue(body, 'References')),
-    resolves: splitList(extractHeadingValue(body, 'Resolves')),
-    findingType: extractHeadingValue(body, 'Finding type'),
-    severity: extractHeadingValue(body, 'Severity'),
-    reviewer: extractHeadingValue(body, 'Reviewer'),
-    reason: extractHeadingValue(body, 'Reason'),
-    correctionCommit: extractHeadingValue(body, 'Correction commit'),
-    regressionTest: extractHeadingValue(body, 'Regression test'),
-    regressionRun: extractHeadingValue(body, 'Regression run'),
+    outputId: field('Output ID'),
+    status: field('Status'),
+    at: field('Occurrence time') || createdAt,
+    effectiveAt: field('Effective time'),
+    provider: field('Provider'),
+    model: field('Model'),
+    tool: field('Tool'),
+    toolVersion: field('Tool version'),
+    sourceKind: field('Source kind'),
+    promptHash: field('Prompt hash'),
+    outputHash: field('Output hash'),
+    artifactRefs: splitList(field('Artifact references')),
+    framework: field('Framework'),
+    frameworkVersion: field('Framework version'),
+    pinnedVersion: field('Pinned version'),
+    documentationVersion: field('Documentation version'),
+    symbol: field('Symbol'),
+    claim: field('Claim'),
+    expected: field('Expected'),
+    actual: field('Actual'),
+    packageName: field('Package name'),
+    packageVersion: field('Package version'),
+    replacement: field('Replacement'),
+    policyId: field('Policy ID'),
+    validationKind: field('Validation kind'),
+    validationCode: field('Validation code'),
+    validationRef: field('Validation reference'),
+    copiedFrom: field('Copied from'),
+    staleIdentifiers: splitList(field('Stale identifiers')),
+    generated: field('Generated'),
+    materialImpact: field('Material impact'),
+    confirmsMistake: field('Confirms mistake'),
+    references: splitList(field('References')),
+    resolves: splitList(field('Resolves')),
+    findingType: field('Finding type'),
+    severity: field('Severity'),
+    reviewer: field('Reviewer'),
+    reason: field('Reason'),
+    correctionCommit: field('Correction commit'),
+    regressionTest: field('Regression test'),
+    regressionRun: field('Regression run'),
     source,
   };
 }
