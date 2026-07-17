@@ -209,6 +209,8 @@ export function analyzeKnowledgeHistory(graph, focusNodeId = null) {
   const allowedIds = componentNodeIds(graph, focusNodeId);
   const stages = stageSummary(graph, allowedIds);
   const chain = firstCompleteChain(graph, allowedIds);
+  const displayedChain =
+    chain ?? KNOWLEDGE_GRAPH_NODE_TYPES.flatMap((kind) => stages[kind].slice(0, 1));
   const missingStages = KNOWLEDGE_GRAPH_NODE_TYPES.filter((kind) => stages[kind].length === 0);
   const scopedGraph = {
     ...graph,
@@ -216,7 +218,7 @@ export function analyzeKnowledgeHistory(graph, focusNodeId = null) {
     edges: graph.edges.filter((edge) => allowedIds.has(edge.from) && allowedIds.has(edge.to)),
   };
   const edgeGaps = expectedEdgeGaps(stages, scopedGraph);
-  const selectedIds = new Set((chain ?? []).map((node) => node.id));
+  const selectedIds = new Set(displayedChain.map((node) => node.id));
   const branches = graph.nodes
     .filter((node) => allowedIds.has(node.id) && !selectedIds.has(node.id))
     .sort((left, right) => left.id.localeCompare(right.id));
@@ -237,7 +239,7 @@ export function analyzeKnowledgeHistory(graph, focusNodeId = null) {
     focusNodeId,
     status: chain === null ? 'incomplete' : 'complete',
     complete: chain !== null,
-    chain: chain ?? KNOWLEDGE_GRAPH_NODE_TYPES.flatMap((kind) => stages[kind].slice(0, 1)),
+    chain: displayedChain,
     stages,
     missingStages,
     gaps: [
