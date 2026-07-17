@@ -143,3 +143,13 @@ test('fragmented verified stages report the missing canonical edge', () => {
   assert.equal(result.complete, false);
   assert.ok(result.gaps.includes('missing-verified-edge:commit-to-pull-request'));
 });
+
+test('incomplete primary timeline nodes are not repeated as branches', () => {
+  const graph = fullGraph();
+  const reduced = buildKnowledgeGraph(
+    graph.nodes.filter((item) => item.kind !== 'review'),
+    graph.edges.filter((item) => item.from !== 'review' && item.to !== 'review'),
+  );
+  const result = analyzeKnowledgeHistory(reduced);
+  assert.equal(result.branches.length, 0);
+});
