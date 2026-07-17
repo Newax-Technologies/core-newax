@@ -39,15 +39,21 @@ export function provenanceMissing(output) {
   return missing;
 }
 
+function eventTargetsFinding(event, finding) {
+  return (
+    event.resolves.includes(finding.id) ||
+    event.references.includes(finding.outputId) ||
+    (event.findingType === finding.type && event.outputId === finding.outputId)
+  );
+}
+
 export function correctionForFinding(finding, events) {
   return events
     .filter(
       (event) =>
         event.type === 'correction' &&
         isVerifiedEvidence(event) &&
-        (event.resolves.includes(finding.id) ||
-          event.references.includes(finding.outputId) ||
-          event.findingType === finding.type),
+        eventTargetsFinding(event, finding),
     )
     .sort(compareEvents)
     .at(-1);
@@ -59,9 +65,7 @@ export function regressionForFinding(finding, events) {
       (event) =>
         event.type === 'regression-test' &&
         isVerifiedEvidence(event) &&
-        (event.references.includes(finding.id) ||
-          event.references.includes(finding.outputId) ||
-          event.findingType === finding.type),
+        eventTargetsFinding(event, finding),
     )
     .sort(compareEvents)
     .at(-1);
@@ -74,9 +78,7 @@ export function applyFindingLifecycle(findings, events) {
         (event) =>
           ['resolution', 'correction'].includes(event.type) &&
           isVerifiedEvidence(event) &&
-          (event.resolves.includes(finding.id) ||
-            event.references.includes(finding.outputId) ||
-            event.findingType === finding.type),
+          eventTargetsFinding(event, finding),
       )
       .sort(compareEvents)
       .at(-1);
