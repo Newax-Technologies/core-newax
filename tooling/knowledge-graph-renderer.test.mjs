@@ -94,3 +94,9 @@ test('rejects marker payloads too large for a durable issue record', () => {
   );
   assert.throws(() => renderKnowledgeGraphSection(oversized), /marker data exceeds/);
 });
+
+test('missing stages cannot inherit a neighboring verified edge in Mermaid', () => {
+  const section = renderKnowledgeGraphSection(graph);
+  assert.doesNotMatch(section, /n2 --> n3/);
+  assert.match(section, /n2 -\. timeline or missing link \.-> n3/);
+});
