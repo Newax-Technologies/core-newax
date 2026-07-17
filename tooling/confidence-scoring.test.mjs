@@ -233,3 +233,22 @@ test('validation catches policy or input digest mismatch', () => {
     /input digest/,
   );
 });
+
+test('root cause cannot remain high without a canonical evidence set', () => {
+  const result = scoreConfidenceEnvelope({ rootCauseAssessment: rootAssessment() });
+  assert.equal(result.rootCauseConfidence.score, 49);
+  assert.ok(
+    result.rootCauseConfidence.capsApplied.some(
+      (cap) => cap.id === 'missing-root-cause-evidence-set',
+    ),
+  );
+});
+
+test('validation catches confidence schema mismatch', () => {
+  const input = { evidenceRecords: [evidence()] };
+  const envelope = scoreConfidenceEnvelope(input);
+  assert.match(
+    validateConfidenceEnvelope(input, { ...envelope, schemaVersion: 2 }).join('\n'),
+    /schema version/,
+  );
+});
