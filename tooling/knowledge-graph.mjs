@@ -1,0 +1,106 @@
+import {
+  KNOWLEDGE_GRAPH_CAUSAL_EDGE_TYPES,
+  KNOWLEDGE_GRAPH_SCHEMA_VERSION,
+  isAllowedKnowledgeTransition,
+} from './knowledge-graph-schema.mjs';
+import {
+  knowledgeGraphDigest,
+  mergeKnowledgeNode,
+  normalizeKnowledgeEdge,
+  normalizeKnowledgeNode,
+  stableKnowledgeValue,
+} from './knowledge-graph-normalization.mjs';
+
+function validateVerifiedCycles(nodes, edges) {
+  const adjacency = new Map([...nodes.keys()].map((id) => [id, []]));
+  for (const edge of edges.values()) {
+    if (edge.status === 'verified' && KNOWLEDGE_GRAPH_CAUSAL_EDGE_TYPES.includes(edge.type)) {
+      adjacency.get(edge.from).push(edge.to);
+    }
+  }
+  const visiting = new Set();
+  const visited = new Set();
+  const path = [];
+  function visit(nodeId) {
+    if (visiting.has(nodeId)) {
+      const start = path.indexOf(nodeId);
+      throw new TypeError(
+        `Verified knowledge graph cycle: ${[...path.slice(start), nodeId].join(' -> ')}.`,
+      );
+    }
+    if (visited.has(nodeId)) return;
+    visiting.add(nodeId);
+    path.push(nodeId);
+    for (const child of adjacency.get(nodeId) ?? []) visit(child);
+    path.pop();
+    visiting.delete(nodeId);
+    visited.add(nodeId);
+  }
+  for (const nodeId of adjacency.keys()) visit(nodeId);
+}
+
+export function buildKnowledgeGraph(nodeValues = [], edgeValues = [], options = {}) {
+  if (!Array.isArray(nodeValues) || !Array.isArray(edgeValues)) {
+    throw new TypeError('Knowledge graph nodes and edges must be arrays.');
+  }
+  const nodes = new Map();
+  nodeValues.map(normalizeKnowledgeNode).forEach((node) => {
+    nodes.set(node.id, mergeKnowledgeNode(nodes.get(node.id), node));
+  });
+  const edges = new Map();
+  edgeValues.map(normalizeKnowledgeEdge).forEach((edge) => {
+    if (edge.from === edge.to) {
+      throw new TypeError(`Knowledge edge ${edge.id} cannot be a self-link.`);
+    }
+    const fromNode = nodes.get(edge.from);
+    const toNode = nodes.get(edge.to);
+    if (fromNode === undefined) {
+      throw new TypeError(`Knowledge edge ${edge.id} references missing source ${edge.from}.`);
+    }
+    if (toNode === undefined) {
+      throw new TypeError(`Knowledge edge ${edge.id} references missing target ${edge.to}.`);
+    }
+    if (!isAllowedKnowledgeTransition(edge.type, fromNode.kind, toNode.kind)) {
+      throw new TypeError(
+        `Illegal knowledge transition ${fromNode.kind} -[${edge.type}]-> ${toNode.kind}.`,
+      );
+    }
+    const key = `${edge.from}|${edge.type}|${edge.to}|${edge.status}`;
+    const previous = edges.get(key);
+    edges.set(
+      key,
+      previous === undefined
+        ? edge
+        : {
+            ...previous,
+            evidenceRefs: [...new Set([...previous.evidenceRefs, ...edge.evidenceRefs])].sort(),
+            occurredAt: previous.occurredAt ?? edge.occurredAt,
+          },
+    );
+  });
+  validateVerifiedCycles(nodes, edges);
+  const graphCore = stableKnowledgeValue({
+    schemaVersion: KNOWLEDGE_GRAPH_SCHEMA_VERSION,
+    nodes: [...nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
+    edges: [...edges.values()].sort((left, right) => left.id.localeCompare(right.id)),
+    source: options.source ?? null,
+  });
+  return {
+    ...graphCore,
+    digest: knowledgeGraphDigest(graphCore),
+  };
+}
+
+export function validateKnowledgeGraph(graph) {
+  const rebuilt = buildKnowledgeGraph(graph?.nodes ?? [], graph?.edges ?? [], {
+    source: graph?.source ?? null,
+  });
+  const errors = [];
+  if (graph?.schemaVersion !== KNOWLEDGE_GRAPH_SCHEMA_VERSION) {
+    errors.push(`Knowledge graph schemaVersion must be ${KNOWLEDGE_GRAPH_SCHEMA_VERSION}.`);
+  }
+  if (graph?.digest !== rebuilt.digest) {
+    errors.push('Knowledge graph digest does not match normalized content.');
+  }
+  return { errors, graph: rebuilt };
+}
