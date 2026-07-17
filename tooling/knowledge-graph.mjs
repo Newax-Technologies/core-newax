@@ -1,9 +1,12 @@
 import {
   KNOWLEDGE_GRAPH_CAUSAL_EDGE_TYPES,
+  KNOWLEDGE_GRAPH_MAX_EDGES,
+  KNOWLEDGE_GRAPH_MAX_NODES,
   KNOWLEDGE_GRAPH_SCHEMA_VERSION,
   isAllowedKnowledgeTransition,
 } from './knowledge-graph-schema.mjs';
 import {
+  knowledgeEdgeId,
   knowledgeGraphDigest,
   mergeKnowledgeNode,
   normalizeKnowledgeEdge,
@@ -38,9 +41,31 @@ function validateVerifiedCycles(nodes, edges) {
   for (const nodeId of adjacency.keys()) visit(nodeId);
 }
 
+function earliestTimestamp(values) {
+  return values.filter(Boolean).sort()[0] ?? null;
+}
+
+function mergeKnowledgeEdge(previous, incoming) {
+  if (previous === undefined) return incoming;
+  const provenance = [...new Set([previous.provenance, incoming.provenance])].sort().join(' | ');
+  const merged = {
+    ...previous,
+    provenance,
+    evidenceRefs: [...new Set([...previous.evidenceRefs, ...incoming.evidenceRefs])].sort(),
+    occurredAt: earliestTimestamp([previous.occurredAt, incoming.occurredAt]),
+  };
+  return { ...merged, id: knowledgeEdgeId(merged) };
+}
+
 export function buildKnowledgeGraph(nodeValues = [], edgeValues = [], options = {}) {
   if (!Array.isArray(nodeValues) || !Array.isArray(edgeValues)) {
     throw new TypeError('Knowledge graph nodes and edges must be arrays.');
+  }
+  if (nodeValues.length > KNOWLEDGE_GRAPH_MAX_NODES) {
+    throw new TypeError(`Knowledge graph exceeds ${KNOWLEDGE_GRAPH_MAX_NODES} nodes.`);
+  }
+  if (edgeValues.length > KNOWLEDGE_GRAPH_MAX_EDGES) {
+    throw new TypeError(`Knowledge graph exceeds ${KNOWLEDGE_GRAPH_MAX_EDGES} edges.`);
   }
   const nodes = new Map();
   nodeValues.map(normalizeKnowledgeNode).forEach((node) => {
@@ -59,37 +84,37 @@ export function buildKnowledgeGraph(nodeValues = [], edgeValues = [], options = 
       );
     }
     const key = `${edge.from}|${edge.type}|${edge.to}|${edge.status}`;
-    const previous = edges.get(key);
-    edges.set(
-      key,
-      previous === undefined
-        ? edge
-        : {
-            ...previous,
-            evidenceRefs: [...new Set([...previous.evidenceRefs, ...edge.evidenceRefs])].sort(),
-            occurredAt: previous.occurredAt ?? edge.occurredAt,
-          },
-    );
+    edges.set(key, mergeKnowledgeEdge(edges.get(key), edge));
   });
   validateVerifiedCycles(nodes, edges);
   const graphCore = stableKnowledgeValue({
     schemaVersion: KNOWLEDGE_GRAPH_SCHEMA_VERSION,
     nodes: [...nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
     edges: [...edges.values()].sort((left, right) => left.id.localeCompare(right.id)),
-    source: options.source === undefined || options.source === null ? null : normalizeKnowledgeMetadata(options.source, 'source'),
+    source:
+      options.source === undefined || options.source === null
+        ? null
+        : normalizeKnowledgeMetadata(options.source, 'source'),
   });
-  return {
-    ...graphCore,
-    digest: knowledgeGraphDigest(graphCore),
-  };
+  return { ...graphCore, digest: knowledgeGraphDigest(graphCore) };
 }
 
 export function validateKnowledgeGraph(graph) {
-  const rebuilt = buildKnowledgeGraph(graph?.nodes ?? [], graph?.edges ?? [], { source: graph?.source ?? null });
   const errors = [];
+  let rebuilt = null;
+  try {
+    rebuilt = buildKnowledgeGraph(graph?.nodes ?? [], graph?.edges ?? [], {
+      source: graph?.source ?? null,
+    });
+  } catch (error) {
+    errors.push(String(error));
+    return { errors, graph: null };
+  }
   if (graph?.schemaVersion !== KNOWLEDGE_GRAPH_SCHEMA_VERSION) {
     errors.push(`Knowledge graph schemaVersion must be ${KNOWLEDGE_GRAPH_SCHEMA_VERSION}.`);
   }
-  if (graph?.digest !== rebuilt.digest) errors.push('Knowledge graph digest does not match normalized content.');
+  if (graph?.digest !== rebuilt.digest) {
+    errors.push('Knowledge graph digest does not match normalized content.');
+  }
   return { errors, graph: rebuilt };
 }
