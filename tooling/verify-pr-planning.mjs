@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-import { detectPlanningMistakes } from './planning-mistake-detector.mjs';
+import { analyzePlanningMistakes } from './planning-mistake-analysis.mjs';
 import { collectPlanningHistory } from './planning-history-github.mjs';
 
 export function planningGovernanceErrors(history, result) {
@@ -36,7 +36,7 @@ async function main() {
     throw new Error('The pull_request payload is unavailable.');
   }
   const history = await collectPlanningHistory({ pullRequest: event.pull_request });
-  const result = detectPlanningMistakes(history);
+  const result = analyzePlanningMistakes(history);
   const errors = planningGovernanceErrors(history, result);
   console.log(
     JSON.stringify(
