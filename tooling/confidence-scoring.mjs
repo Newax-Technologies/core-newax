@@ -104,6 +104,7 @@ function rootCauseConfidence(input, quality) {
   const missing = uniqueStrings([
     ...asArray(assessment?.missingEvidence),
     ...asArray(selected.missingEvidence),
+    ...(quality.status === 'insufficient-evidence' ? quality.missingEvidence : []),
   ]);
   const caps = [
     {
@@ -117,6 +118,12 @@ function rootCauseConfidence(input, quality) {
       applies: assessment?.ambiguous === true,
       maximum: CONFIDENCE_POLICY.rootCause.ambiguousCap,
       reason: 'A competing root-cause hypothesis remains within the ambiguity threshold.',
+    },
+    {
+      id: 'missing-root-cause-evidence-set',
+      applies: quality.status === 'insufficient-evidence',
+      maximum: CONFIDENCE_POLICY.rootCause.missingEvidenceSetCap,
+      reason: 'The canonical evidence set for the root-cause assessment is absent.',
     },
     {
       id: 'contradictory-root-cause-evidence',
@@ -374,6 +381,9 @@ export function validateConfidenceEnvelope(input, envelope) {
   const errors = [];
   if (envelope === null || typeof envelope !== 'object' || Array.isArray(envelope)) {
     return ['Confidence envelope is missing or invalid.'];
+  }
+  if (envelope.schemaVersion !== expected.schemaVersion) {
+    errors.push(`Confidence schema version must be ${expected.schemaVersion}.`);
   }
   if (envelope.policyVersion !== expected.policyVersion) {
     errors.push(`Confidence policy version must be ${expected.policyVersion}.`);
