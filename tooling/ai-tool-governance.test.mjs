@@ -50,7 +50,7 @@ test('review-ready PR with AI output requires a linked AI quality issue', () => 
     aiQualityIssues: [],
     events: [output()],
   });
-  assert.match(evaluation.errors[0], /requires at least one AI quality issue/);
+  assert.match(evaluation.errors[0], /requires a linked quality issue/);
 });
 
 test('linked issue without structured evidence fails review governance', () => {
@@ -59,7 +59,7 @@ test('linked issue without structured evidence fails review governance', () => {
     aiQualityIssues: [233],
     events: [],
   });
-  assert.match(evaluation.errors[0], /structured AI quality evidence/);
+  assert.match(evaluation.errors[0], /structured output provenance record/);
 });
 
 test('high-confidence unresolved finding blocks and enters the dataset', () => {
