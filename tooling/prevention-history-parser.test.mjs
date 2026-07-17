@@ -64,3 +64,14 @@ test('parses declared prevention pack paths', () => {
     '.newax/prevention/pr-checklists/root-x.md',
   ]);
 });
+
+test('ignores linked learning issues that are not resolved', () => {
+  assert.deepEqual(
+    parseResolvedMistakes({
+      number: 13,
+      state: 'open',
+      body: '<!-- newax-engineering-event\nroot-cause-id: ROOT-OPEN\nroot-cause-status: confirmed\n-->',
+    }),
+    [],
+  );
+});
