@@ -98,7 +98,15 @@ export function buildAiQualityDataset({ analysis, events = [], repository = '' }
             },
       lifecycle: {
         waived: finding.waived,
-        waiver: finding.waiver,
+        waiver:
+          finding.waiver === null
+            ? null
+            : {
+                eventId: finding.waiver.eventId,
+                at: finding.waiver.at,
+                reviewerHash: hashIdentifier(finding.waiver.reviewer),
+                reasonHash: hashIdentifier(finding.waiver.reason),
+              },
         resolution: finding.resolution,
       },
       privacy: {
