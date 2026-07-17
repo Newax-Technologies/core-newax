@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 
+import { enrichExplanationReport } from './confidence-finding-adapters.mjs';
 import { verifyExplanation } from './explanation-verification.mjs';
 
 function parseArguments(argv) {
@@ -13,7 +14,7 @@ function parseArguments(argv) {
 try {
   const { file } = parseArguments(process.argv.slice(2));
   const input = JSON.parse(readFileSync(file, 'utf8'));
-  const report = verifyExplanation(input);
+  const report = enrichExplanationReport(verifyExplanation(input), input);
   console.log(JSON.stringify(report, null, 2));
   if (report.status !== 'accepted') {
     process.exitCode = 1;

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 
+import { enrichAnalysisResult } from './confidence-finding-adapters.mjs';
 import { detectCommunicationMistakes } from './communication-mistake-detector.mjs';
 import {
   collectCommunicationHistory,
@@ -33,7 +34,7 @@ async function readHistory() {
 }
 
 const history = await readHistory();
-const result = detectCommunicationMistakes(history);
+const result = enrichAnalysisResult(detectCommunicationMistakes(history));
 console.log(
   JSON.stringify(
     {

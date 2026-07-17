@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 
+import { enrichAnalysisResult } from './confidence-finding-adapters.mjs';
 import { analyzePlanningMistakes } from './planning-mistake-analysis.mjs';
 import {
   collectPlanningHistory,
@@ -36,7 +37,7 @@ async function readInput() {
 }
 
 const history = await readInput();
-const result = analyzePlanningMistakes(history);
+const result = enrichAnalysisResult(analyzePlanningMistakes(history));
 console.log(
   JSON.stringify(
     { history: { planningIssues: history.planningIssues ?? [] }, result },
