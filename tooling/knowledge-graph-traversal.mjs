@@ -240,7 +240,13 @@ export function analyzeKnowledgeHistory(graph, focusNodeId = null) {
     chain: chain ?? KNOWLEDGE_GRAPH_NODE_TYPES.flatMap((kind) => stages[kind].slice(0, 1)),
     stages,
     missingStages,
-    gaps: [...missingStages.map((kind) => `missing-stage:${kind}`), ...edgeGaps].sort(),
+    gaps: [
+      ...missingStages.map((kind) => `missing-stage:${kind}`),
+      ...edgeGaps,
+      ...(chain === null && missingStages.length === 0 && edgeGaps.length === 0
+        ? ['missing-complete-verified-chain']
+        : []),
+    ].sort(),
     branches,
     candidateEdges,
     verifiedCanonicalEdgeCount: verifiedCanonicalEdges.length,
