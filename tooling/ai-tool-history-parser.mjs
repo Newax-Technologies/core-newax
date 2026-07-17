@@ -126,7 +126,7 @@ function eventFromIssueForm(body, source, createdAt) {
   if (id.length === 0 || type.length === 0) return null;
   return {
     id,
-    type,
+    type: type.toLowerCase().replace(/\s+/g, '-'),
     outputId: field('Output ID'),
     status: field('Status'),
     at: field('Occurrence time') || createdAt,
