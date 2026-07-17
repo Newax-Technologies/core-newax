@@ -1,5 +1,6 @@
 import { githubRequest, listAll } from './engineering-learning-core.mjs';
 import {
+  buildPreventionControlOptions,
   parsePreventionIssueNumbers,
   parseResolvedMistakes,
 } from './prevention-history-parser.mjs';
@@ -62,6 +63,7 @@ export async function collectPreventionHistory({ pullRequest, request = githubRe
     ],
     commits,
     mistakes,
+    controlOptions: buildPreventionControlOptions(mistakes),
   };
 }
 
