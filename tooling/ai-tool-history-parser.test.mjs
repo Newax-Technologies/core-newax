@@ -55,6 +55,7 @@ Generated: Yes
 Framework: next
 Framework version: 16.2.10
 Symbol: oldApi`);
+  assert.equal(event.type, 'ai-output');
   assert.equal(event.provider, 'example-provider');
   assert.equal(event.model, 'example-model');
   assert.equal(event.outputHash, 'c'.repeat(64));
