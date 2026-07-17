@@ -75,3 +75,63 @@ test('ignores linked learning issues that are not resolved', () => {
     [],
   );
 });
+
+test('parses the structured prevention issue form', () => {
+  const [mistake] = parseResolvedMistakes({
+    number: 14,
+    body: `## Event ID
+PREV-FORM-14
+
+## Root cause ID
+ROOT-FORM
+
+## Ledger entry
+EL-0014
+
+## Category
+formatting
+
+## Status
+Closed
+
+## Root-cause status
+Confirmed
+
+## Resolution status
+Verified
+
+## Resolved at
+2026-07-17T14:00:00Z
+
+## Fix commit
+${'c'.repeat(40)}
+
+## Reviewer
+reviewer
+
+## Reviewed at
+2026-07-17T14:05:00Z
+
+## Verification references
+workflow:14
+
+## Regression references
+test:form
+
+## Prevention control
+Require the form regression.
+
+## Successful method
+Parse heading fields.
+
+## Unsuccessful method
+Create a form the parser cannot read.
+
+## Evidence references
+issue:14`,
+  });
+  assert.equal(mistake.id, 'PREV-FORM-14');
+  assert.equal(mistake.rootCauseId, 'ROOT-FORM');
+  assert.deepEqual(mistake.verificationRefs, ['workflow:14']);
+  assert.equal(mistake.resolutionStatus, 'Verified');
+});
