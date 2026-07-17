@@ -128,3 +128,18 @@ test('additional connected nodes are exposed as branches', () => {
   const result = analyzeKnowledgeHistory(combined);
   assert.ok(result.branches.some((item) => item.id === 'review-2'));
 });
+
+test('fragmented verified stages report the missing canonical edge', () => {
+  const graph = fullGraph();
+  const fragmented = buildKnowledgeGraph(
+    graph.nodes,
+    graph.edges
+      .map((item) =>
+        item.type === 'included-in' ? edge('commit', 'pr', 'included-in', 'candidate') : item,
+      )
+      .concat(edge('commit', 'pr', 'references')),
+  );
+  const result = analyzeKnowledgeHistory(fragmented);
+  assert.equal(result.complete, false);
+  assert.ok(result.gaps.includes('missing-verified-edge:commit-to-pull-request'));
+});
