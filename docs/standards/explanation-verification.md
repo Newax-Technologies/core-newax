@@ -70,7 +70,7 @@ A record marked `verified` in issue prose is not trusted merely because it says 
 
 ### Proving log
 
-The log record must identify a failed workflow run and failed job. When step metadata is available, the named step must also be the failed step.
+The log record must identify a failed workflow run, failed job, and exact named failed step. If GitHub does not expose the step metadata, the evidence remains unavailable and the explanation stays challenged.
 
 Raw logs and secrets must not be copied into the issue. The record stores bounded identifiers and links.
 
@@ -87,10 +87,12 @@ The test evidence must identify:
 - the test name;
 - the command;
 - a successful workflow run;
+- the exact successful job;
+- the exact successful test step;
 - `reproduces: true`;
 - `outcome: passed`.
 
-A green general pipeline without a named regression test does not prove reproducibility.
+A green general pipeline without a named regression test and a successful job-and-step path does not prove reproducibility.
 
 ## Evidence-backed exceptions
 
@@ -134,6 +136,7 @@ A score cannot override a failed mandatory gate.
 Every new engineering-learning issue receives:
 
 - a machine-readable `newax-explanation-evidence` record;
+- an explicit review state;
 - the current explanation decision;
 - evidence support;
 - strongest alternative;
@@ -144,6 +147,8 @@ Every new engineering-learning issue receives:
 - missing evidence.
 
 Initial intake normally remains `challenged` because the introducing commit and regression test are not yet proven.
+
+Generated records begin as `unreviewed`. Later graph evidence may refresh an unreviewed record so the issue does not preserve a stale explanation. A record is protected from automatic replacement only after it is explicitly marked `reviewed` with a reviewer identity and review timestamp.
 
 ## Governance
 
