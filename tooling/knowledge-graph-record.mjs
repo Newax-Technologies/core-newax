@@ -64,7 +64,9 @@ export function parseKnowledgeGraphInputRecords(body) {
       schemaVersion: 1,
       recordId: headingValue(body, 'Record ID').replaceAll('`', '').trim(),
       focusNodeId: headingValue(body, 'Focus node ID').replaceAll('`', '').trim() || null,
-      source: headingValue(body, 'Source reference').replaceAll('`', '').trim() || null,
+      source:
+        graphInput.source ??
+        (headingValue(body, 'Source reference').replaceAll('`', '').trim() || null),
       nodes: graphInput.nodes,
       edges: graphInput.edges,
     },
