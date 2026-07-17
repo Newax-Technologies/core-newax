@@ -111,6 +111,63 @@ test('rejects arbitrary executable fields in declarative controls', () => {
   );
 });
 
+test('rejects nested arbitrary executable fields in declarative controls', () => {
+  assert.throws(
+    () =>
+      buildOrUpdatePreventionPack(resolved(), null, {
+        controls: {
+          'static-analysis-rule': {
+            definition: { selector: { steps: [{ shell: 'hidden executable' }] } },
+          },
+        },
+      }),
+    /selector\.steps\.0\.shell/i,
+  );
+});
+
+test('preserves an enforced definition until supersession is approved', () => {
+  const originalDefinition = {
+    kind: 'bounded-check',
+    assertion: 'original enforced rule',
+  };
+  const enforced = buildOrUpdatePreventionPack(resolved(), null, {
+    controls: {
+      'ci-check': {
+        owner: 'platform',
+        reviewer: 'reviewer',
+        implementationRef: 'tooling/check.mjs',
+        verificationRefs: ['workflow:2'],
+        definition: originalDefinition,
+      },
+    },
+  }).pack;
+  const updated = buildOrUpdatePreventionPack(
+    resolved({
+      id: 'ISSUE-2',
+      issueNumber: 2,
+      fixCommit: 'b'.repeat(40),
+      preventionControl: 'A different lesson that must not rewrite the enforced rule silently.',
+    }),
+    enforced,
+    {
+      controls: {
+        'ci-check': {
+          owner: 'different-owner',
+          reviewer: 'different-reviewer',
+          implementationRef: 'tooling/replacement.mjs',
+          verificationRefs: ['workflow:3'],
+          definition: { kind: 'bounded-check', assertion: 'unapproved replacement' },
+        },
+      },
+    },
+  ).pack;
+  const control = updated.controls.find((entry) => entry.type === 'ci-check');
+  assert.deepEqual(control.definition, originalDefinition);
+  assert.equal(control.owner, 'platform');
+  assert.equal(control.implementationRef, 'tooling/check.mjs');
+  assert.deepEqual(control.verificationRefs, ['workflow:2', 'workflow:3']);
+});
+
 test('does not weaken an enforced control without approved supersession', () => {
   const enforced = buildOrUpdatePreventionPack(resolved(), null, {
     controls: {
