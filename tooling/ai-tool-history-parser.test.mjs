@@ -31,6 +31,39 @@ test('parses the structured issue form', () => {
   assert.equal(event.validationRef, 'review:22');
 });
 
+test('parses grouped issue-form evidence fields', () => {
+  const [event] = parseAiQualityEvents(`## Event ID
+AIQ-EVENT-3
+
+## Event type
+AI output
+
+## Output ID
+OUT-3
+
+## Status
+verified
+
+## Output provenance
+Provider: example-provider
+Model: example-model
+Output hash: ${'c'.repeat(64)}
+Artifact references: tooling/example.mjs
+Generated: Yes
+
+## Version and symbol evidence
+Framework: next
+Framework version: 16.2.10
+Symbol: oldApi`);
+  assert.equal(event.provider, 'example-provider');
+  assert.equal(event.model, 'example-model');
+  assert.equal(event.outputHash, 'c'.repeat(64));
+  assert.deepEqual(event.artifactRefs, ['tooling/example.mjs']);
+  assert.equal(event.framework, 'next');
+  assert.equal(event.frameworkVersion, '16.2.10');
+  assert.equal(event.generated, 'Yes');
+});
+
 test('does not convert ordinary prose into evidence', () => {
   assert.deepEqual(parseAiQualityEvents('The AI probably hallucinated an API.'), []);
 });
