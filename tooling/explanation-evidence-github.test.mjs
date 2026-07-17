@@ -36,6 +36,17 @@ const jobs = new Map([
       },
     ],
   ],
+  [
+    20,
+    [
+      {
+        id: 21,
+        name: 'Verify regression',
+        conclusion: 'success',
+        steps: [{ name: 'Run lockfile mismatch regression', conclusion: 'success' }],
+      },
+    ],
+  ],
 ]);
 
 async function githubRequest(path) {
@@ -68,6 +79,8 @@ test('verifies failed log, exact commit, and successful reproducing-test provena
         id: 'test',
         type: 'test',
         workflowRunId: 20,
+        jobId: 21,
+        stepName: 'Run lockfile mismatch regression',
         testName: 'lockfile mismatch regression',
         command: 'pnpm test:learning',
         reproduces: true,
@@ -80,6 +93,7 @@ test('verifies failed log, exact commit, and successful reproducing-test provena
   assert.ok(result.evidence.every((item) => item.provenanceVerified === true));
   assert.equal(result.evidence[0].commitSha, 'a'.repeat(40));
   assert.equal(result.evidence[2].commitSha, 'b'.repeat(40));
+  assert.equal(result.evidence[2].jobName, 'Verify regression');
 });
 
 test('downgrades unverified claims instead of trusting their declared status', async () => {
@@ -91,7 +105,7 @@ test('downgrades unverified claims instead of trusting their declared status', a
         id: 'bad-log',
         type: 'log',
         status: 'verified',
-        workflowRunId: 20,
+        workflowRunId: 10,
         jobId: 11,
       },
       {
@@ -104,7 +118,9 @@ test('downgrades unverified claims instead of trusting their declared status', a
         id: 'bad-test',
         type: 'test',
         status: 'verified',
-        workflowRunId: 10,
+        workflowRunId: 20,
+        jobId: 21,
+        stepName: 'Missing regression step',
         testName: 'test',
         command: 'pnpm test',
         reproduces: true,
@@ -115,4 +131,27 @@ test('downgrades unverified claims instead of trusting their declared status', a
 
   assert.equal(result.errors.length, 3);
   assert.ok(result.evidence.every((item) => item.status === 'unavailable'));
+});
+
+test('does not accept a green workflow without the exact successful job and step', async () => {
+  const result = await verifyGithubExplanationEvidence({
+    githubRequest,
+    listAll,
+    evidence: [
+      {
+        id: 'weak-test',
+        type: 'test',
+        workflowRunId: 20,
+        jobId: 999,
+        stepName: 'Run lockfile mismatch regression',
+        testName: 'lockfile mismatch regression',
+        command: 'pnpm test:learning',
+        reproduces: true,
+        outcome: 'passed',
+      },
+    ],
+  });
+
+  assert.equal(result.evidence[0].status, 'unavailable');
+  assert.match(result.errors[0], /not a successful job/);
 });
