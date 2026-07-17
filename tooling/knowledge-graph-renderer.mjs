@@ -71,9 +71,9 @@ export function renderKnowledgeGraphSection(graph, options = {}) {
     const node = primaryByKind.get(kind);
     return `  ${mermaidId(index)}["${kind}: ${mermaidLabel(node)}"]`;
   });
-  const mermaidEdges = KNOWLEDGE_GRAPH_NODE_TYPES.slice(0, -1).map((_, index) => {
-    const from = analysis.chain[index];
-    const to = analysis.chain[index + 1];
+  const mermaidEdges = KNOWLEDGE_GRAPH_NODE_TYPES.slice(0, -1).map((kind, index) => {
+    const from = primaryByKind.get(kind);
+    const to = primaryByKind.get(KNOWLEDGE_GRAPH_NODE_TYPES[index + 1]);
     const verified =
       from !== undefined &&
       to !== undefined &&
