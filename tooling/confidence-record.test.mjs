@@ -63,3 +63,16 @@ test('detects a tampered computed score', () => {
   const errors = validateConfidenceRecordPair({ inputRecord, scoreRecord: parsed });
   assert.match(errors.join('\n'), /evidenceQuality/);
 });
+
+test('detects top-level score metadata that disagrees with the envelope', () => {
+  const inputRecord = { schemaVersion: 1, findingId: 'F-5', input };
+  const scoreBody = renderConfidenceScoreRecord({ findingId: 'F-5', input });
+  const parsed = JSON.parse(scoreBody.match(/<!-- newax-confidence-score\n([\s\S]*?)\n-->/)[1]);
+  parsed.policyVersion = 'CONFIDENCE-0.0.0';
+  parsed.inputDigest = 'wrong';
+  parsed.schemaVersion = 2;
+  const errors = validateConfidenceRecordPair({ inputRecord, scoreRecord: parsed });
+  assert.match(errors.join('\n'), /schemaVersion/);
+  assert.match(errors.join('\n'), /policyVersion/);
+  assert.match(errors.join('\n'), /inputDigest/);
+});
