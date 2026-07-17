@@ -75,3 +75,22 @@ test('candidate edges are visible and do not claim completeness', () => {
   assert.match(section, /Candidate links/);
   assert.match(section, /implemented-by/);
 });
+
+test('incomplete overview uses dashed timeline links instead of fictional verified arrows', () => {
+  const section = renderKnowledgeGraphSection(graph);
+  assert.match(section, /timeline or missing link/);
+});
+
+test('rejects marker payloads too large for a durable issue record', () => {
+  const oversized = buildKnowledgeGraph(
+    Array.from({ length: 80 }, (_, index) => ({
+      id: `bug-${index}`,
+      kind: 'bug',
+      label: `Bug ${index} ${'x'.repeat(900)}`,
+      sourceRef: `issue:${index}`,
+      metadata: { detail: 'y'.repeat(900) },
+    })),
+    [],
+  );
+  assert.throws(() => renderKnowledgeGraphSection(oversized), /marker data exceeds/);
+});
