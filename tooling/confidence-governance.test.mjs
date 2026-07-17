@@ -8,7 +8,14 @@ const input = { evidenceRecords: [{ id: 'E-1', type: 'log', status: 'verified' }
 
 function pairs() {
   return collectConfidenceRecords(
-    { body: renderConfidenceInputRecord({ findingId: 'F-1', sourceType: 'test', input }) },
+    {
+      body: renderConfidenceInputRecord({
+        findingId: 'F-1',
+        sourceType: 'test',
+        sourceRef: 'issue:10',
+        input,
+      }),
+    },
     [{ body: renderConfidenceScoreRecord({ findingId: 'F-1', input }) }],
   );
 }
@@ -47,4 +54,22 @@ test('stale or altered score records fail governance', () => {
   pair.scoreRecord.envelope.policyVersion = 'CONFIDENCE-0.0.0';
   const errors = confidenceGovernanceErrors({ pullRequest: { draft: true, body: '' }, recordPairs: [pair] });
   assert.match(errors.join('\n'), /policy version/);
+});
+
+test('every linked finding issue requires source coverage', () => {
+  const errors = confidenceGovernanceErrors({
+    pullRequest: {
+      draft: false,
+      body: '- Learning issues: `#10, #11`\n- Confidence records: `#20`',
+    },
+    recordPairs: pairs(),
+  });
+  assert.match(errors.join('\n'), /issue #11 lacks/);
+});
+
+test('manual evidence-quality labels are rejected', () => {
+  const errors = confidenceGovernanceErrors({
+    pullRequest: { draft: true, body: '**Evidence Quality:** High' },
+  });
+  assert.match(errors.join('\n'), /non-authoritative/);
 });
