@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { buildAiQualityDataset } from './ai-quality-dataset.mjs';
 import { collectAiToolHistory, collectAiToolHistoryForPullRequest } from './ai-tool-history-github.mjs';
 import { detectAiToolMistakes } from './ai-tool-mistake-detector.mjs';
+import { enrichAnalysisResult } from './confidence-finding-adapters.mjs';
 
 function argumentValue(name) {
   const index = process.argv.indexOf(name);
@@ -31,7 +32,7 @@ async function readHistory() {
 }
 
 export function analyzeAiToolHistory(history, repository = '') {
-  const result = detectAiToolMistakes(history);
+  const result = enrichAnalysisResult(detectAiToolMistakes(history));
   const dataset = buildAiQualityDataset({
     analysis: result,
     events: history.events ?? [],
