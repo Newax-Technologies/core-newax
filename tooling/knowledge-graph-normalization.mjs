@@ -29,7 +29,7 @@ export function cleanKnowledgeArray(value, field = 'values') {
   return [...new Set(input.map((entry) => cleanKnowledgeText(entry, field)).filter(Boolean))].sort();
 }
 
-function normalizeMetadataValue(value, path, depth = 0) {
+export function normalizeKnowledgeMetadata(value, path = 'metadata', depth = 0) {
   if (depth > 3) throw new TypeError(`${path} exceeds the metadata depth limit.`);
   if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) {
     return typeof value === 'string' ? cleanKnowledgeText(value, path) : value;
@@ -37,7 +37,7 @@ function normalizeMetadataValue(value, path, depth = 0) {
   if (Array.isArray(value)) {
     if (value.length > MAX_ARRAY) throw new TypeError(`${path} exceeds ${MAX_ARRAY} entries.`);
     return value.map((entry, index) =>
-      normalizeMetadataValue(entry, `${path}[${index}]`, depth + 1),
+      normalizeKnowledgeMetadata(entry, `${path}[${index}]`, depth + 1),
     );
   }
   if (typeof value === 'object') {
@@ -50,7 +50,7 @@ function normalizeMetadataValue(value, path, depth = 0) {
         .sort(([left], [right]) => left.localeCompare(right))
         .map(([key, entry]) => [
           cleanKnowledgeText(key, `${path} key`, 100),
-          normalizeMetadataValue(entry, `${path}.${key}`, depth + 1),
+          normalizeKnowledgeMetadata(entry, `${path}.${key}`, depth + 1),
         ]),
     );
   }
@@ -125,7 +125,7 @@ export function normalizeKnowledgeNode(value, index = 0) {
     url,
     sourceRef,
     evidenceRefs: cleanKnowledgeArray(value.evidenceRefs, `nodes[${index}].evidenceRefs`),
-    metadata: normalizeMetadataValue(value.metadata ?? {}, `nodes[${index}].metadata`),
+    metadata: normalizeKnowledgeMetadata(value.metadata ?? {}, `nodes[${index}].metadata`),
   };
 }
 
