@@ -5,7 +5,7 @@ const INPUT_BLOCK = 'newax-confidence-input';
 const SCORE_BLOCK = 'newax-confidence-score';
 
 function parseJsonBlocks(body, name) {
-  const expression = new RegExp(`<!-- ${name}\\n([\\s\\S]*?)\\n-->`, 'g');
+  const expression = new RegExp(`<!-- ${name}\n([\s\S]*?)\n-->`, 'g');
   const records = [];
   for (const match of String(body ?? '').matchAll(expression)) {
     try {
@@ -125,8 +125,22 @@ export function validateConfidenceRecordPair(pair) {
     errors.push(`Confidence score JSON is invalid: ${scoreRecord.parseError}`);
     return errors;
   }
+  if (inputRecord.schemaVersion !== undefined && inputRecord.schemaVersion !== 1) {
+    errors.push('Confidence input schemaVersion must be 1.');
+  }
+  if (scoreRecord.schemaVersion !== 1) {
+    errors.push('Confidence score schemaVersion must be 1.');
+  }
   if (scoreRecord.findingId !== inputRecord.findingId) {
     errors.push('Confidence score findingId does not match its input record.');
+  }
+  if (scoreRecord.envelope !== null && typeof scoreRecord.envelope === 'object') {
+    if (scoreRecord.policyVersion !== scoreRecord.envelope.policyVersion) {
+      errors.push('Confidence score policyVersion does not match its envelope.');
+    }
+    if (scoreRecord.inputDigest !== scoreRecord.envelope.inputDigest) {
+      errors.push('Confidence score inputDigest does not match its envelope.');
+    }
   }
   if (inputRecord?.input && scoreRecord.envelope) {
     errors.push(...validateConfidenceEnvelope(inputRecord.input, scoreRecord.envelope));
