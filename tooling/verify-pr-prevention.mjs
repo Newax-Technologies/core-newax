@@ -89,7 +89,11 @@ async function main() {
   }
   const history = await collectPreventionHistory({ pullRequest: event.pull_request });
   const existingPacks = await loadExistingPreventionPacks(history);
-  const registry = buildPreventionRegistry(history.mistakes, existingPacks);
+  const registry = buildPreventionRegistry(
+    history.mistakes,
+    existingPacks,
+    history.controlOptions ?? {},
+  );
   const headFiles = await loadHeadPreventionFiles(registry.packs, history.pullRequest.headSha);
   const errors = preventionGovernanceErrors(history, registry, headFiles);
   console.log(
