@@ -28,3 +28,13 @@ test('renders applicable rule and unresolved evidence state', () => {
   assert.match(report, /Rule: `r`/);
   assert.match(report, new RegExp(decision.state));
 });
+
+test('does not request a control-gap explanation when no rule existed', () => {
+  const decision = detectRecurrence({
+    occurrences: [item('a', 17, '2026-01-01T00:00:00Z'), item('b', 31, '2026-02-01T00:00:00Z')],
+    currentOccurrenceId: 'b',
+  });
+  const report = renderRecurrenceReport(decision);
+  assert.match(report, /Not required because no applicable effective rule existed/);
+  assert.doesNotMatch(report, /Missing\. Why was the applicable rule/);
+});
