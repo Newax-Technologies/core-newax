@@ -4,6 +4,8 @@ import test from 'node:test';
 import {
   classifyFailure,
   createEngineeringEvent,
+  loadCatalog,
+  mergeCatalogs,
   normalizeText,
   parseIssueNumber,
   parseIssueNumbers,
@@ -227,4 +229,65 @@ test('operation intent accepts the matching pull-request metadata action', async
   });
 
   assert.deepEqual(errors, []);
+});
+
+test('default catalog loading merges EL-0029 extension deterministically', () => {
+  const catalog = loadCatalog();
+  const rootCause = catalog.rootCauses.find(
+    (entry) => entry.id === 'ROOT-ENGINEERING-HISTORY-NOT-LINKED',
+  );
+
+  assert.ok(catalog.categories.includes('engineering-knowledge-provenance'));
+  assert.equal(rootCause.ledgerEntry, 'EL-0029');
+  assert.equal(rootCause.deterministic, true);
+});
+
+test('catalog composition rejects duplicate root-cause and ledger identities', () => {
+  const base = {
+    version: '1.0.0',
+    categories: ['base'],
+    rootCauses: [
+      {
+        id: 'ROOT-BASE',
+        ledgerEntry: 'EL-0001',
+        category: 'base',
+      },
+    ],
+  };
+
+  assert.throws(
+    () =>
+      mergeCatalogs(base, [
+        {
+          version: '1.0.0',
+          categories: ['extension'],
+          rootCauses: [
+            {
+              id: 'ROOT-BASE',
+              ledgerEntry: 'EL-0002',
+              category: 'extension',
+            },
+          ],
+        },
+      ]),
+    /Duplicate engineering root-cause ID/,
+  );
+
+  assert.throws(
+    () =>
+      mergeCatalogs(base, [
+        {
+          version: '1.0.0',
+          categories: ['extension'],
+          rootCauses: [
+            {
+              id: 'ROOT-EXTENSION',
+              ledgerEntry: 'EL-0001',
+              category: 'extension',
+            },
+          ],
+        },
+      ]),
+    /Duplicate engineering ledger entry/,
+  );
 });

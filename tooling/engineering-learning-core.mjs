@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,11 +15,67 @@ const CATALOG_PATH = resolve(
   CURRENT_DIRECTORY,
   '../docs/verification/engineering-learning-catalog.json',
 );
+const CATALOG_EXTENSION_PATH = resolve(
+  CURRENT_DIRECTORY,
+  '../docs/verification/engineering-learning-catalog.extensions.json',
+);
 
 export const FAILURE_CONCLUSIONS = new Set(['action_required', 'failure', 'timed_out']);
 
-export function loadCatalog(path = CATALOG_PATH) {
+function readCatalog(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+export function mergeCatalogs(base, extensions = []) {
+  if (base === null || typeof base !== 'object' || Array.isArray(base)) {
+    throw new TypeError('Base engineering learning catalog must be an object.');
+  }
+  const categories = [...(base.categories ?? [])];
+  const rootCauses = [...(base.rootCauses ?? [])];
+  const categorySet = new Set(categories);
+  const rootCauseIds = new Set(rootCauses.map((entry) => entry.id));
+  const ledgerEntries = new Set(rootCauses.map((entry) => entry.ledgerEntry).filter(Boolean));
+
+  for (const extension of extensions) {
+    if (extension === null || typeof extension !== 'object' || Array.isArray(extension)) {
+      throw new TypeError('Engineering learning catalog extension must be an object.');
+    }
+    if (extension.version !== undefined && extension.version !== base.version) {
+      throw new TypeError(
+        `Engineering learning catalog extension version ${extension.version} does not match ${base.version}.`,
+      );
+    }
+    for (const category of extension.categories ?? []) {
+      if (!categorySet.has(category)) {
+        categorySet.add(category);
+        categories.push(category);
+      }
+    }
+    for (const rootCause of extension.rootCauses ?? []) {
+      if (rootCauseIds.has(rootCause.id)) {
+        throw new TypeError(`Duplicate engineering root-cause ID: ${rootCause.id}.`);
+      }
+      if (rootCause.ledgerEntry && ledgerEntries.has(rootCause.ledgerEntry)) {
+        throw new TypeError(`Duplicate engineering ledger entry: ${rootCause.ledgerEntry}.`);
+      }
+      if (!categorySet.has(rootCause.category)) {
+        throw new TypeError(
+          `Engineering root cause ${rootCause.id} uses undeclared category ${rootCause.category}.`,
+        );
+      }
+      rootCauseIds.add(rootCause.id);
+      if (rootCause.ledgerEntry) ledgerEntries.add(rootCause.ledgerEntry);
+      rootCauses.push(rootCause);
+    }
+  }
+
+  return { ...base, categories, rootCauses };
+}
+
+export function loadCatalog(path = CATALOG_PATH) {
+  const base = readCatalog(path);
+  if (path !== CATALOG_PATH || !existsSync(CATALOG_EXTENSION_PATH)) return base;
+  return mergeCatalogs(base, [readCatalog(CATALOG_EXTENSION_PATH)]);
 }
 
 export function normalizeText(value) {
