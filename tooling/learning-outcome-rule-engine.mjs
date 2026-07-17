@@ -1,7 +1,7 @@
 const RULES_VERSION = 1;
 
 const GOVERNANCE_DOCUMENT_PATTERN = /^(?:docs\/(?:standards|policies|rules|decisions)\/|\.github\/rulesets\/)/i;
-const TEMPLATE_PATH_PATTERN = /(?:^|\/)(?:pull_request_template\.md|issue_template|templates?)(?:\/|\.|$)/i;
+const TEMPLATE_PATH_PATTERN = /(?:^|\/)[^/]*template[^/]*(?:\/|$)/i;
 const CHECKLIST_PATH_PATTERN = /(?:^|\/)[^/]*checklist[^/]*(?:\/|\.|$)/i;
 const PROCESS_PATH_PATTERN = /^(?:\.github\/workflows\/|tooling\/(?:.*(?:governance|reconcil|workflow|learning|operation|audit|capture|normalize|submit|verify|validate|automation).*)|docs\/(?:standards|processes|operations)\/)/i;
 const AUTOMATION_FILE_PATTERN = /^(?:\.github\/workflows\/|tooling\/.*(?:audit|capture|engine|flush|ingest|normalize|receive|reconcile|record|run|submit|validate|verify|automat).*)/i;
