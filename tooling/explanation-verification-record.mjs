@@ -75,6 +75,11 @@ export function createEventExplanationInput(event) {
       reproducingTestId: null,
       alternativesReviewed: alternatives.length === 0,
       exceptions: {},
+      review: {
+        status: 'unreviewed',
+        reviewedBy: null,
+        reviewedAt: null,
+      },
     },
     evidence,
   };
@@ -111,10 +116,30 @@ ${renderExplanationVerification(report)}
 <!-- /${EXPLANATION_SECTION_MARKER} -->`;
 }
 
+function hasCompletedReview(record) {
+  const review = record?.explanation?.review;
+  return (
+    review?.status === 'reviewed' &&
+    typeof review.reviewedBy === 'string' &&
+    review.reviewedBy.trim().length > 0 &&
+    typeof review.reviewedAt === 'string' &&
+    review.reviewedAt.trim().length > 0
+  );
+}
+
 export function ensureExplanationSection(body, section) {
   const normalizedBody = String(body ?? '').trimEnd();
   const pattern = new RegExp(
     `<!-- ${EXPLANATION_SECTION_MARKER} -->[\\s\\S]*?<!-- \\/${EXPLANATION_SECTION_MARKER} -->`,
   );
-  return pattern.test(normalizedBody) ? normalizedBody : `${normalizedBody}\n\n${section}\n`;
+  const existing = normalizedBody.match(pattern);
+  if (existing === null) {
+    return `${normalizedBody}\n\n${section}\n`;
+  }
+
+  const record = parseExplanationEvidenceRecord(existing[0]);
+  if (record === null || hasCompletedReview(record)) {
+    return normalizedBody;
+  }
+  return normalizedBody.replace(pattern, section);
 }
