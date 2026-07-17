@@ -17,9 +17,11 @@ export function renderRecurrenceReport(decision) {
       ? '- No applicable effective rule existed before the current occurrence.'
       : `- Rule: \`${decision.rule.id}\`\n- State: \`${decision.rule.state}\`\n- Effective: \`${decision.rule.effectiveAt}\`\n- Source: ${decision.rule.sourceRef ?? 'not supplied'}`;
   const explanation =
-    decision.explanation === null
-      ? '- Missing. Why was the applicable rule not followed?'
-      : `- Disposition: \`${decision.explanation.disposition}\`\n- State: \`${decision.explanation.state}\`\n- Reviewer: ${decision.explanation.reviewer ?? 'missing'}\n- Evidence: ${decision.explanation.evidenceRefs.join(', ') || 'missing'}`;
+    decision.rule === null
+      ? '- Not required because no applicable effective rule existed.'
+      : decision.explanation === null
+        ? '- Missing. Why was the applicable rule not followed?'
+        : `- Disposition: \`${decision.explanation.disposition}\`\n- State: \`${decision.explanation.state}\`\n- Reviewer: ${decision.explanation.reviewer ?? 'missing'}\n- Evidence: ${decision.explanation.evidenceRefs.join(', ') || 'missing'}`;
   const missing =
     decision.missingEvidence.length === 0
       ? '- None.'
