@@ -1,4 +1,7 @@
 export const KNOWLEDGE_GRAPH_SCHEMA_VERSION = 1;
+export const KNOWLEDGE_GRAPH_MAX_NODES = 250;
+export const KNOWLEDGE_GRAPH_MAX_EDGES = 500;
+export const KNOWLEDGE_GRAPH_MAX_MARKER_DATA_LENGTH = 45_000;
 
 export const KNOWLEDGE_GRAPH_NODE_TYPES = Object.freeze([
   'requirement',
@@ -82,9 +85,7 @@ export function isCanonicalKnowledgeEdge(type) {
 }
 
 export function isAllowedKnowledgeTransition(type, fromKind, toKind) {
-  if (KNOWLEDGE_GRAPH_REFERENCE_EDGE_TYPES.includes(type)) {
-    return fromKind !== toKind || type !== 'supersedes';
-  }
+  if (KNOWLEDGE_GRAPH_REFERENCE_EDGE_TYPES.includes(type)) return true;
   return (KNOWLEDGE_GRAPH_ALLOWED_TRANSITIONS[type] ?? []).some(
     ([allowedFrom, allowedTo]) => allowedFrom === fromKind && allowedTo === toKind,
   );
