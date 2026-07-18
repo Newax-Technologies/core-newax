@@ -7,6 +7,6 @@ export function validateExecutiveDashboardSnapshot(input, snapshot) {
   const errors = [];
   if (snapshot?.schemaVersion !== EXECUTIVE_DASHBOARD_SCHEMA_VERSION) errors.push('Dashboard schema version is stale.');
   if (snapshot?.policyVersion !== EXECUTIVE_DASHBOARD_POLICY_VERSION) errors.push('Dashboard policy version is stale.');
-  if (stableDashboardStringify(snapshot) !== stableDashboardStringify(expected)) errors.push('Dashboard content must be recalculated.');
+  if (stableDashboardStringify(snapshot) !== stableDashboardStringify(expected)) errors.push('Dashboard snapshot does not match recalculated content.');
   return errors;
 }
