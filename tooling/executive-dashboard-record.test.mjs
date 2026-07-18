@@ -22,13 +22,13 @@ test('detects missing snapshot', () => {
   assert.match(validateExecutiveDashboardRecordPair(pair).join('\n'),/snapshot is missing/);
 });
 
-test('detects altered snapshot', () => {
+test('detects altered snapshot receipt', () => {
   const body = renderExecutiveDashboardSnapshotRecord('ED-3',input);
   const record = JSON.parse(body.match(/<!-- newax-executive-dashboard-snapshot\n([\s\S]*?)\n-->/)[1]);
-  record.snapshot.dataCoverage.percentage=100;
+  record.snapshotDigest='tampered';
   const [pair] = collectExecutiveDashboardRecords(
     { body: renderExecutiveDashboardInputRecord('ED-3',input) },
     [{ body:`<!-- newax-executive-dashboard-snapshot\n${JSON.stringify(record)}\n-->` }],
   );
-  assert.match(validateExecutiveDashboardRecordPair(pair).join('\n'),/recalculated/);
+  assert.match(validateExecutiveDashboardRecordPair(pair).join('\n'),/digest does not match/);
 });
