@@ -24,7 +24,13 @@ export function renderExecutiveDashboardInputRecord(recordId, input) {
 export function renderExecutiveDashboardSnapshotRecord(recordId, input) {
   if (!String(recordId ?? '').trim()) throw new TypeError('Dashboard record ID is required.');
   const snapshot = buildExecutiveDashboard(input);
-  const record = { recordId: String(recordId).trim(), snapshot };
+  const record = {
+    recordId: String(recordId).trim(),
+    schemaVersion: snapshot.schemaVersion,
+    policyVersion: snapshot.policyVersion,
+    inputDigest: snapshot.inputDigest,
+    snapshotDigest: snapshot.digest,
+  };
   return `<!-- ${SNAPSHOT_MARKER}\n${stableDashboardStringify(record, 2)}\n-->`;
 }
 
@@ -75,8 +81,16 @@ export function validateExecutiveDashboardRecordPair(pair) {
   if (snapshotRecord.recordId !== inputRecord.recordId) {
     errors.push('Dashboard snapshot recordId does not match its input record.');
   }
-  if (inputRecord?.input && snapshotRecord?.snapshot) {
-    errors.push(...validateExecutiveDashboardSnapshot(inputRecord.input, snapshotRecord.snapshot));
+  if (inputRecord?.input) {
+    const expected = buildExecutiveDashboard(inputRecord.input);
+    if (snapshotRecord.snapshot) {
+      errors.push(...validateExecutiveDashboardSnapshot(inputRecord.input, snapshotRecord.snapshot));
+    } else {
+      if (snapshotRecord.schemaVersion !== expected.schemaVersion) errors.push('Dashboard receipt schema version is stale.');
+      if (snapshotRecord.policyVersion !== expected.policyVersion) errors.push('Dashboard receipt policy version is stale.');
+      if (snapshotRecord.inputDigest !== expected.inputDigest) errors.push('Dashboard receipt input digest does not match.');
+      if (snapshotRecord.snapshotDigest !== expected.digest) errors.push('Dashboard receipt snapshot digest does not match.');
+    }
   }
   return errors;
 }
