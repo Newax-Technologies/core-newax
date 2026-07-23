@@ -224,7 +224,7 @@ describe('lead eligibility and ranking', () => {
     const selected = selectDailyLeadCohort([candidates[0]!, ...candidates], 10);
 
     expect(selected).toHaveLength(10);
-    expect(new Set(selected.map((item) => item.leadId).size).toBe(10));
+    expect(new Set(selected.map((item) => item.leadId)).size).toBe(10);
   });
 });
 
