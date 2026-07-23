@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AccessControlModule } from './access-control/access-control.module';
 import { AccountAccessModule } from './account-access/account-access.module';
+import { AddressesModule } from './addresses/addresses.module';
 import { AuthenticationHttpController } from './authentication-http/authentication-http.controller';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { validateEnvironment } from './config/environment';
@@ -30,6 +31,7 @@ import { UsersModule } from './users/users.module';
     OrganizationsModule,
     PeopleModule,
     ContactsModule,
+    AddressesModule,
     MembershipsModule,
     AccessControlModule,
     UsersModule,

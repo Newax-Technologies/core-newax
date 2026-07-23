@@ -1,7 +1,7 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.10",
+  "registry_version": "0.1.11",
   "registry_status": "draft",
   "last_updated": "2026-07-12",
   "owner": "NEWAX Engineering",
@@ -399,6 +399,42 @@
       "documentation_path": "packages/contacts/README.md",
       "changelog_path": "packages/contacts/CHANGELOG.md",
       "compatibility_notes": "The current implementation creates and reads organization contacts only. Person-contact visibility, update, removal, and verification require separate approved policies."
+    },
+    {
+      "module_name": "Addresses",
+      "module_key": "addresses",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "draft",
+      "module_owner": "NEWAX Engineering",
+      "description": "Maintains reusable canonical locations and permission-controlled Organization address links while keeping Person-address operations disabled.",
+      "dependencies": [
+        {
+          "module_key": "tenants",
+          "version": ">=0.1.0"
+        },
+        {
+          "module_key": "organizations",
+          "version": ">=0.2.0"
+        }
+      ],
+      "required_permissions": ["addresses.view", "addresses.create"],
+      "exposed_events": ["address.created"],
+      "consumed_events": [],
+      "configuration_options": [
+        "organization_address_type_values",
+        "address_normalization_policy",
+        "primary_address_policy"
+      ],
+      "database_ownership": [
+        "core_addresses",
+        "core_person_addresses",
+        "core_organization_addresses"
+      ],
+      "tenant_scope": "organization_scoped_with_global_canonical_records",
+      "documentation_path": "packages/addresses/README.md",
+      "changelog_path": "packages/addresses/CHANGELOG.md",
+      "compatibility_notes": "Organization address operations require trusted tenant_id and organization_id. Person-address creation, reads, search, and sharing remain disabled until a separate privacy policy is approved."
     },
     {
       "module_name": "Audit",

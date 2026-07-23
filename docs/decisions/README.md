@@ -51,10 +51,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0025](0025-build-organization-contacts-registry-foundation.md)       | Accepted | Establish permission-controlled organization email and phone contacts while deferring person-contact visibility until an explicit policy exists. |
 | [ADR 0026](0026-build-current-organization-contacts-http-api.md)          | Accepted | Expose bounded current-organization contact creation and listing through trusted context and explicit Contacts permissions.                      |
 | [ADR 0027](0027-separate-tenant-ownership-from-organizations.md)          | Accepted | Give every customer Tenant an independent ID and require Organizations, hierarchy, and relationships to remain inside that Tenant.               |
+| [ADR 0028](0028-build-organization-addresses-registry-foundation.md)      | Accepted | Build tenant-bound Organization address creation and listing while deferring Person-address visibility until explicit privacy policy exists.     |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than twenty-seven independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than twenty-eight independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -91,6 +92,7 @@ The ADRs form a deliberate sequence rather than twenty-seven independent opinion
 - ADR 0025 establishes organization-scoped contact creation and reads while deferring person-contact visibility, lifecycle, and verification policy.
 - ADR 0026 exposes those organization contact operations through strict trusted-context HTTP contracts without exposing registry internals.
 - ADR 0027 gives Tenant an independent customer identity and enforces same-Tenant Organization structure.
+- ADR 0028 establishes Organization addresses with canonical reuse, primary-address integrity, and an explicit Person-address privacy deferral.
 
 ### Implementation Baseline
 
