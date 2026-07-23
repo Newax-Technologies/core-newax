@@ -191,7 +191,7 @@ describe('lead eligibility and ranking', () => {
     const result = eligibility(['opted_out']);
 
     expect(result.eligible).toBe(false);
-    expect(result.preferredChannel).toBe('email');
+    expect(result.preferredChannel).toBeNull();
   });
 
   it('orders by score, freshness, profile update time, and stable lead id', () => {
