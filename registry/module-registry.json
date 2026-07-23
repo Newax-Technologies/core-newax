@@ -1,7 +1,7 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.13",
+  "registry_version": "0.1.14",
   "registry_status": "draft",
   "last_updated": "2026-07-14",
   "owner": "NEWAX Engineering",
@@ -469,38 +469,32 @@
       "module_key": "audit",
       "module_layer": "platform_service",
       "module_version": "0.1.0",
-      "module_status": "planned",
+      "module_status": "draft",
       "module_owner": "NEWAX Engineering",
-      "description": "Records important system, identity, permission, tenant, security, and administrative actions.",
+      "description": "Records validated trusted system and security actions with explicit global, Tenant, and Organization scope and exposes bounded current-Organization summaries.",
       "dependencies": [
         {
-          "module_key": "organizations",
+          "module_key": "tenants",
           "version": ">=0.1.0"
+        },
+        {
+          "module_key": "organizations",
+          "version": ">=0.2.0"
         },
         {
           "module_key": "users",
           "version": ">=0.1.0"
         }
       ],
-      "required_permissions": ["audit.view", "audit.export"],
-      "exposed_events": ["audit.entry_recorded"],
-      "consumed_events": [
-        "user.login",
-        "permission.changed",
-        "payment.approved",
-        "report.exported",
-        "admin.accessed_sensitive_data"
-      ],
-      "configuration_options": [
-        "audit_retention_policy",
-        "sensitive_event_categories",
-        "export_controls"
-      ],
+      "required_permissions": ["audit.view"],
+      "exposed_events": [],
+      "consumed_events": [],
+      "configuration_options": [],
       "database_ownership": ["core_audit_logs"],
-      "tenant_scope": "mixed_global_and_organization_scoped",
+      "tenant_scope": "mixed_global_tenant_and_organization_scoped",
       "documentation_path": "packages/audit/README.md",
       "changelog_path": "packages/audit/CHANGELOG.md",
-      "compatibility_notes": "Security-sensitive modules should publish auditable events without creating reverse dependencies on Audit."
+      "compatibility_notes": "This release centralizes validated trusted writes and permission-gated current-Organization summary reads. The HTTP Security package remains independent and is connected through an application adapter. Export, raw metadata and network-detail disclosure, snapshot policy, retention, event ingestion, and HTTP endpoints remain deferred."
     },
     {
       "module_name": "Files",
