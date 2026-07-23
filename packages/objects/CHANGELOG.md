@@ -1,5 +1,20 @@
 # Objects Changelog
 
+## 0.2.0 - 2026-07-14
+
+### Added
+
+- `GET /api/core/organizations/current/objects` for bounded current-Organization Object listing.
+- `POST /api/core/organizations/current/objects` for trusted current-Organization Object creation.
+- Strict query and JSON body allow-lists, minimized `no-store` responses, and stable HTTP error envelopes.
+
+### Security
+
+- Tenant and Organization authority remains derived only from trusted request context.
+- HTTP and package permission checks enforce `objects.view` and `objects.create`.
+- Responses exclude Tenant IDs, owning Organization IDs, and internal Object Type IDs.
+- Assignment, location, transfer, lifecycle, and global Object Type management HTTP operations remain deferred.
+
 ## 0.1.0 - 2026-07-13
 
 ### Added

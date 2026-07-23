@@ -14,6 +14,17 @@ The central Object record identifies the thing. Domain modules own specialized d
 - `addCurrentOrganizationObject`
 - `listCurrentOrganizationObjects`
 
+## HTTP application boundary
+
+The API application exposes:
+
+```text
+GET  /api/core/organizations/current/objects
+POST /api/core/organizations/current/objects
+```
+
+Both endpoints require trusted Organization context, enforce `objects.view` or `objects.create`, reject client-supplied Tenant and Organization authority, and return minimized `no-store` responses. Global Object Type registration is not exposed through this Organization-scoped HTTP contract.
+
 ## Ownership
 
 This initial foundation owns:
@@ -78,7 +89,6 @@ Application composition also uses the existing Database module.
 - Status transition policy.
 - Update, retirement, archive, restore, and deletion operations.
 - Search beyond bounded current-Organization listing.
-- HTTP endpoints.
 - Domain-specific attributes.
 
 Those capabilities require separate business rules rather than speculative generic fields.
