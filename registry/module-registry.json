@@ -1,9 +1,9 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.12",
+  "registry_version": "0.1.13",
   "registry_status": "draft",
-  "last_updated": "2026-07-13",
+  "last_updated": "2026-07-14",
   "owner": "NEWAX Engineering",
   "purpose": "Internal source of truth for planned, draft, active, deprecated, replaced, and archived NEWAX modules.",
   "governance": {
@@ -507,37 +507,32 @@
       "module_key": "files",
       "module_layer": "platform_service",
       "module_version": "0.1.0",
-      "module_status": "planned",
+      "module_status": "draft",
       "module_owner": "NEWAX Engineering",
-      "description": "Provides permission-controlled file metadata, storage contracts, validation, and access rules.",
+      "description": "Registers Tenant- and current-Organization-owned metadata for binary objects already stored by a trusted component without exposing storage locators.",
       "dependencies": [
         {
-          "module_key": "organizations",
+          "module_key": "tenants",
           "version": ">=0.1.0"
+        },
+        {
+          "module_key": "organizations",
+          "version": ">=0.2.0"
         },
         {
           "module_key": "users",
           "version": ">=0.1.0"
-        },
-        {
-          "module_key": "permissions",
-          "version": ">=0.1.0"
         }
       ],
-      "required_permissions": ["files.view", "files.upload", "files.download", "files.delete"],
-      "exposed_events": ["file.uploaded", "file.downloaded", "file.deleted"],
+      "required_permissions": ["files.register", "files.view"],
+      "exposed_events": ["file.registered"],
       "consumed_events": [],
-      "configuration_options": [
-        "allowed_file_types",
-        "maximum_file_size",
-        "storage_provider",
-        "file_retention_policy"
-      ],
+      "configuration_options": [],
       "database_ownership": ["core_files"],
-      "tenant_scope": "organization_scoped",
+      "tenant_scope": "tenant_and_current_organization_scoped",
       "documentation_path": "packages/files/README.md",
       "changelog_path": "packages/files/CHANGELOG.md",
-      "compatibility_notes": "Sensitive files must not be publicly accessible by default."
+      "compatibility_notes": "This release is metadata-only. Provider, storage key, checksum, and creator identity remain internal. Binary transfer, URLs, scanning, lifecycle operations, versions, Documents, and HTTP endpoints remain deferred."
     },
     {
       "module_name": "Notifications",
