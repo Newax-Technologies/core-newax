@@ -12,6 +12,7 @@ import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
 import { HttpSecurityModule } from './http-security/http-security.module';
 import { MembershipsModule } from './memberships/memberships.module';
+import { ObjectsModule } from './objects/objects.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { PeopleModule } from './people/people.module';
 import { RequestContextModule } from './request-context/request-context.module';
@@ -32,6 +33,7 @@ import { UsersModule } from './users/users.module';
     PeopleModule,
     ContactsModule,
     AddressesModule,
+    ObjectsModule,
     MembershipsModule,
     AccessControlModule,
     UsersModule,

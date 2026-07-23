@@ -20,6 +20,7 @@ model CoreTenant {
 
   organizations             CoreOrganization[]
   organizationRelationships CoreOrganizationRelationship[]
+  objects                   CoreObject[]
 
   @@index([status])
   @@index([name])
@@ -461,6 +462,7 @@ model CoreObjectType {
 
 model CoreObject {
   id                   String    @id @default(uuid()) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
   objectTypeId         String    @map("object_type_id") @db.Uuid
   owningOrganizationId String    @map("owning_organization_id") @db.Uuid
   parentObjectId       String?   @map("parent_object_id") @db.Uuid
@@ -473,16 +475,18 @@ model CoreObject {
   updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
 
+  tenant             CoreTenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   objectType         CoreObjectType         @relation(fields: [objectTypeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  owningOrganization CoreOrganization       @relation("ObjectOwningOrganization", fields: [owningOrganizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  parentObject       CoreObject?            @relation("ObjectHierarchy", fields: [parentObjectId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  owningOrganization CoreOrganization       @relation("ObjectOwningOrganization", fields: [tenantId, owningOrganizationId], references: [tenantId, id], onDelete: Restrict, onUpdate: Cascade)
+  parentObject       CoreObject?            @relation("ObjectHierarchy", fields: [tenantId, parentObjectId], references: [tenantId, id], onDelete: Restrict, onUpdate: Cascade)
   childObjects       CoreObject[]           @relation("ObjectHierarchy")
   assignments        CoreObjectAssignment[]
   objectAddresses    CoreObjectAddress[]
 
+  @@unique([tenantId, id])
   @@unique([owningOrganizationId, referenceCode])
-  @@index([objectTypeId, status])
-  @@index([parentObjectId])
+  @@index([tenantId, owningOrganizationId, objectTypeId, status])
+  @@index([tenantId, parentObjectId])
   @@map("core_objects")
 }
 
