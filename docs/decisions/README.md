@@ -49,10 +49,11 @@ ADRs are used for decisions with long-term impact on:
 | [ADR 0023](0023-build-current-organization-read-api.md)                   | Accepted | Expose a bounded current-organization profile derived only from trusted context and protected by `organizations.view`.                           |
 | [ADR 0024](0024-build-current-person-read-api.md)                         | Accepted | Expose a bounded authenticated self-profile derived only from trusted account context without granting organization-wide `people.view`.          |
 | [ADR 0025](0025-build-organization-contacts-registry-foundation.md)       | Accepted | Establish permission-controlled organization email and phone contacts while deferring person-contact visibility until an explicit policy exists. |
+| [ADR 0026](0026-build-current-organization-contacts-http-api.md)          | Accepted | Expose bounded current-organization contact creation and listing through trusted context and explicit Contacts permissions.                      |
 
 ## Decision Sequence
 
-The ADRs form a deliberate sequence rather than twenty-five independent opinions wandering around the repository unsupervised.
+The ADRs form a deliberate sequence rather than twenty-six independent opinions wandering around the repository unsupervised.
 
 ### Architecture Foundation
 
@@ -86,6 +87,7 @@ The ADRs form a deliberate sequence rather than twenty-five independent opinions
 - ADR 0023 exposes the first organization profile through trusted context without accepting client-supplied tenant authority or unrelated registry data.
 - ADR 0024 exposes the authenticated account's bounded person profile without client person selection or organization-wide People Registry authority.
 - ADR 0025 establishes organization-scoped contact creation and reads while deferring person-contact visibility, lifecycle, and verification policy.
+- ADR 0026 exposes those organization contact operations through strict trusted-context HTTP contracts without exposing registry internals.
 
 ### Implementation Baseline
 
