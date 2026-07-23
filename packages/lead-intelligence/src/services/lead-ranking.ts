@@ -51,17 +51,19 @@ function evaluateChannel(permission: ChannelPermission): ChannelEligibility {
 }
 
 export function evaluateLeadEligibility(input: LeadEligibilityInput): LeadEligibility {
+  const disqualifiers = [...new Set(input.disqualifiers)];
   const channels = input.channels.map(evaluateChannel);
-  const preferredChannel =
+  const preferredEligibleChannel =
     CHANNEL_PRIORITY.find((channel) =>
       channels.some((eligibility) => eligibility.channel === channel && eligibility.eligible),
     ) ?? null;
+  const eligible = disqualifiers.length === 0 && preferredEligibleChannel !== null;
 
   return {
-    eligible: input.disqualifiers.length === 0 && preferredChannel !== null,
-    disqualifiers: [...new Set(input.disqualifiers)],
+    eligible,
+    disqualifiers,
     channels,
-    preferredChannel,
+    preferredChannel: eligible ? preferredEligibleChannel : null,
   };
 }
 
