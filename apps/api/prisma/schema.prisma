@@ -10,8 +10,25 @@ datasource db {
   provider = "postgresql"
 }
 
+model CoreTenant {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @db.VarChar(255)
+  status    String    @default("active") @db.VarChar(32)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  organizations             CoreOrganization[]
+  organizationRelationships CoreOrganizationRelationship[]
+
+  @@index([status])
+  @@index([name])
+  @@map("core_tenants")
+}
+
 model CoreOrganization {
   id                   String    @id @default(uuid()) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
   parentOrganizationId String?   @map("parent_organization_id") @db.Uuid
   legalName            String    @map("legal_name") @db.VarChar(255)
   displayName          String    @map("display_name") @db.VarChar(255)
@@ -23,7 +40,8 @@ model CoreOrganization {
   updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  parentOrganization    CoreOrganization?               @relation("OrganizationHierarchy", fields: [parentOrganizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  tenant                CoreTenant                      @relation(fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  parentOrganization    CoreOrganization?               @relation("OrganizationHierarchy", fields: [tenantId, parentOrganizationId], references: [tenantId, id], onDelete: Restrict, onUpdate: Cascade)
   childOrganizations    CoreOrganization[]              @relation("OrganizationHierarchy")
   sourceRelationships   CoreOrganizationRelationship[]  @relation("OrganizationRelationshipSource")
   targetRelationships   CoreOrganizationRelationship[]  @relation("OrganizationRelationshipTarget")
@@ -36,14 +54,16 @@ model CoreOrganization {
   auditLogs             CoreAuditLog[]
   externalReferences    CoreExternalReference[]
 
-  @@index([parentOrganizationId])
-  @@index([organizationType, status])
-  @@index([displayName])
+  @@unique([tenantId, id])
+  @@index([tenantId, parentOrganizationId])
+  @@index([tenantId, organizationType, status])
+  @@index([tenantId, displayName])
   @@map("core_organizations")
 }
 
 model CoreOrganizationRelationship {
   id                   String    @id @default(uuid()) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
   sourceOrganizationId String    @map("source_organization_id") @db.Uuid
   targetOrganizationId String    @map("target_organization_id") @db.Uuid
   relationshipType     String    @map("relationship_type") @db.VarChar(64)
@@ -53,11 +73,12 @@ model CoreOrganizationRelationship {
   createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  sourceOrganization CoreOrganization @relation("OrganizationRelationshipSource", fields: [sourceOrganizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  targetOrganization CoreOrganization @relation("OrganizationRelationshipTarget", fields: [targetOrganizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  tenant             CoreTenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  sourceOrganization CoreOrganization @relation("OrganizationRelationshipSource", fields: [tenantId, sourceOrganizationId], references: [tenantId, id], onDelete: Restrict, onUpdate: Cascade)
+  targetOrganization CoreOrganization @relation("OrganizationRelationshipTarget", fields: [tenantId, targetOrganizationId], references: [tenantId, id], onDelete: Restrict, onUpdate: Cascade)
 
-  @@index([sourceOrganizationId, relationshipType, status])
-  @@index([targetOrganizationId, relationshipType, status])
+  @@index([tenantId, sourceOrganizationId, relationshipType, status])
+  @@index([tenantId, targetOrganizationId, relationshipType, status])
   @@map("core_organization_relationships")
 }
 

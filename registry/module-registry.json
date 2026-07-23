@@ -1,7 +1,7 @@
 {
   "registry_name": "NEWAX Module Registry",
   "registry_key": "newax-module-registry",
-  "registry_version": "0.1.9",
+  "registry_version": "0.1.10",
   "registry_status": "draft",
   "last_updated": "2026-07-12",
   "owner": "NEWAX Engineering",
@@ -15,6 +15,25 @@
     "important_note": "A registry entry tracks a module. It does not approve the module for production use. Only modules with active status and completed approval may be reused in client systems."
   },
   "modules": [
+    {
+      "module_name": "Tenants",
+      "module_key": "tenants",
+      "module_layer": "foundation",
+      "module_version": "0.1.0",
+      "module_status": "draft",
+      "module_owner": "NEWAX Engineering",
+      "description": "Maintains the customer ownership and data-isolation boundary independently from legal and operating organizations.",
+      "dependencies": [],
+      "required_permissions": ["tenants.view", "tenants.create"],
+      "exposed_events": ["tenant.created"],
+      "consumed_events": [],
+      "configuration_options": ["tenant_status_values"],
+      "database_ownership": ["core_tenants"],
+      "tenant_scope": "global_customer_boundary",
+      "documentation_path": "packages/tenants/README.md",
+      "changelog_path": "packages/tenants/CHANGELOG.md",
+      "compatibility_notes": "Licensing, deployment, support entitlement, data-region, retention, configuration, and organization records reference tenant_id. Tenant identity is not an organization record."
+    },
     {
       "module_name": "People",
       "module_key": "people",
@@ -51,11 +70,16 @@
       "module_name": "Organizations",
       "module_key": "organizations",
       "module_layer": "foundation",
-      "module_version": "0.1.0",
+      "module_version": "0.2.0",
       "module_status": "draft",
       "module_owner": "NEWAX Engineering",
-      "description": "Maintains client organizations, institutes, companies, branches, departments, and business units.",
-      "dependencies": [],
+      "description": "Maintains legal entities, companies, institutions, branches, departments, schools, hospitals, and business units inside one Tenant.",
+      "dependencies": [
+        {
+          "module_key": "tenants",
+          "version": ">=0.1.0"
+        }
+      ],
       "required_permissions": [
         "organizations.view",
         "organizations.create",
@@ -66,10 +90,10 @@
       "consumed_events": [],
       "configuration_options": ["organization_status_values", "organization_type_values"],
       "database_ownership": ["core_organizations", "core_organization_relationships"],
-      "tenant_scope": "foundation_tenant_context",
+      "tenant_scope": "tenant_scoped",
       "documentation_path": "packages/organizations/README.md",
       "changelog_path": "packages/organizations/CHANGELOG.md",
-      "compatibility_notes": "Provides the organization boundary used by tenant-scoped modules."
+      "compatibility_notes": "Every organization has one immutable tenant_id. Parent-child hierarchy and organization relationships cannot cross tenant boundaries."
     },
     {
       "module_name": "Memberships",
@@ -267,11 +291,15 @@
       "module_name": "Trusted Request Context",
       "module_key": "request-context",
       "module_layer": "platform_service",
-      "module_version": "0.1.0",
+      "module_version": "0.2.0",
       "module_status": "draft",
       "module_owner": "NEWAX Engineering",
-      "description": "Resolves tenant-safe execution context from authenticated sessions, active memberships, organizations, and effective permissions.",
+      "description": "Resolves tenant-safe execution context from authenticated sessions, active tenants, memberships, organizations, and effective permissions.",
       "dependencies": [
+        {
+          "module_key": "tenants",
+          "version": ">=0.1.0"
+        },
         {
           "module_key": "authentication",
           "version": ">=0.1.0"
@@ -294,10 +322,10 @@
         "permission_evaluation_policy"
       ],
       "database_ownership": [],
-      "tenant_scope": "authenticated_account_and_organization_scoped",
+      "tenant_scope": "authenticated_account_and_tenant_organization_scoped",
       "documentation_path": "packages/request-context/README.md",
       "changelog_path": "packages/request-context/CHANGELOG.md",
-      "compatibility_notes": "Clients may select a membership identifier only. User, person, organization, and permission authority must be derived from trusted server-side records."
+      "compatibility_notes": "Trusted organization context carries tenant_id and organization_id derived from server-side membership records. Client-declared tenant authority is never accepted."
     },
     {
       "module_name": "HTTP Security Boundary",

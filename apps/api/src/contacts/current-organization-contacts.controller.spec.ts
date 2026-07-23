@@ -23,6 +23,7 @@ const PERSON_ID = '00000000-0000-4000-8000-000000000002';
 const SESSION_ID = '00000000-0000-4000-8000-000000000003';
 const MEMBERSHIP_ID = '00000000-0000-4000-8000-000000000004';
 const ORGANIZATION_ID = '00000000-0000-4000-8000-000000000005';
+const TENANT_ID = '00000000-0000-4000-8000-000000000008';
 const CONTACT_ID = '00000000-0000-4000-8000-000000000006';
 const CONTACT_METHOD_ID = '00000000-0000-4000-8000-000000000007';
 
@@ -34,6 +35,7 @@ const CONTEXT: TrustedOrganizationRequestContext = {
   sessionId: SESSION_ID,
   sessionExpiresAt: new Date('2026-07-12T12:00:00.000Z'),
   membershipId: MEMBERSHIP_ID,
+  tenantId: TENANT_ID,
   organizationId: ORGANIZATION_ID,
   permissionCodes: new Set([CONTACT_PERMISSIONS.create, CONTACT_PERMISSIONS.view]),
   evaluatedAt: new Date('2026-07-12T10:00:00.000Z'),
@@ -128,6 +130,7 @@ describe('CurrentOrganizationContactsController', () => {
 
     expect(contacts.createContext).toEqual({
       actorUserId: USER_ID,
+      tenantId: TENANT_ID,
       organizationId: ORGANIZATION_ID,
       permissionCodes: CONTEXT.permissionCodes,
     });
@@ -170,6 +173,7 @@ describe('CurrentOrganizationContactsController', () => {
 
     expect(contacts.listContext).toEqual({
       actorUserId: USER_ID,
+      tenantId: TENANT_ID,
       organizationId: ORGANIZATION_ID,
       permissionCodes: CONTEXT.permissionCodes,
     });
