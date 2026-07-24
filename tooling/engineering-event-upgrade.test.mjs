@@ -4,8 +4,8 @@ import test from 'node:test';
 import { renderIssueBody } from './engineering-learning-core.mjs';
 import { upgradeEngineeringEvent } from './submit-engineering-event.mjs';
 
-test('upgrades queued schema-one events before root-cause rendering', () => {
-  const legacyEvent = {
+function legacyEvent() {
+  return {
     schemaVersion: 1,
     sourceType: 'local-command',
     sourceId: 'legacy-command-1',
@@ -33,22 +33,56 @@ test('upgrades queued schema-one events before root-cause rendering', () => {
     evidenceUrls: [],
     status: 'candidate',
   };
+}
 
-  const upgraded = upgradeEngineeringEvent(legacyEvent);
+test('upgrades schema-one events before root-cause and graph rendering', () => {
+  const upgraded = upgradeEngineeringEvent(legacyEvent());
   const body = renderIssueBody(upgraded);
 
-  assert.equal(upgraded.schemaVersion, 2);
+  assert.equal(upgraded.schemaVersion, 3);
   assert.equal(upgraded.rootCauseAssessment.status, 'candidate');
-  assert.equal(upgraded.rootCauseAssessment.selected.rootCauseId, legacyEvent.rootCauseId);
-  assert.match(body, /Upgraded from engineering event schema version 1/);
+  assert.equal(upgraded.rootCauseAssessment.selected.rootCauseId, legacyEvent().rootCauseId);
+  assert.deepEqual(upgraded.relationshipHints, []);
+  assert.deepEqual(upgraded.impacts, []);
+  assert.match(body, /relationship graph existed/);
   assert.match(body, /ROOT-UNCLASSIFIED-LOCAL_VERIFICATION/);
 });
 
-test('leaves current engineering events unchanged', () => {
-  const current = {
+test('upgrades schema-two events without changing their assessment', () => {
+  const assessment = { status: 'candidate' };
+  const upgraded = upgradeEngineeringEvent({
+    ...legacyEvent(),
     schemaVersion: 2,
-    rootCauseAssessment: { status: 'candidate' },
-  };
+    rootCauseAssessment: assessment,
+  });
 
-  assert.equal(upgradeEngineeringEvent(current), current);
+  assert.equal(upgraded.schemaVersion, 3);
+  assert.equal(upgraded.rootCauseAssessment, assessment);
+  assert.deepEqual(upgraded.relationshipHints, []);
+  assert.deepEqual(upgraded.impacts, []);
+});
+
+test('normalizes current relationship hints and impacts', () => {
+  const upgraded = upgradeEngineeringEvent({
+    ...legacyEvent(),
+    schemaVersion: 3,
+    rootCauseAssessment: { status: 'candidate' },
+    relationshipHints: [
+      {
+        parentRootCauseId: 'ROOT-DEPENDENCY-LOCKFILE-OUTDATED',
+        type: 'contributes-to',
+        status: 'confirmed',
+      },
+    ],
+    impacts: [
+      {
+        id: 'deployment-blocked',
+        kind: 'deployment-blocked',
+        label: 'Deployment blocked',
+      },
+    ],
+  });
+
+  assert.equal(upgraded.relationshipHints[0].referenceType, 'parentRootCauseId');
+  assert.equal(upgraded.impacts[0].id, 'deployment-blocked');
 });
