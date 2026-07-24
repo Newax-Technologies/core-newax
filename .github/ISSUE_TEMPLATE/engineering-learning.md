@@ -2,7 +2,7 @@
 name: Engineering Learning Intake
 description: Record engineering learning from failures with confirmed root
   causes, prevention controls, and verification evidence
-labels: ["engineering-learning"]
+labels: ['engineering-learning']
 ---
 
 <!-- newax-engineering-event
