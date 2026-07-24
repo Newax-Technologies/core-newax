@@ -1,4 +1,5 @@
 import { appendLocalEvent, createEngineeringEvent } from './engineering-learning-core.mjs';
+import { normalizeErrorImpacts, normalizeRelationshipHints } from './error-relationship-graph.mjs';
 import { applyExternalSourceClassification } from './external-event-classification.mjs';
 import { normalizeExternalFailurePayload } from './external-failure-intake.mjs';
 import { sanitizeEngineeringEvidence } from './sanitize-engineering-evidence.mjs';
@@ -19,6 +20,10 @@ export function createLearningEventFromExternalFailure(payload, options = {}) {
     sourceType: options.sourceType,
     now: options.now,
   });
+  const relationshipHints = normalizeRelationshipHints(
+    payload.relationshipHints ?? payload.relationship_hints ?? payload.relationships,
+  );
+  const impacts = normalizeErrorImpacts(payload.impacts);
   const logText = [normalized.summary, normalized.details].filter(Boolean).join('\n');
   const workflowName = `External intake: ${normalized.sourceType}`;
   const jobName = createContextLabel(normalized) || 'unknown environment';
@@ -42,6 +47,8 @@ export function createLearningEventFromExternalFailure(payload, options = {}) {
 
   return {
     ...applyExternalSourceClassification(baseEvent, normalized.sourceType, logText),
+    relationshipHints,
+    impacts,
     externalContext: {
       component: sanitizeContextValue(normalized.component),
       environment: normalized.environment,
