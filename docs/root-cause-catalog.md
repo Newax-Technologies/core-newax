@@ -1,11 +1,13 @@
 # NEWAX Root Cause Catalog
 
 ## Format
+
 Each root cause entry identifies a confirmed failure pattern with its unique identifier, description, and applicable ledger entries.
 
 ---
 
 ## ROOT-GOVERNANCE-MANUAL-LEARNING-OUTCOME
+
 **Description:** Pull-request governance allowed authors to select `Learning outcome: none` and contradicted that choice only after limited failure evidence became visible. The learning requirement was author-controlled instead of derived from pull-request diff and reconciled evidence.
 
 **Affected Systems:** Engineering Learning System, Pull Request Governance
@@ -21,6 +23,7 @@ Each root cause entry identifies a confirmed failure pattern with its unique ide
 ---
 
 ## ROOT-ENGINEERING-QUALITY-REDUCED-TO-MISTAKE-COUNT
+
 **Description:** Executive engineering reporting lacked a versioned, source-backed operational view and could collapse engineering quality into a simple mistake count without formulas, denominators, coverage, freshness, or evidence status.
 
 **Affected Systems:** Executive Dashboard, Engineering Intelligence
@@ -36,6 +39,7 @@ Each root cause entry identifies a confirmed failure pattern with its unique ide
 ---
 
 ## ROOT-GITHUB-DECLARED-ACTION-DIFFERS-FROM-INVOKED-ACTION
+
 **Description:** The intended full governance record was not reflected in the actual stored PR description. The PR contained a short summary while the trusted validator required the complete structured record, so the declared target state and invoked metadata state differed.
 
 **Affected Systems:** Pull Request Governance, GitHub Metadata
@@ -51,6 +55,7 @@ Each root cause entry identifies a confirmed failure pattern with its unique ide
 ---
 
 ## ROOT-FORMATTING-NOT-APPLIED
+
 **Description:** The source state was pushed without first applying and reviewing the repository's exact Prettier configuration, so `pnpm format:check` found code-style differences before substantive verification could continue.
 
 **Affected Systems:** Code Formatting, CI/CD Pipeline
